@@ -30,10 +30,16 @@ export function LogoutButton() {
   return (
     <button
       onClick={handleLogout}
-      className="flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium transition"
-      style={{ border: "1px solid #fecdd3", color: "#e11d48", background: "#fff1f2" }}
-      onMouseEnter={(e) => (e.currentTarget.style.background = "#ffe4e6")}
-      onMouseLeave={(e) => (e.currentTarget.style.background = "#fff1f2")}
+      className="flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition cursor-pointer hover:shadow-[0_0_8px_rgba(244,63,94,0.15)]"
+      style={{ border: "1px solid rgba(244,63,94,0.3)", color: "#fb7185", background: "rgba(244,63,94,0.08)" }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.background = "rgba(244,63,94,0.15)";
+        e.currentTarget.style.borderColor = "rgba(244,63,94,0.45)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = "rgba(244,63,94,0.08)";
+        e.currentTarget.style.borderColor = "rgba(244,63,94,0.3)";
+      }}
     >
       <LogOut className="h-3.5 w-3.5" />
       <span className="hidden sm:inline">Sign out</span>

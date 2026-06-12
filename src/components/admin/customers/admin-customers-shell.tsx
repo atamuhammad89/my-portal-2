@@ -74,17 +74,19 @@ export function AdminCustomersShell() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search name, email, or tenant ID…"
-              className="w-full rounded-xl border border-slate-200 bg-white pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              className="w-full rounded-xl border pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-cyan/30"
+              style={{ background: "var(--surface)", borderColor: "var(--border)", color: "#fff" }}
             />
           </div>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            className="rounded-xl border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-cyan/30 cursor-pointer"
+            style={{ background: "var(--surface)", borderColor: "var(--border)", color: "#fff" }}
           >
-            <option value="all">All Statuses</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
+            <option value="all" className="bg-[var(--surface-2)]">All Statuses</option>
+            <option value="active" className="bg-[var(--surface-2)]">Active</option>
+            <option value="inactive" className="bg-[var(--surface-2)]">Inactive</option>
           </select>
         </div>
 
@@ -105,7 +107,7 @@ export function AdminCustomersShell() {
                 key: "fullName",
                 label: "Name",
                 render: (v) => (
-                  <span className="font-medium text-slate-900">
+                  <span className="font-semibold text-white">
                     {String(v)}
                   </span>
                 ),
@@ -115,7 +117,7 @@ export function AdminCustomersShell() {
                 key: "role",
                 label: "Role",
                 render: (v) => (
-                  <span className="inline-block rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-indigo-50 text-indigo-600">
+                  <span className="inline-block rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-brand-cyan/10 text-brand-cyan border border-brand-cyan/25">
                     {String(v)}
                   </span>
                 ),
@@ -141,7 +143,8 @@ export function AdminCustomersShell() {
                 render: (v) => (
                   <button
                     onClick={() => setEditingCustomer(v as AdminCustomer)}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-700 transition-colors"
+                    className="inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-[var(--surface)] hover:text-brand-cyan hover:border-brand-cyan/30 cursor-pointer"
+                    style={{ background: "var(--surface-2)", borderColor: "var(--border)", color: "var(--muted-text)" }}
                   >
                     <Pencil className="h-3 w-3" />
                     Edit

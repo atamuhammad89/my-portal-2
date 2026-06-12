@@ -16,17 +16,18 @@ export function ModalDrawerShell({ title, open, onClose, children }: ModalDrawer
     <div className="fixed inset-0 z-50 flex justify-end">
       {/* Clickable Backdrop Overlay */}
       <div
-        className="absolute inset-0 bg-slate-900/55 backdrop-blur-xs transition-opacity duration-300"
+        className="absolute inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity duration-300"
         onClick={onClose}
       />
 
-      <aside className="relative z-10 flex h-full w-full max-w-md flex-col bg-white shadow-2xl transition-transform duration-300">
-        <div className="flex shrink-0 items-center justify-between border-b border-slate-100 p-5">
-          <h3 className="text-base font-semibold text-slate-900">{title}</h3>
+      <aside className="relative z-10 flex h-full w-full max-w-md flex-col shadow-2xl transition-transform duration-300 border-l"
+             style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
+        <div className="flex shrink-0 items-center justify-between border-b p-5" style={{ borderColor: "var(--border)" }}>
+          <h3 className="text-base font-bold text-white" style={{ color: "#ffffff" }}>{title}</h3>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition cursor-pointer"
+            className="rounded-lg border border-[var(--border)] bg-[var(--surface-2)] text-[var(--muted-text)] px-3 py-1.5 text-xs font-semibold transition cursor-pointer hover:bg-white hover:text-black hover:border-white"
           >
             Close
           </button>

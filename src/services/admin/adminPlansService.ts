@@ -1,3 +1,5 @@
+import { apiClient } from "@/lib/api-client";
+
 export type AdminPlan = {
   id: string;
   name: string;
@@ -18,33 +20,21 @@ export type AdminPlanInput = Omit<AdminPlan, "id" | "created_at" | "updated_at">
 
 export const adminPlansService = {
   async getPlans(): Promise<AdminPlan[]> {
-    const res = await fetch("/api/admin/plans");
-    if (!res.ok) throw new Error("Failed to fetch plans.");
-    return res.json();
+    const res = await apiClient.get<AdminPlan[]>("/admin/plans");
+    return res.data;
   },
 
   async createPlan(input: AdminPlanInput): Promise<AdminPlan> {
-    const res = await fetch("/api/admin/plans", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(input),
-    });
-    if (!res.ok) throw new Error("Failed to create plan.");
-    return res.json();
+    const res = await apiClient.post<AdminPlan>("/admin/plans", input);
+    return res.data;
   },
 
   async updatePlan(planId: string, input: Partial<AdminPlanInput>): Promise<AdminPlan> {
-    const res = await fetch(`/api/admin/plans/${planId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(input),
-    });
-    if (!res.ok) throw new Error("Failed to update plan.");
-    return res.json();
+    const res = await apiClient.patch<AdminPlan>(`/admin/plans/${planId}`, input);
+    return res.data;
   },
 
   async deletePlan(planId: string): Promise<void> {
-    const res = await fetch(`/api/admin/plans/${planId}`, { method: "DELETE" });
-    if (!res.ok) throw new Error("Failed to delete plan.");
+    await apiClient.delete(`/admin/plans/${planId}`);
   },
 };

@@ -14,7 +14,7 @@ import { CallLog, CallStatus } from "@/types/call-log";
 import { formatDuration } from "@/utils/format";
 import { parseDateSafe } from "@/utils/timezone";
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 15;
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -161,7 +161,7 @@ function AudioPlayer({ url }: { url: string }) {
   }
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+    <div className="rounded-xl border p-4" style={{ background: "var(--surface-2)", borderColor: "var(--border)" }}>
       <audio
         ref={audioRef}
         src={url}
@@ -184,7 +184,8 @@ function AudioPlayer({ url }: { url: string }) {
         <button
           type="button"
           onClick={toggle}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-900 text-white shadow transition hover:bg-slate-700 active:scale-95"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-black shadow transition active:scale-95 cursor-pointer hover:shadow-[0_0_10px_rgba(0,240,255,0.4)]"
+          style={{ background: "var(--brand-500)" }}
         >
           {playing ? (
             <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
@@ -212,9 +213,9 @@ function AudioPlayer({ url }: { url: string }) {
               setCurrentTime(t);
               setProgress(Number(e.target.value));
             }}
-            className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-slate-200 accent-slate-900"
+            className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-slate-800 accent-[var(--brand-500)]"
           />
-          <div className="flex justify-between text-xs text-slate-500">
+          <div className="flex justify-between text-xs text-slate-400">
             <span>{fmtTime(currentTime)}</span>
             <span>{fmtTime(duration)}</span>
           </div>
@@ -226,7 +227,8 @@ function AudioPlayer({ url }: { url: string }) {
           target="_blank"
           rel="noreferrer"
           title="Download MP3"
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 transition"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition cursor-pointer"
+          style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--muted-text)" }}
         >
           <svg
             width="13"
@@ -288,9 +290,10 @@ function CallDetailDrawer({
           {metaItems.map(({ label, value, badge }) => (
             <div
               key={label}
-              className="rounded-lg border border-slate-100 bg-slate-50 p-3"
+              className="rounded-lg border p-3"
+              style={{ background: "var(--surface-2)", borderColor: "var(--border)" }}
             >
-              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-[var(--subtle-text)]">
                 {label}
               </p>
               {badge ? (
@@ -299,7 +302,7 @@ function CallDetailDrawer({
                   variant={getStatusVariant(badge)}
                 />
               ) : (
-                <p className="truncate font-medium text-slate-800">
+                <p className="truncate font-semibold text-white">
                   {value ?? "—"}
                 </p>
               )}
@@ -308,42 +311,42 @@ function CallDetailDrawer({
         </div>
 
         <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
             Recording
           </p>
           {log.recordingUrl ? (
             <AudioPlayer url={log.recordingUrl} />
           ) : (
-            <div className="rounded-xl border border-dashed border-slate-200 py-6 text-center text-xs text-slate-400">
+            <div className="rounded-xl border border-dashed py-6 text-center text-xs text-[var(--muted-text)]" style={{ borderColor: "var(--border)", background: "var(--surface-2)" }}>
               No recording available for this call
             </div>
           )}
         </div>
 
         <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
             Sentiment Analysis
           </p>
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-2">
               {sentiment ? (
                 <span
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-medium ${sentiment.color}`}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-semibold ${sentiment.color}`}
                 >
                   <span>{sentiment.emoji}</span>
                   <span>{sentiment.label}</span>
                 </span>
               ) : (
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-500">
+                <span className="rounded-full border px-3 py-1 text-xs text-[var(--muted-text)]" style={{ background: "var(--surface-2)", borderColor: "var(--border)" }}>
                   No sentiment data
                 </span>
               )}
               {log.isSuccessful !== null && (
                 <span
-                  className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                  className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold border ${
                     log.isSuccessful
-                      ? "bg-emerald-50 text-emerald-700"
-                      : "bg-rose-50 text-rose-700"
+                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                      : "bg-rose-500/10 text-rose-400 border-rose-500/20"
                   }`}
                 >
                   {log.isSuccessful ? "✓ Successful" : "✗ Unsuccessful"}
@@ -351,21 +354,21 @@ function CallDetailDrawer({
               )}
             </div>
             {log.callInfo && (
-              <div className="rounded-lg border border-blue-100 bg-blue-50 p-3">
-                <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-blue-400">
+              <div className="rounded-lg border p-3" style={{ background: "rgba(0, 240, 255, 0.05)", borderColor: "rgba(0, 240, 255, 0.15)" }}>
+                <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-brand-cyan">
                   Call Summary
                 </p>
-                <p className="text-xs leading-relaxed text-blue-800">
+                <p className="text-xs leading-relaxed text-slate-300">
                   {log.callInfo}
                 </p>
               </div>
             )}
             {transcriptSnippet && (
-              <div className="rounded-lg border border-slate-100 bg-slate-50 p-3">
-                <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
+              <div className="rounded-lg border p-3" style={{ background: "var(--surface-2)", borderColor: "var(--border)" }}>
+                <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-[var(--subtle-text)]">
                   Transcript Preview
                 </p>
-                <p className="whitespace-pre-wrap text-xs leading-relaxed text-slate-700">
+                <p className="whitespace-pre-wrap text-xs leading-relaxed text-slate-300">
                   {transcriptSnippet}
                 </p>
               </div>
@@ -465,15 +468,17 @@ export function CallLogsShell() {
 
       {/* Filter Bar */}
       <div
-        className="rounded-2xl bg-white p-4"
+        className="rounded-2xl p-4"
         style={{
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
           boxShadow: "var(--shadow-sm)",
-          border: "1px solid var(--border-light)",
         }}
       >
         <div className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-end">
           {/* Search */}
-          <div className="flex min-w-[200px] flex-1 items-center gap-2 rounded-lg border bg-slate-50 px-3 py-2">
+          <div className="flex min-w-[200px] flex-1 items-center gap-2 rounded-xl border px-3 py-2"
+               style={{ background: "var(--surface-2)", borderColor: "var(--border)" }}>
             <svg
               width="14"
               height="14"
@@ -493,7 +498,7 @@ export function CallLogsShell() {
                 setQuery(e.target.value);
               }}
               placeholder="Search by number…"
-              className="w-full bg-transparent text-sm outline-none placeholder:text-slate-400"
+              className="w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-400"
             />
             {query && (
               <button
@@ -502,7 +507,7 @@ export function CallLogsShell() {
                   resetPage();
                   setQuery("");
                 }}
-                className="text-slate-400 hover:text-slate-700"
+                className="text-slate-400 hover:text-white cursor-pointer"
               >
                 <svg
                   width="12"
@@ -528,14 +533,14 @@ export function CallLogsShell() {
             className="rounded-xl px-3 py-2 text-sm font-medium cursor-pointer"
             style={{
               border: "1px solid var(--border)",
-              color: "#374151",
-              background: "#f5f3ff",
+              color: "#fff",
+              background: "var(--surface-2)",
             }}
           >
-            <option value="all">All Statuses</option>
-            <option value="passed">Passed</option>
-            <option value="failed">Failed</option>
-            <option value="missed">Missed</option>
+            <option value="all" className="bg-[var(--surface)] text-white">All Statuses</option>
+            <option value="passed" className="bg-[var(--surface)] text-white">Passed</option>
+            <option value="failed" className="bg-[var(--surface)] text-white">Failed</option>
+            <option value="missed" className="bg-[var(--surface)] text-white">Missed</option>
           </select>
 
           {/* Date preset */}
@@ -548,18 +553,18 @@ export function CallLogsShell() {
             className="rounded-xl px-3 py-2 text-sm font-medium cursor-pointer"
             style={{
               border: "1px solid var(--border)",
-              color: "#374151",
-              background: "#f5f3ff",
+              color: "#fff",
+              background: "var(--surface-2)",
             }}
           >
-            <option value="all">All Dates</option>
-            <option value="today">Today</option>
-            <option value="last_7">Last 7 Days</option>
-            <option value="this_week">This Week</option>
-            <option value="this_month">This Month</option>
-            <option value="last_month">Last Month</option>
-            <option value="last_30">Last 30 Days</option>
-            <option value="custom">Custom Range…</option>
+            <option value="all" className="bg-[var(--surface)] text-white">All Dates</option>
+            <option value="today" className="bg-[var(--surface)] text-white">Today</option>
+            <option value="last_7" className="bg-[var(--surface)] text-white">Last 7 Days</option>
+            <option value="this_week" className="bg-[var(--surface)] text-white">This Week</option>
+            <option value="this_month" className="bg-[var(--surface)] text-white">This Month</option>
+            <option value="last_month" className="bg-[var(--surface)] text-white">Last Month</option>
+            <option value="last_30" className="bg-[var(--surface)] text-white">Last 30 Days</option>
+            <option value="custom" className="bg-[var(--surface)] text-white">Custom Range…</option>
           </select>
 
           {/* Sort order */}
@@ -572,12 +577,12 @@ export function CallLogsShell() {
             className="rounded-xl px-3 py-2 text-sm font-medium cursor-pointer"
             style={{
               border: "1px solid var(--border)",
-              color: "#374151",
-              background: "#f5f3ff",
+              color: "#fff",
+              background: "var(--surface-2)",
             }}
           >
-            <option value="newest">↓ Newest First</option>
-            <option value="oldest">↑ Oldest First</option>
+            <option value="newest" className="bg-[var(--surface)] text-white">↓ Newest First</option>
+            <option value="oldest" className="bg-[var(--surface)] text-white">↑ Oldest First</option>
           </select>
 
           {/* Custom range pickers */}
@@ -590,7 +595,8 @@ export function CallLogsShell() {
                   resetPage();
                   setCustomFrom(e.target.value);
                 }}
-                className="rounded-lg border bg-slate-50 px-3 py-2 text-sm text-slate-700"
+                className="rounded-lg border px-3 py-2 text-sm text-white cursor-pointer"
+                style={{ background: "var(--surface-2)", borderColor: "var(--border)" }}
               />
               <span className="text-xs text-slate-400">to</span>
               <input
@@ -600,14 +606,16 @@ export function CallLogsShell() {
                   resetPage();
                   setCustomTo(e.target.value);
                 }}
-                className="rounded-lg border bg-slate-50 px-3 py-2 text-sm text-slate-700"
+                className="rounded-lg border px-3 py-2 text-sm text-white cursor-pointer"
+                style={{ background: "var(--surface-2)", borderColor: "var(--border)" }}
               />
             </div>
           )}
 
           {/* Active date range chip */}
           {effectiveDateRange.from && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">
+            <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs border"
+                  style={{ background: "var(--surface-2)", borderColor: "var(--border)", color: "var(--muted-text)" }}>
               <svg
                 width="10"
                 height="10"
@@ -699,10 +707,7 @@ export function CallLogsShell() {
                 <button
                   type="button"
                   onClick={() => setSelectedLog(row)}
-                  className="rounded-lg px-3 py-1 text-xs font-semibold text-white transition active:scale-95"
-                  style={{
-                    background: "linear-gradient(135deg,#6366f1,#8b5cf6)",
-                  }}
+                  className="rounded-lg px-3 py-1 text-xs font-bold text-black bg-[var(--brand-500)] transition active:scale-95 hover:bg-white hover:text-black cursor-pointer hover:shadow-[0_0_10px_rgba(0,240,255,0.35)]"
                 >
                   View Details
                 </button>

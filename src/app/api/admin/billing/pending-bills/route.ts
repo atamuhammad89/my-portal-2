@@ -1,8 +1,13 @@
 // src/app/api/admin/billing/pending-bills/route.ts
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { verifyRequestJwt, requireRole } from "@/lib/jwt-auth";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const jwt = await verifyRequestJwt(req);
+  if (!requireRole(jwt, ["super_admin", "finance"])) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
   const supabase = createServerSupabaseClient();
 
   // ── 1. Load all pending_overage_invoices from DB (source of truth) ─────────
@@ -43,27 +48,7 @@ export async function GET() {
   const subsMap: Record<string, any> = {};
   (subs ?? []).forEach((s: any) => { subsMap[s.id] = s; });
 
-  // ── 3. Update pending invoices where sub is active and usage has changed ───
-  for (const inv of invoices) {
-    const sub = subsMap[inv.subscription_id];
-    if (!sub || sub.status !== "active") continue;
-
-    const used = Number(sub.minutes_used ?? 0);
-    const total = Number(sub.total_minutes_snapshot ?? 0);
-    const ppm = Number(inv.price_per_minute ?? 0);
-    const newOverageMin = Math.max(0, used - total);
-    const newOverageAmount = parseFloat((newOverageMin * ppm).toFixed(4));
-
-    if (newOverageMin !== Number(inv.overage_minutes)) {
-      await supabase
-        .from("pending_overage_invoices")
-        .update({ overage_minutes: newOverageMin, overage_amount: newOverageAmount })
-        .eq("id", inv.id);
-      // Update local copy too
-      inv.overage_minutes = newOverageMin;
-      inv.overage_amount = newOverageAmount;
-    }
-  }
+  // ── 3. Skip real-time DB updating, let database trigger handle usage updates ───
 
   // ── 4. Fetch user details ─────────────────────────────────────────────────
   const userIds = [...new Set(invoices.map((i: any) => i.user_id as string))];

@@ -57,29 +57,29 @@ export function AdminSidebar() {
           "fixed inset-y-0 left-0 z-50 flex w-64 flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:z-auto lg:flex shrink-0",
           adminSidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
-        style={{ background: "linear-gradient(180deg, #1e1b4b 0%, #312e81 100%)", minHeight: "100vh" }}
+        style={{ background: "var(--sidebar-bg)", minHeight: "100vh", borderRight: "1px solid var(--border)" }}
       >
         {/* Logo and Close Button */}
-        <div className="flex h-16 items-center justify-between gap-2.5 px-6 border-b border-white/10">
+        <div className="flex h-16 items-center justify-between gap-2.5 px-6 border-b border-white/5">
           <div className="flex items-center gap-2.5">
             <div
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-white text-sm font-bold flex-shrink-0"
-              style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)" }}
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-white text-xs font-bold border border-brand-cyan/35 flex-shrink-0"
+              style={{ background: "rgba(0, 240, 255, 0.1)", boxShadow: "0 0 10px rgba(0, 240, 255, 0.15)" }}
             >
-              <ShieldCheck className="h-4 w-4" />
+              <ShieldCheck className="h-4 w-4 text-[var(--brand-500)]" />
             </div>
             <span
-              className="text-base font-semibold text-white tracking-tight"
+              className="text-base font-bold text-white tracking-wider uppercase"
               style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
             >
-              Admin Panel
+              Admin<span className="text-[var(--brand-500)]">Panel</span>
             </span>
           </div>
 
           {/* Close button for mobile */}
           <button
             onClick={() => setAdminSidebarOpen(false)}
-            className="rounded-lg p-1 text-slate-300 hover:bg-white/10 hover:text-white lg:hidden cursor-pointer"
+            className="rounded-lg p-1 text-slate-400 hover:bg-white/5 hover:text-white lg:hidden cursor-pointer"
             aria-label="Close menu"
           >
             <X className="h-5 w-5" />
@@ -90,7 +90,7 @@ export function AdminSidebar() {
         <nav className="flex-1 space-y-1 px-3 py-4">
           <p
             className="px-3 mb-2 text-xs font-semibold uppercase tracking-widest"
-            style={{ color: "rgba(199,210,254,0.45)" }}
+            style={{ color: "var(--subtle-text)" }}
           >
             Management
           </p>
@@ -105,19 +105,19 @@ export function AdminSidebar() {
                   href={item.href}
                   onClick={() => setAdminSidebarOpen(false)} // Close sidebar on link click (mobile)
                   className={cn(
-                    "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150",
-                    active ? "text-white shadow-md" : "hover:bg-white/10"
+                    "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 relative group",
+                    active ? "text-[var(--brand-500)]" : "text-slate-400 hover:text-white hover:bg-white/5"
                   )}
                   style={
                     active
-                      ? { background: "linear-gradient(135deg, #6366f1, #818cf8)", color: "#fff" }
-                      : { color: "rgba(199,210,254,0.8)" }
+                      ? { background: "var(--sidebar-active-bg)", borderLeft: "2px solid var(--brand-500)", borderTopLeftRadius: "0px", borderBottomLeftRadius: "0px" }
+                      : {}
                   }
                 >
-                  <Icon className="h-4 w-4 shrink-0" />
+                  <Icon className={cn("h-4 w-4 shrink-0 transition-transform group-hover:scale-110", active ? "text-[var(--brand-500)]" : "text-slate-400 group-hover:text-white")} />
                   <span>{item.label}</span>
                   {active && (
-                    <span className="ml-auto h-1.5 w-1.5 rounded-full bg-white/70" />
+                    <span className="ml-auto h-1.5 w-1.5 rounded-full bg-[var(--brand-500)]" style={{ boxShadow: "0 0 6px var(--brand-500)" }} />
                   )}
                 </Link>
               );
@@ -125,10 +125,10 @@ export function AdminSidebar() {
         </nav>
 
         {/* Footer brand */}
-        <div className="px-6 py-4 border-t border-white/10">
-          <p className="text-xs" style={{ color: "rgba(199,210,254,0.4)" }}>
+        <div className="px-6 py-4 border-t border-white/5">
+          <p className="text-xs" style={{ color: "var(--subtle-text)" }}>
             Powered by{" "}
-            <span className="font-semibold" style={{ color: "rgba(199,210,254,0.7)" }}>
+            <span className="font-semibold" style={{ color: "var(--muted-text)" }}>
               CallAutomate
             </span>
           </p>

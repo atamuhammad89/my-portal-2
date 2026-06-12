@@ -61,14 +61,14 @@ export default function PricingPage() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--background)", fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: "radial-gradient(circle at top, rgba(0,240,255,0.08), transparent 35%), var(--background)", fontFamily: "'DM Sans', sans-serif" }}>
 
       {/* Top nav */}
       <header style={{
         position: "sticky", top: 0, zIndex: 50,
-        background: "rgba(255,255,255,0.85)",
+        background: "rgba(6, 9, 19, 0.85)",
         backdropFilter: "blur(16px)",
-        borderBottom: "1px solid var(--border-light)",
+        borderBottom: "1px solid var(--border)",
         padding: "0 2rem",
         height: "64px",
         display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -78,22 +78,30 @@ export default function PricingPage() {
             width: 32, height: 32, borderRadius: 10,
             background: "linear-gradient(135deg, var(--brand-500), var(--brand-700))",
             display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 0 12px rgba(0,240,255,0.3)",
           }}>
-            <Phone size={16} color="white" />
+            <Phone size={16} color="#060913" />
           </div>
-          <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 700, fontSize: 18, color: "var(--foreground)" }}>
+          <span style={{
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+            fontWeight: 700, fontSize: 18,
+            color: "var(--brand-500)",
+            textShadow: "0 0 20px rgba(0,240,255,0.35)",
+          }}>
             CallAutomate
           </span>
         </div>
         <Link href="/auth/login" style={{
           display: "inline-flex", alignItems: "center", gap: 8,
-          background: "var(--foreground)",
-          color: "white",
+          background: "var(--brand-500)",
+          color: "#060913",
           padding: "9px 20px",
           borderRadius: 10,
-          fontSize: 14, fontWeight: 600,
+          fontSize: 14, fontWeight: 700,
           textDecoration: "none",
-          transition: "opacity 0.2s",
+          fontFamily: "'Plus Jakarta Sans', sans-serif",
+          boxShadow: "0 0 16px rgba(0,240,255,0.2)",
+          transition: "box-shadow 0.2s",
         }}>
           <LogIn size={15} />
           Sign In
@@ -101,36 +109,36 @@ export default function PricingPage() {
       </header>
 
       {/* Hero */}
-      <div style={{ position: "relative", overflow: "hidden", paddingTop: "80px", paddingBottom: "60px", textAlign: "center" }}>
+      <div style={{ position: "relative", overflow: "hidden", paddingTop: "120px", paddingBottom: "90px", textAlign: "center" }}>
         <div style={{
           position: "absolute", inset: 0, zIndex: 0,
-          background: "radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99,102,241,0.12) 0%, transparent 70%)",
+          background: "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0,240,255,0.1) 0%, transparent 70%)",
           pointerEvents: "none",
         }} />
         <div style={{
           position: "absolute", top: 40, left: "10%",
           width: 300, height: 300, borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(99,102,241,0.06) 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(0,240,255,0.07) 0%, transparent 70%)",
           filter: "blur(40px)", pointerEvents: "none",
         }} />
         <div style={{
           position: "absolute", top: 0, right: "8%",
           width: 250, height: 250, borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(139,92,246,0.07) 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(56,189,248,0.06) 0%, transparent 70%)",
           filter: "blur(40px)", pointerEvents: "none",
         }} />
 
-        <div style={{ position: "relative", zIndex: 1, maxWidth: 640, margin: "0 auto", padding: "0 1.5rem" }}>
+        <div style={{ position: "relative", zIndex: 1, maxWidth: 820, margin: "0 auto", padding: "0 1.5rem" }}>
           <div style={{
             display: "inline-flex", alignItems: "center", gap: 6,
-            background: "var(--brand-50)",
+            background: "var(--brand-100)",
             border: "1px solid var(--brand-200)",
             borderRadius: 100,
             padding: "6px 16px",
             marginBottom: 28,
           }}>
             <Zap size={13} color="var(--brand-500)" fill="var(--brand-500)" />
-            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--brand-600)" }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--brand-500)" }}>
               AI-Powered Call Automation
             </span>
           </div>
@@ -146,9 +154,11 @@ export default function PricingPage() {
           }}>
             The right plan for{" "}
             <span style={{
-              background: "linear-gradient(135deg, var(--brand-500) 0%, #8b5cf6 100%)",
+              background: "linear-gradient(135deg, var(--brand-500) 0%, var(--brand-400) 100%)",
               WebkitBackgroundClip: "text",
+              color: "var(--brand-500)",
               WebkitTextFillColor: "transparent",
+              filter: "drop-shadow(0 0 20px rgba(0,240,255,0.3))",
             }}>
               every team
             </span>
@@ -170,14 +180,14 @@ export default function PricingPage() {
       {/* Stats bar */}
       <div style={{ maxWidth: 700, margin: "0 auto 56px", padding: "0 1.5rem" }}>
         <div style={{
-          background: "white",
-          border: "1px solid var(--border-light)",
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
           borderRadius: 16,
           padding: "20px 32px",
           display: "grid",
           gridTemplateColumns: "repeat(3, 1fr)",
           gap: 16,
-          boxShadow: "var(--shadow-sm)",
+          boxShadow: "var(--shadow-md)",
         }}>
           {[
             { value: "99.9%", label: "Uptime SLA" },
@@ -188,8 +198,9 @@ export default function PricingPage() {
               <div style={{
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
                 fontSize: 22, fontWeight: 800,
-                color: "var(--foreground)",
+                color: "var(--brand-500)",
                 letterSpacing: "-0.02em",
+                textShadow: "0 0 12px rgba(0,240,255,0.25)",
               }}>{stat.value}</div>
               <div style={{ fontSize: 12, color: "var(--subtle-text)", marginTop: 2 }}>{stat.label}</div>
             </div>
@@ -202,7 +213,7 @@ export default function PricingPage() {
         <div style={{ maxWidth: 480, margin: "0 auto 32px", padding: "0 1.5rem" }}>
           <div style={{
             background: "var(--danger-bg)",
-            border: "1px solid #fecdd3",
+            border: "1px solid rgba(251,113,133,0.3)",
             borderRadius: 12,
             padding: "12px 20px",
             fontSize: 14, color: "var(--danger-fg)", textAlign: "center",
@@ -220,14 +231,14 @@ export default function PricingPage() {
         }}>
           {[1, 2, 3].map((i) => (
             <div key={i} style={{
-              background: "white", borderRadius: 24,
-              padding: 28, border: "1px solid var(--border-light)",
+              background: "var(--surface)", borderRadius: 24,
+              padding: 28, border: "1px solid var(--border)",
               animation: "pulse 1.5s ease-in-out infinite",
             }}>
-              <div style={{ height: 14, background: "#f1f5f9", borderRadius: 8, width: "40%", marginBottom: 16 }} />
-              <div style={{ height: 36, background: "#f1f5f9", borderRadius: 8, width: "55%", marginBottom: 24 }} />
+              <div style={{ height: 14, background: "var(--surface-2)", borderRadius: 8, width: "40%", marginBottom: 16 }} />
+              <div style={{ height: 36, background: "var(--surface-2)", borderRadius: 8, width: "55%", marginBottom: 24 }} />
               {[1, 2, 3, 4].map((j) => (
-                <div key={j} style={{ height: 12, background: "#f1f5f9", borderRadius: 8, marginBottom: 10 }} />
+                <div key={j} style={{ height: 12, background: "var(--surface-2)", borderRadius: 8, marginBottom: 10 }} />
               ))}
             </div>
           ))}
@@ -260,16 +271,16 @@ export default function PricingPage() {
                   borderRadius: 24,
                   padding: featured ? "2px" : 0,
                   background: featured
-                    ? "linear-gradient(135deg, var(--brand-500), #8b5cf6, var(--brand-500))"
+                    ? "linear-gradient(135deg, var(--brand-500), var(--brand-400), var(--brand-500))"
                     : "transparent",
                   transition: "transform 0.25s ease, box-shadow 0.25s ease",
                   transform: hovered ? "translateY(-6px)" : "translateY(0)",
                   boxShadow: hovered
                     ? featured
-                      ? "0 20px 60px rgba(99,102,241,0.3)"
-                      : "0 20px 60px rgba(0,0,0,0.10)"
+                      ? "0 20px 60px rgba(0,240,255,0.25)"
+                      : "0 20px 60px rgba(0,0,0,0.4)"
                     : featured
-                      ? "0 8px 32px rgba(99,102,241,0.2)"
+                      ? "0 8px 32px rgba(0,240,255,0.15)"
                       : "var(--shadow-sm)",
                 }}
               >
@@ -277,24 +288,25 @@ export default function PricingPage() {
                   <div style={{
                     position: "absolute", top: -14, left: "50%",
                     transform: "translateX(-50%)",
-                    background: "linear-gradient(135deg, var(--brand-500), #8b5cf6)",
-                    color: "white",
+                    background: "linear-gradient(135deg, var(--brand-500), var(--brand-400))",
+                    color: "#060913",
                     fontSize: 12, fontWeight: 700,
                     padding: "5px 16px",
                     borderRadius: 100,
                     display: "flex", alignItems: "center", gap: 5,
                     whiteSpace: "nowrap",
-                    boxShadow: "0 4px 12px rgba(99,102,241,0.4)",
+                    boxShadow: "0 4px 16px rgba(0,240,255,0.4)",
                     zIndex: 10,
+                    fontFamily: "'Plus Jakarta Sans', sans-serif",
                   }}>
-                    <Zap size={11} fill="white" /> Most Popular
+                    <Zap size={11} fill="#060913" color="#060913" /> Most Popular
                   </div>
                 )}
 
                 <div style={{
-                  background: "white",
+                  background: featured ? "var(--surface-2)" : "var(--surface)",
                   borderRadius: featured ? 22 : 24,
-                  border: featured ? "none" : "1px solid var(--border-light)",
+                  border: featured ? "none" : "1px solid var(--border)",
                   padding: "32px 28px",
                   display: "flex", flexDirection: "column", gap: 0,
                   height: "100%",
@@ -303,13 +315,15 @@ export default function PricingPage() {
                   <div style={{ marginBottom: 20 }}>
                     <div style={{
                       display: "inline-flex", alignItems: "center", gap: 6,
-                      background: featured ? "var(--brand-50)" : "var(--surface-2)",
+                      background: featured ? "rgba(0,240,255,0.1)" : "var(--surface-2)",
+                      border: featured ? "1px solid rgba(0,240,255,0.25)" : "1px solid var(--border)",
                       borderRadius: 8, padding: "4px 10px", marginBottom: 12,
                     }}>
                       <span style={{
                         fontSize: 12, fontWeight: 700, letterSpacing: "0.04em",
-                        color: featured ? "var(--brand-600)" : "var(--muted-text)",
+                        color: featured ? "var(--brand-500)" : "var(--muted-text)",
                         textTransform: "uppercase",
+                        fontFamily: "'Plus Jakarta Sans', sans-serif",
                       }}>
                         {plan.display_name}
                       </span>
@@ -324,9 +338,10 @@ export default function PricingPage() {
                     <span style={{
                       fontFamily: "'Plus Jakarta Sans', sans-serif",
                       fontSize: 52, fontWeight: 800,
-                      color: "var(--foreground)",
+                      color: featured ? "var(--brand-500)" : "var(--foreground)",
                       lineHeight: 1,
                       letterSpacing: "-0.04em",
+                      textShadow: featured ? "0 0 20px rgba(0,240,255,0.3)" : "none",
                     }}>
                       ${plan.monthly_price.toFixed(0)}
                     </span>
@@ -335,16 +350,18 @@ export default function PricingPage() {
 
                   {/* Minutes */}
                   <div style={{
-                    background: featured ? "var(--brand-50)" : "var(--surface-2)",
+                    background: featured ? "rgba(0,240,255,0.07)" : "var(--surface-2)",
+                    border: `1px solid ${featured ? "rgba(0,240,255,0.2)" : "var(--border)"}`,
                     borderRadius: 12, padding: "12px 16px", marginBottom: 24,
                     display: "flex", alignItems: "center", gap: 10,
                   }}>
                     <div style={{
                       width: 32, height: 32, borderRadius: 8, flexShrink: 0,
-                      background: featured ? "var(--brand-500)" : "var(--border)",
+                      background: featured ? "var(--brand-500)" : "var(--surface)",
+                      border: featured ? "none" : "1px solid var(--border)",
                       display: "flex", alignItems: "center", justifyContent: "center",
                     }}>
-                      <Phone size={15} color={featured ? "white" : "var(--muted-text)"} />
+                      <Phone size={15} color={featured ? "#060913" : "var(--muted-text)"} />
                     </div>
                     <div>
                       <div style={{ fontSize: 15, fontWeight: 700, color: "var(--foreground)" }}>
@@ -356,16 +373,17 @@ export default function PricingPage() {
                     </div>
                   </div>
 
-                  <div style={{ height: 1, background: "var(--border-light)", marginBottom: 20 }} />
+                  <div style={{ height: 1, background: "var(--border)", marginBottom: 20 }} />
 
-                  {/* Features from DB */}
+                  {/* Features */}
                   {plan.features.length > 0 && (
                     <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 12, flex: 1, marginBottom: 28 }}>
                       {plan.features.map((text) => (
                         <li key={text} style={{ display: "flex", alignItems: "center", gap: 10 }}>
                           <div style={{
                             width: 22, height: 22, borderRadius: 6, flexShrink: 0,
-                            background: featured ? "var(--brand-50)" : "var(--success-bg)",
+                            background: featured ? "rgba(0,240,255,0.1)" : "var(--success-bg)",
+                            border: featured ? "1px solid rgba(0,240,255,0.25)" : "1px solid rgba(52,211,153,0.2)",
                             display: "flex", alignItems: "center", justifyContent: "center",
                           }}>
                             <Check size={13} color={featured ? "var(--brand-500)" : "var(--success-fg)"} strokeWidth={2.5} />
@@ -387,16 +405,19 @@ export default function PricingPage() {
                       borderRadius: 12,
                       border: "none",
                       cursor: (loadingPlan === plan.id || missingStripe) ? "not-allowed" : "pointer",
-                      opacity: (loadingPlan === plan.id || missingStripe) ? 0.6 : 1,
+                      opacity: (loadingPlan === plan.id || missingStripe) ? 0.5 : 1,
                       fontSize: 15, fontWeight: 700,
+                      fontFamily: "'Plus Jakarta Sans', sans-serif",
                       display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                       transition: "all 0.2s ease",
                       background: featured
-                        ? "linear-gradient(135deg, var(--brand-500), #8b5cf6)"
-                        : "var(--foreground)",
-                      color: "white",
-                      boxShadow: featured ? "0 4px 20px rgba(99,102,241,0.35)" : "0 4px 12px rgba(0,0,0,0.15)",
-                    }}
+                        ? "var(--brand-500)"
+                        : "var(--surface-2)",
+                      color: featured ? "#060913" : "var(--foreground)",
+                      boxShadow: featured
+                        ? "0 4px 20px rgba(0,240,255,0.3)"
+                        : "none",
+                    } as React.CSSProperties}
                   >
                     {loadingPlan === plan.id ? (
                       "Redirecting…"
@@ -419,7 +440,7 @@ export default function PricingPage() {
       {/* Footer */}
       <footer style={{
         borderTop: "1px solid var(--border-light)",
-        background: "rgba(255,255,255,0.7)",
+        background: "rgba(6, 10, 19, 0.5)",
         padding: "20px 24px",
         display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
       }}>
@@ -429,9 +450,14 @@ export default function PricingPage() {
             background: "linear-gradient(135deg, var(--brand-500), var(--brand-700))",
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
-            <Phone size={12} color="white" />
+            <Phone size={12} color="#060913" />
           </div>
-          <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 700, fontSize: 14, color: "var(--foreground)" }}>
+          <span style={{
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+            fontWeight: 700, fontSize: 14,
+            color: "var(--brand-500)",
+            textShadow: "0 0 10px rgba(0,240,255,0.2)",
+          }}>
             CallAutomate
           </span>
         </div>
@@ -444,6 +470,10 @@ export default function PricingPage() {
         @keyframes pulse {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.5; }
+        }
+        @keyframes floatGlow {
+          0%,100% { transform: translateY(0px); }
+          50% { transform: translateY(-12px); }
         }
       `}</style>
     </div>

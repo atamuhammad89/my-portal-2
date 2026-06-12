@@ -20,7 +20,7 @@ function PasswordInput({
   const [show, setShow] = useState(false);
   return (
     <div className="space-y-1.5">
-      <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider">
+      <label className="block text-xs font-semibold text-[var(--subtle-text)] uppercase tracking-wider">
         {label}
       </label>
       <div className="relative">
@@ -29,12 +29,12 @@ function PasswordInput({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 pr-10 text-sm text-slate-800 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition"
+          className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2.5 pr-10 text-sm text-white placeholder-slate-500 outline-none focus:border-[var(--brand-500)] focus:ring-1 focus:ring-[var(--brand-500)]/30 transition"
         />
         <button
           type="button"
           onClick={() => setShow(!show)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer"
         >
           {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
         </button>
@@ -97,20 +97,20 @@ export function AdminCustomerEditModal({ customer, onClose }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div
-        className="w-full max-w-md rounded-2xl bg-white shadow-2xl"
-        style={{ border: "1px solid var(--border-light)" }}
+        className="w-full max-w-md rounded-2xl shadow-2xl border"
+        style={{ background: "var(--surface)", borderColor: "var(--border)" }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-          <div className="flex items-center gap-2 text-indigo-600">
+        <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: "var(--border)" }}>
+          <div className="flex items-center gap-2 text-[var(--brand-500)]">
             <UserCog className="h-4 w-4" />
-            <span className="text-sm font-semibold text-slate-900">Edit Customer</span>
+            <span className="text-sm font-semibold text-white">Edit Customer</span>
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition"
+            className="rounded-lg p-1.5 text-[var(--muted-text)] hover:bg-[var(--surface-2)] hover:text-white transition cursor-pointer"
           >
             <X className="h-4 w-4" />
           </button>
@@ -120,41 +120,41 @@ export function AdminCustomerEditModal({ customer, onClose }: Props) {
         <div className="px-6 py-5 space-y-4">
           {/* Full Name */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider">Full Name</label>
+            <label className="block text-xs font-semibold text-[var(--subtle-text)] uppercase tracking-wider">Full Name</label>
             <input
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-800 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition"
+              className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-[var(--brand-500)] focus:ring-1 focus:ring-[var(--brand-500)]/30 transition"
             />
           </div>
 
           {/* Email */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider">Email Address</label>
+            <label className="block text-xs font-semibold text-[var(--subtle-text)] uppercase tracking-wider">Email Address</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-800 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition"
+              className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-[var(--brand-500)] focus:ring-1 focus:ring-[var(--brand-500)]/30 transition"
             />
           </div>
 
           {/* Account Status */}
-          <div className="flex items-center justify-between rounded-xl border border-slate-200 px-4 py-3">
+          <div className="flex items-center justify-between rounded-xl border border-[var(--border)] px-4 py-3 bg-[var(--surface-2)]">
             <div>
-              <p className="text-sm font-medium text-slate-800">Account Status</p>
-              <p className="text-xs text-slate-500 mt-0.5">Enable or disable customer access</p>
+              <p className="text-sm font-medium text-white">Account Status</p>
+              <p className="text-xs text-[var(--muted-text)] mt-0.5">Enable or disable customer access</p>
             </div>
             <button
               onClick={() => setIsActive(!isActive)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                isActive ? "bg-indigo-600" : "bg-slate-200"
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
+                isActive ? "bg-[var(--brand-500)]" : "bg-slate-700"
               }`}
             >
               <span
                 className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${
-                  isActive ? "translate-x-6" : "translate-x-1"
+                  isActive ? "translate-x-6 bg-[#060913]" : "translate-x-1 bg-slate-400"
                 }`}
               />
             </button>
@@ -162,9 +162,9 @@ export function AdminCustomerEditModal({ customer, onClose }: Props) {
 
           {/* Divider */}
           <div className="flex items-center gap-3 py-1">
-            <div className="flex-1 h-px bg-slate-100" />
-            <span className="text-xs text-slate-400 font-medium">Password (leave blank to keep current)</span>
-            <div className="flex-1 h-px bg-slate-100" />
+            <div className="flex-1 h-px bg-[var(--border)]" />
+            <span className="text-xs text-[var(--subtle-text)] font-medium">Password (leave blank to keep current)</span>
+            <div className="flex-1 h-px bg-[var(--border)]" />
           </div>
 
           <PasswordInput
@@ -180,13 +180,13 @@ export function AdminCustomerEditModal({ customer, onClose }: Props) {
           />
 
           {fieldError && (
-            <p className="rounded-lg bg-rose-50 border border-rose-200 px-3 py-2 text-xs text-rose-600">
+            <p className="rounded-lg bg-rose-950/20 border border-rose-500/30 px-3 py-2 text-xs text-rose-400">
               {fieldError}
             </p>
           )}
 
           {success && (
-            <div className="flex items-center gap-2 rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-2 text-xs text-emerald-700">
+            <div className="flex items-center gap-2 rounded-lg bg-emerald-950/20 border border-emerald-500/30 px-3 py-2 text-xs text-emerald-400">
               <CheckCircle2 className="h-4 w-4" />
               Customer updated successfully.
             </div>
@@ -194,17 +194,17 @@ export function AdminCustomerEditModal({ customer, onClose }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-100">
+        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t" style={{ borderColor: "var(--border)" }}>
           <button
             onClick={onClose}
-            className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 transition"
+            className="rounded-xl border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--muted-text)] hover:bg-[var(--surface-2)] hover:text-white transition cursor-pointer"
           >
             Cancel
           </button>
           <button
             onClick={handleSubmit}
             disabled={mutation.isPending}
-            className="rounded-xl bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition"
+            className="rounded-xl bg-[var(--brand-500)] px-5 py-2 text-sm font-bold text-black hover:bg-white hover:text-black transition disabled:opacity-50 cursor-pointer"
           >
             {mutation.isPending ? "Saving…" : "Save Changes"}
           </button>

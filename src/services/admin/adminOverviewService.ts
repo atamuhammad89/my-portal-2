@@ -1,3 +1,5 @@
+import { apiClient } from "@/lib/api-client";
+
 export type AdminOverviewMetrics = {
   totalUsers: number;
   activeSubscriptions: number;
@@ -20,8 +22,7 @@ export type AdminOverviewData = {
 
 export const adminOverviewService = {
   async getOverview(): Promise<AdminOverviewData> {
-    const res = await fetch("/api/admin/overview");
-    if (!res.ok) throw new Error("Failed to fetch overview.");
-    return res.json();
+    const res = await apiClient.get<AdminOverviewData>("/admin/overview");
+    return res.data;
   },
 };

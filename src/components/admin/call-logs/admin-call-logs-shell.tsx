@@ -20,15 +20,19 @@ function formatTimestamp(ts: number | null): string {
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, string> = {
-    ended:      "bg-green-100 text-green-700",
-    ongoing:    "bg-blue-100 text-blue-700",
-    registered: "bg-yellow-100 text-yellow-700",
-    error:      "bg-red-100 text-red-700",
-    unknown:    "bg-slate-100 text-slate-600",
+  const map: Record<string, { bg: string; color: string; border: string }> = {
+    ended:      { bg: "rgba(16, 185, 129, 0.08)", color: "#34d399", border: "rgba(16, 185, 129, 0.2)" },
+    ongoing:    { bg: "rgba(0, 240, 255, 0.05)", color: "#00f0ff", border: "rgba(0, 240, 255, 0.15)" },
+    registered: { bg: "rgba(245, 158, 11, 0.08)", color: "#fbbf24", border: "rgba(245, 158, 11, 0.2)" },
+    error:      { bg: "rgba(244, 63, 94, 0.08)", color: "#fb7185", border: "rgba(244, 63, 94, 0.2)" },
+    unknown:    { bg: "rgba(255, 255, 255, 0.05)", color: "#cbd5e1", border: "rgba(255, 255, 255, 0.1)" },
   };
+  const style = map[status] ?? map.unknown;
   return (
-    <span className={cn("rounded-full px-2 py-0.5 text-xs font-medium capitalize", map[status] ?? map.unknown)}>
+    <span
+      className="rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize border"
+      style={{ background: style.bg, color: style.color, borderColor: style.border }}
+    >
       {status}
     </span>
   );
@@ -75,6 +79,8 @@ function TranscriptModal({ log, onClose }: { log: CallLog; onClose: () => void }
   );
 }
 
+const PAGE_SIZE = 15;
+
 export function AdminCallLogsShell() {
   const [filters, setFilters] = useState({ agent_id: "", status: "all" });
   const [page, setPage] = useState(1);
@@ -84,7 +90,7 @@ export function AdminCallLogsShell() {
     agent_id: filters.agent_id || undefined,
     status: filters.status !== "all" ? filters.status : undefined,
     page,
-    limit: 50,
+    limit: PAGE_SIZE,
   };
 
   const { data, isLoading, error } = useAdminCallLogsQuery(queryParams);
@@ -92,7 +98,7 @@ export function AdminCallLogsShell() {
 
   const logs = data?.data ?? [];
   const total = data?.total ?? 0;
-  const totalPages = Math.ceil(total / 50);
+  const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
     <div className="p-6">
@@ -130,73 +136,72 @@ export function AdminCallLogsShell() {
         <span className="ml-auto text-sm text-slate-400">{total} total</span>
       </div>
 
-      {/* Table */}
       {isLoading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+          <Loader2 className="h-6 w-6 animate-spin text-brand-cyan" />
         </div>
       ) : error ? (
-        <div className="flex flex-col items-center gap-3 py-20 text-center">
-          <AlertCircle className="h-8 w-8 text-red-400" />
-          <p className="text-sm text-red-600">{(error as Error).message}</p>
+        <div className="flex flex-col items-center gap-3 py-20 text-center animate-pulse">
+          <AlertCircle className="h-8 w-8 text-rose-400" />
+          <p className="text-sm text-rose-400">{(error as Error).message}</p>
         </div>
       ) : logs.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 rounded-xl border-2 border-dashed border-slate-200 py-20 text-center">
-          <Phone className="h-10 w-10 text-slate-300" />
-          <p className="text-sm text-slate-400">No call logs found.</p>
+        <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed py-20 text-center" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
+          <Phone className="h-10 w-10 text-[var(--subtle-text)]" />
+          <p className="text-sm text-[var(--muted-text)]">No call logs found.</p>
         </div>
       ) : (
         <>
-          <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-            <table className="w-full text-sm">
+          <div className="premium-table-container">
+            <table className="premium-table">
               <thead>
-                <tr className="border-b bg-slate-50 text-left">
-                  <th className="px-4 py-3 font-medium text-slate-600">Call ID</th>
-                  <th className="px-4 py-3 font-medium text-slate-600">Agent</th>
-                  <th className="px-4 py-3 font-medium text-slate-600">Status</th>
-                  <th className="px-4 py-3 font-medium text-slate-600">From</th>
-                  <th className="px-4 py-3 font-medium text-slate-600">Started</th>
-                  <th className="px-4 py-3 font-medium text-slate-600">Duration</th>
-                  <th className="px-4 py-3 font-medium text-slate-600">Cost</th>
-                  <th className="px-4 py-3 font-medium text-slate-600">Actions</th>
+                <tr>
+                  <th>Call ID</th>
+                  <th>Agent</th>
+                  <th>Status</th>
+                  <th>From</th>
+                  <th>Started</th>
+                  <th>Duration</th>
+                  <th>Cost</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody>
                 {logs.map((log) => (
-                  <tr key={log.id} className="hover:bg-slate-50">
-                    <td className="px-4 py-3 font-mono text-xs text-slate-500 max-w-[120px] truncate">
+                  <tr key={log.id}>
+                    <td className="font-mono text-xs text-slate-400 max-w-[120px] truncate">
                       {log.retell_call_id}
                     </td>
-                    <td className="px-4 py-3 text-slate-700">
-                      {(log.agent as { name?: string })?.name ?? <span className="text-slate-400">—</span>}
+                    <td className="text-white font-medium">
+                      {(log.agent as { name?: string })?.name ?? <span className="text-slate-500">—</span>}
                     </td>
-                    <td className="px-4 py-3">
+                    <td>
                       <StatusBadge status={log.call_status} />
                     </td>
-                    <td className="px-4 py-3 text-slate-600">{log.from_number ?? "—"}</td>
-                    <td className="px-4 py-3 text-slate-500 text-xs whitespace-nowrap">
+                    <td className="text-slate-300">{log.from_number ?? "—"}</td>
+                    <td className="text-slate-400 text-xs whitespace-nowrap">
                       {formatTimestamp(log.start_timestamp)}
                     </td>
-                    <td className="px-4 py-3 text-slate-600">
+                    <td className="text-slate-300">
                       <span className="flex items-center gap-1">
-                        <Clock className="h-3.5 w-3.5 text-slate-400" />
+                        <Clock className="h-3.5 w-3.5 text-slate-500" />
                         {formatDuration(log.duration_seconds)}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-slate-600">
+                    <td className="text-slate-300">
                       {log.call_cost != null ? (
                         <span className="flex items-center gap-1">
-                          <DollarSign className="h-3.5 w-3.5 text-slate-400" />
+                          <DollarSign className="h-3.5 w-3.5 text-slate-500" />
                           {Number(log.call_cost).toFixed(4)}
                         </span>
                       ) : "—"}
                     </td>
-                    <td className="px-4 py-3">
+                    <td>
                       <div className="flex items-center gap-2">
                         {(log.transcript || log.transcript_object) && (
                           <button
                             onClick={() => setTranscript(log)}
-                            className="text-xs text-slate-500 underline hover:text-slate-800"
+                            className="text-xs text-[var(--brand-500)] underline hover:text-white cursor-pointer"
                           >
                             Transcript
                           </button>
@@ -206,7 +211,7 @@ export function AdminCallLogsShell() {
                             href={log.recording_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800"
+                            className="flex items-center gap-1 text-xs text-brand-teal hover:underline cursor-pointer"
                           >
                             <Download className="h-3.5 w-3.5" /> Recording
                           </a>
@@ -229,14 +234,14 @@ export function AdminCallLogsShell() {
                 <button
                   disabled={page === 1}
                   onClick={() => setPage((p) => p - 1)}
-                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm disabled:opacity-40 hover:bg-slate-50"
+                  className="rounded-lg border border-[var(--border)] bg-[rgba(0,240,255,0.03)] px-3 py-1.5 text-sm text-[var(--brand-500)] transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed enabled:hover:bg-white enabled:hover:text-black enabled:hover:border-white"
                 >
                   Previous
                 </button>
                 <button
                   disabled={page === totalPages}
                   onClick={() => setPage((p) => p + 1)}
-                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm disabled:opacity-40 hover:bg-slate-50"
+                  className="rounded-lg border border-transparent bg-[var(--brand-500)] px-3 py-1.5 text-sm text-black transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed enabled:hover:bg-white enabled:hover:text-black enabled:hover:border-white"
                 >
                   Next
                 </button>

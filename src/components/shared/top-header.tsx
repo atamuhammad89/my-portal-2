@@ -18,17 +18,17 @@ export function TopHeader({ title }: TopHeaderProps) {
     <header
       className="sticky top-0 z-10 flex h-16 items-center justify-between px-4 lg:px-6"
       style={{
-        background: "rgba(255,255,255,0.92)",
+        background: "rgba(6, 9, 19, 0.8)",
         backdropFilter: "blur(12px)",
-        borderBottom: "1px solid rgba(99,102,241,0.10)",
-        boxShadow: "0 1px 0 rgba(99,102,241,0.06)"
+        borderBottom: "1px solid var(--border)",
+        boxShadow: "0 1px 0 rgba(0,240,255,0.05)"
       }}
     >
       {/* Left */}
       <div className="flex items-center gap-3">
         <button
           onClick={() => setSidebarOpen(true)}
-          className="rounded-lg border p-2 text-slate-500 lg:hidden cursor-pointer hover:bg-slate-50 transition-colors"
+          className="rounded-lg border p-2 text-slate-400 lg:hidden cursor-pointer hover:bg-white/5 transition-colors"
           style={{ borderColor: "var(--border)" }}
           aria-label="Open sidebar"
         >
@@ -36,7 +36,7 @@ export function TopHeader({ title }: TopHeaderProps) {
         </button>
         <h1
           className="text-base font-semibold"
-          style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: "#1e1b4b" }}
+          style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: "var(--foreground)" }}
         >
           {title}
         </h1>
@@ -47,12 +47,12 @@ export function TopHeader({ title }: TopHeaderProps) {
         {user && (
           <div className="hidden md:flex items-center gap-2.5">
             <div
-              className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white"
-              style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)" }}
+              className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white border border-brand-cyan/20"
+              style={{ background: "rgba(0, 240, 255, 0.15)", boxShadow: "0 0 8px rgba(0, 240, 255, 0.1)" }}
             >
               {initials}
             </div>
-            <span className="text-sm font-medium" style={{ color: "#374151" }}>
+            <span className="text-sm font-medium" style={{ color: "var(--muted-text)" }}>
               {user.fullName ?? user.email}
             </span>
           </div>

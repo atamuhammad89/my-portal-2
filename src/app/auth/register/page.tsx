@@ -5,21 +5,17 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle, Eye, EyeOff, Loader2 } from "lucide-react";
 
-// ─── n8n webhook URL ───────────────────────────────────────────────────────────
-
-// ─── Helpers ───────────────────────────────────────────────────────────────────
 function capitalize(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
 function validatePassword(pw: string): string | null {
-  if (pw.length < 8)            return "Password must be at least 8 characters.";
-  if (!/[A-Z]/.test(pw))        return "Include at least one uppercase letter.";
-  if (!/[0-9]/.test(pw))        return "Include at least one number.";
+  if (pw.length < 8)         return "Password must be at least 8 characters.";
+  if (!/[A-Z]/.test(pw))     return "Include at least one uppercase letter.";
+  if (!/[0-9]/.test(pw))     return "Include at least one number.";
   return null;
 }
 
-// ─── Inner component (uses useSearchParams) ────────────────────────────────────
 function RegisterForm() {
   const router       = useRouter();
   const searchParams = useSearchParams();
@@ -28,24 +24,20 @@ function RegisterForm() {
   const planId    = searchParams.get("plan_id")    ?? "";
   const planName  = searchParams.get("plan_name")  ?? "";
 
-  const [fullName,    setFullName]    = useState("");
-  const [email,       setEmail]       = useState("");
-  const [password,    setPassword]    = useState("");
-  const [showPass,    setShowPass]    = useState(false);
-  const [submitting,  setSubmitting]  = useState(false);
-  const [errorMsg,    setErrorMsg]    = useState<string | null>(null);
-  const [success,     setSuccess]     = useState(false);
+  const [fullName,   setFullName]   = useState("");
+  const [email,      setEmail]      = useState("");
+  const [password,   setPassword]   = useState("");
+  const [showPass,   setShowPass]   = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMsg,   setErrorMsg]   = useState<string | null>(null);
+  const [success,    setSuccess]    = useState(false);
 
-  // Guard: if there's no session_id the user landed here directly — redirect.
   useEffect(() => {
-    if (!sessionId) {
-      router.replace("/pricing");
-    }
+    if (!sessionId) router.replace("/pricing");
   }, [sessionId, router]);
 
   const handleSubmit = async () => {
     setErrorMsg(null);
-
     const trimmedName  = fullName.trim();
     const trimmedEmail = email.trim().toLowerCase();
 
@@ -56,22 +48,19 @@ function RegisterForm() {
 
     const pwError = validatePassword(password);
     if (pwError) return setErrorMsg(pwError);
-  
-    // if (false) { }
 
     setSubmitting(true);
-
     try {
       const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          full_name:          trimmedName,
-          email:              trimmedEmail,
-          password,                          // n8n will hash this with bcrypt
-          plan_id:            planId,
-          plan_name:          planName,
-          stripe_session_id:  sessionId,
+          full_name:         trimmedName,
+          email:             trimmedEmail,
+          password,
+          plan_id:           planId,
+          plan_name:         planName,
+          stripe_session_id: sessionId,
         }),
       });
 
@@ -81,11 +70,7 @@ function RegisterForm() {
       }
 
       setSuccess(true);
-
-      // Give the user 2 s to read the success message, then go to sign-in
-      setTimeout(() => {
-        router.replace("/auth/login?checkout=success");
-      }, 2000);
+      setTimeout(() => router.replace("/auth/login?checkout=success"), 2000);
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
@@ -97,17 +82,50 @@ function RegisterForm() {
     if (e.key === "Enter" && !submitting) handleSubmit();
   };
 
-  if (!sessionId) return null; // redirecting
+  const inputStyle = {
+    background: "var(--surface-2)",
+    border: "1px solid var(--border)",
+    color: "var(--foreground)",
+  };
+
+  const inputFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    e.currentTarget.style.border = "1px solid var(--brand-500)";
+    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(0,240,255,0.08)";
+  };
+  const inputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    e.currentTarget.style.border = "1px solid var(--border)";
+    e.currentTarget.style.boxShadow = "none";
+  };
+
+  if (!sessionId) return null;
 
   if (success) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-100 p-6">
-        <section className="w-full max-w-md rounded-xl border bg-white p-8 shadow-sm text-center">
-          <div className="flex justify-center mb-4">
-            <CheckCircle className="w-12 h-12 text-green-500" />
+      <main
+        className="flex min-h-screen items-center justify-center p-6"
+        style={{ background: "var(--background)" }}
+      >
+        <section
+          className="w-full max-w-md rounded-2xl p-8 text-center"
+          style={{
+            background: "var(--surface)",
+            border: "1px solid var(--border)",
+            boxShadow: "var(--shadow-lg)",
+          }}
+        >
+          <div
+            className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full"
+            style={{ background: "var(--success-bg)", border: "1px solid rgba(52,211,153,0.3)" }}
+          >
+            <CheckCircle className="h-7 w-7" style={{ color: "var(--success-fg)" }} />
           </div>
-          <h1 className="text-2xl font-semibold text-slate-900">Account created!</h1>
-          <p className="mt-2 text-sm text-slate-500">
+          <h1
+            className="text-2xl font-semibold"
+            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: "var(--foreground)" }}
+          >
+            Account created!
+          </h1>
+          <p className="mt-2 text-sm" style={{ color: "var(--muted-text)" }}>
             Redirecting you to sign in…
           </p>
         </section>
@@ -116,12 +134,50 @@ function RegisterForm() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-100 p-6">
-      <section className="w-full max-w-md rounded-xl border bg-white p-8 shadow-sm">
+    <main
+      className="flex min-h-screen items-center justify-center p-6"
+      style={{ background: "var(--background)" }}
+    >
+      <div
+        className="pointer-events-none fixed inset-0 z-0"
+        style={{
+          background:
+            "radial-gradient(ellipse 60% 40% at 50% 40%, rgba(0,240,255,0.06) 0%, transparent 70%)",
+        }}
+      />
+
+      <section
+        className="relative z-10 w-full max-w-md rounded-2xl p-8"
+        style={{
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
+          boxShadow: "var(--shadow-lg)",
+        }}
+      >
+        {/* Brand header */}
+        <div className="mb-8 text-center">
+          <span
+            className="text-xl font-bold tracking-tight"
+            style={{
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              color: "var(--brand-500)",
+              textShadow: "0 0 20px rgba(0, 240, 255, 0.35)",
+            }}
+          >
+            CallAutomate
+          </span>
+        </div>
 
         {/* Plan confirmation banner */}
         {planName && (
-          <div className="mb-6 rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700 flex items-center gap-2">
+          <div
+            className="mb-6 rounded-xl px-4 py-3 text-sm flex items-center gap-2"
+            style={{
+              background: "var(--success-bg)",
+              border: "1px solid rgba(52, 211, 153, 0.3)",
+              color: "var(--success-fg)",
+            }}
+          >
             <CheckCircle className="w-4 h-4 flex-shrink-0" />
             <span>
               Payment successful! You&apos;re on the{" "}
@@ -130,42 +186,58 @@ function RegisterForm() {
           </div>
         )}
 
-        <h1 className="text-2xl font-semibold text-slate-900">Create your account</h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <h1
+          className="text-2xl font-semibold"
+          style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: "var(--foreground)" }}
+        >
+          Create your account
+        </h1>
+        <p className="mt-1 text-sm" style={{ color: "var(--muted-text)" }}>
           Set up your credentials to access your dashboard.
         </p>
 
         <div className="mt-6 space-y-4" onKeyDown={handleKeyDown}>
-
           {/* Full name */}
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-slate-700">Full name</label>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium" style={{ color: "var(--muted-text)" }}>
+              Full name
+            </label>
             <input
               type="text"
               placeholder="Jane Smith"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               autoComplete="name"
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-slate-300"
+              className="w-full rounded-xl px-3 py-2.5 text-sm outline-none transition-all"
+              style={inputStyle}
+              onFocus={inputFocus}
+              onBlur={inputBlur}
             />
           </div>
 
           {/* Email */}
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-slate-700">Email</label>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium" style={{ color: "var(--muted-text)" }}>
+              Email
+            </label>
             <input
               type="email"
               placeholder="you@company.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="email"
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-slate-300"
+              className="w-full rounded-xl px-3 py-2.5 text-sm outline-none transition-all"
+              style={inputStyle}
+              onFocus={inputFocus}
+              onBlur={inputBlur}
             />
           </div>
 
           {/* Password */}
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-slate-700">Password</label>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium" style={{ color: "var(--muted-text)" }}>
+              Password
+            </label>
             <div className="relative">
               <input
                 type={showPass ? "text" : "password"}
@@ -173,25 +245,36 @@ function RegisterForm() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="new-password"
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 pr-10 text-sm outline-none focus:ring-2 focus:ring-slate-300"
+                className="w-full rounded-xl px-3 py-2.5 pr-10 text-sm outline-none transition-all"
+                style={inputStyle}
+                onFocus={inputFocus}
+                onBlur={inputBlur}
               />
               <button
                 type="button"
                 onClick={() => setShowPass(!showPass)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
+                style={{ color: "var(--subtle-text)" }}
                 tabIndex={-1}
               >
                 {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs" style={{ color: "var(--subtle-text)" }}>
               Min 8 characters, one uppercase letter and one number.
             </p>
           </div>
 
           {/* Error */}
           {errorMsg && (
-            <div className="rounded-lg bg-rose-50 border border-rose-200 px-3 py-2 text-sm text-rose-600">
+            <div
+              className="rounded-xl px-3 py-2.5 text-sm"
+              style={{
+                background: "var(--danger-bg)",
+                border: "1px solid rgba(251, 113, 133, 0.3)",
+                color: "var(--danger-fg)",
+              }}
+            >
               {errorMsg}
             </div>
           )}
@@ -201,17 +284,34 @@ function RegisterForm() {
             type="button"
             onClick={handleSubmit}
             disabled={submitting || !fullName || !email || !password}
-            className="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full rounded-xl px-4 py-2.5 text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            style={{
+              background: "var(--brand-500)",
+              color: "#060913",
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              boxShadow: "0 0 20px rgba(0,240,255,0.2)",
+            }}
+            onMouseEnter={(e) => {
+              if (!submitting) {
+                e.currentTarget.style.boxShadow = "0 0 30px rgba(0,240,255,0.4)";
+                e.currentTarget.style.transform = "translateY(-1px)";
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = "0 0 20px rgba(0,240,255,0.2)";
+              e.currentTarget.style.transform = "translateY(0)";
+            }}
           >
             {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
             {submitting ? "Creating account…" : "Create account →"}
           </button>
         </div>
 
-        <div className="mt-5">
+        <div className="mt-6 pt-4" style={{ borderTop: "1px solid var(--border-light)" }}>
           <Link
             href="/pricing"
-            className="block text-center text-sm text-slate-400 hover:text-slate-600 transition"
+            className="block text-center text-sm transition-colors"
+            style={{ color: "var(--subtle-text)" }}
           >
             ← Back to pricing
           </Link>
@@ -221,7 +321,6 @@ function RegisterForm() {
   );
 }
 
-// ─── Page export — wrapped in Suspense for useSearchParams ────────────────────
 export default function RegisterPage() {
   return (
     <Suspense>

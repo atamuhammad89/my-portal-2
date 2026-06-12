@@ -76,17 +76,17 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     subscription: sub
       ? {
-          id: sub.id,
-          status: sub.status,
-          planName: sub.plans?.display_name ?? "—",
-          startedAt: sub.started_at,
-          endsAt: sub.ends_at,
-          cancelledAt: sub.cancelled_at,
-          minutesUsed: parseFloat(sub.minutes_used ?? "0"),
-          totalMinutes: sub.total_minutes_snapshot,
-          monthlyPrice: parseFloat(sub.monthly_price_snapshot ?? "0"),
-          pricePerMinute: parseFloat(sub.price_per_minute_snapshot ?? "0"),
-        }
+        id: sub.id,
+        status: sub.status,
+        planName: sub.plans?.display_name ?? "—",
+        startedAt: sub.started_at,
+        endsAt: sub.ends_at,
+        cancelledAt: sub.cancelled_at,
+        minutesUsed: parseFloat(sub.minutes_used ?? "0"),
+        totalMinutes: sub.total_minutes_snapshot,
+        monthlyPrice: parseFloat(sub.monthly_price_snapshot ?? "0"),
+        pricePerMinute: parseFloat(sub.price_per_minute_snapshot ?? "0"),
+      }
       : null,
     usageMinutes,
     history,

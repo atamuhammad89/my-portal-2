@@ -1,3 +1,4 @@
+import { apiClient } from "@/lib/api-client";
 import { AdminCustomer } from "@/types/admin/customer";
 
 export type AdminCustomersParams = {
@@ -14,23 +15,12 @@ export type UpdateCustomerPayload = {
 
 export const adminCustomersService = {
   async getCustomers(params?: AdminCustomersParams): Promise<AdminCustomer[]> {
-    const searchParams = new URLSearchParams();
-    if (params?.search) searchParams.set("search", params.search);
-    if (params?.status && params.status !== "all") searchParams.set("status", params.status);
-
-    const qs = searchParams.toString();
-    const res = await fetch(`/api/admin/customers${qs ? `?${qs}` : ""}`);
-    if (!res.ok) throw new Error("Failed to fetch customers.");
-    return res.json();
+    const res = await apiClient.get<AdminCustomer[]>("/admin/customers", { params });
+    return res.data;
   },
 
   async updateCustomer(customerId: string, payload: UpdateCustomerPayload): Promise<void> {
-    const res = await fetch(`/api/admin/customers/${customerId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error ?? "Failed to update customer.");
+    const res = await apiClient.patch(`/admin/customers/${customerId}`, payload);
+    return res.data;
   },
 };

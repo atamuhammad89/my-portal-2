@@ -10,7 +10,7 @@ export async function POST(
 ) {
   const { userId } = await params;
   const payload = await verifyRequestJwt(req);
-  if (!payload || !requireRole(payload, ["admin", "super_admin"])) {
+  if (!payload || !requireRole(payload, ["super_admin", "operations", "support", "finance"])) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

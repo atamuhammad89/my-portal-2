@@ -1,6 +1,7 @@
 // src/app/api/admin/billing/pending-bills/[invoiceId]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { verifyRequestJwt, requireRole } from "@/lib/jwt-auth";
 
 type Action = "mark_paid" | "waive_off";
 
@@ -8,6 +9,11 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ invoiceId: string }> }
 ) {
+  const jwt = await verifyRequestJwt(req);
+  if (!requireRole(jwt, ["super_admin", "finance"])) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
+
   const supabase = createServerSupabaseClient();
   const invoiceId = (await params).invoiceId;
 

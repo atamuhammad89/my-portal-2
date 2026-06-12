@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { verifyRequestJwt, requireRole } from "@/lib/jwt-auth";
 
 // PATCH /api/admin/plans/[planId] — update a plan
 export async function PATCH(req: NextRequest, context: any) {
+  const jwt = await verifyRequestJwt(req);
+  if (!requireRole(jwt, ["super_admin", "finance"])) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
   const { planId } = await context.params;
   try {
     const supabase = createServerSupabaseClient();
@@ -36,6 +41,10 @@ export async function PATCH(req: NextRequest, context: any) {
 
 // DELETE /api/admin/plans/[planId] — delete a plan
 export async function DELETE(req: NextRequest, context: any) {
+  const jwt = await verifyRequestJwt(req);
+  if (!requireRole(jwt, ["super_admin", "finance"])) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
   const { planId } = await context.params;
   try {
     const supabase = createServerSupabaseClient();

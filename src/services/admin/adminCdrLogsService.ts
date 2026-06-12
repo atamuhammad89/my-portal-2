@@ -7,6 +7,7 @@ import {
 export const adminCdrLogsService = {
   async getCdrLogs(params?: AdminCdrLogsParams): Promise<AdminCdrLogsResponse> {
     const res = await apiClient.get<AdminCdrLogsResponse>("/admin/call-logs", { params });
+    console.log("Fetched CDR logs:", res.data);
     return res.data;
   },
 };

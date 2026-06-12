@@ -22,13 +22,7 @@ function LoginForm() {
     setErrorMessage(null);
     try {
       const response = await login({ email, password });
-      // Role-aware redirect: admin roles go to /admin/overview, others to /dashboard
-      const adminRoles = new Set([
-        "super_admin",
-        "operations",
-        "support",
-        "finance",
-      ]);
+      const adminRoles = new Set(["super_admin", "operations", "support", "finance"]);
       const defaultDest = adminRoles.has(response.user?.role ?? "")
         ? "/admin/overview"
         : "/dashboard";
@@ -46,48 +40,132 @@ function LoginForm() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-100 p-6">
-      <section className="w-full max-w-md rounded-xl border bg-white p-8 shadow-sm">
+    <main
+      className="flex min-h-screen items-center justify-center p-6"
+      style={{ background: "var(--background)" }}
+    >
+      {/* Subtle radial glow behind the card */}
+      <div
+        className="pointer-events-none fixed inset-0 z-0"
+        style={{
+          background:
+            "radial-gradient(ellipse 60% 40% at 50% 40%, rgba(0,240,255,0.06) 0%, transparent 70%)",
+        }}
+      />
+
+      <section
+        className="relative z-10 w-full max-w-md rounded-2xl p-8"
+        style={{
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
+          boxShadow: "var(--shadow-lg)",
+        }}
+      >
+        {/* Brand header */}
+        <div className="mb-8 text-center">
+          <span
+            className="text-xl font-bold tracking-tight"
+            style={{
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              color: "var(--brand-500)",
+              textShadow: "0 0 20px rgba(0, 240, 255, 0.35)",
+            }}
+          >
+            CallAutomate
+          </span>
+        </div>
+
         {/* Post-checkout banner */}
         {isPostCheckout && (
-          <div className="mb-6 rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">
-            ✅ Account created! Sign in with your new credentials to get started.
+          <div
+            className="mb-6 rounded-xl px-4 py-3 text-sm flex items-center gap-2"
+            style={{
+              background: "var(--success-bg)",
+              border: "1px solid rgba(52, 211, 153, 0.3)",
+              color: "var(--success-fg)",
+            }}
+          >
+            <span>✅</span>
+            <span>Account created! Sign in with your new credentials to get started.</span>
           </div>
         )}
 
         {/* Session expired banner */}
         {sessionExpired && (
-          <div className="mb-4 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-700">
+          <div
+            className="mb-4 rounded-xl px-4 py-3 text-sm"
+            style={{
+              background: "var(--warning-bg)",
+              border: "1px solid rgba(251, 191, 36, 0.3)",
+              color: "var(--warning-fg)",
+            }}
+          >
             Your session expired. Please sign in again.
           </div>
         )}
 
-        <h1 className="text-2xl font-semibold text-slate-900">Sign in</h1>
-        <p className="mt-2 text-sm text-slate-600">
+        <h1
+          className="text-2xl font-semibold"
+          style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: "var(--foreground)" }}
+        >
+          Sign in
+        </h1>
+        <p className="mt-2 text-sm" style={{ color: "var(--muted-text)" }}>
           Use your workspace credentials to access your dashboard.
         </p>
 
         <div className="mt-6 space-y-4" onKeyDown={handleKeyDown}>
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-slate-700">Email</label>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium" style={{ color: "var(--muted-text)" }}>
+              Email
+            </label>
             <input
               type="email"
               placeholder="you@company.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="email"
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-slate-300"
+              className="w-full rounded-xl px-3 py-2.5 text-sm outline-none transition-all"
+              style={{
+                background: "var(--surface-2)",
+                border: "1px solid var(--border)",
+                color: "var(--foreground)",
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.border = "1px solid var(--brand-500)";
+                e.currentTarget.style.boxShadow = "0 0 0 3px rgba(0,240,255,0.08)";
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.border = "1px solid var(--border)";
+                e.currentTarget.style.boxShadow = "none";
+              }}
             />
           </div>
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-slate-700">Password</label>
+
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium" style={{ color: "var(--muted-text)" }}>
+              Password
+            </label>
             <input
               type="password"
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="current-password"
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-slate-300"
+              className="w-full rounded-xl px-3 py-2.5 text-sm outline-none transition-all"
+              style={{
+                background: "var(--surface-2)",
+                border: "1px solid var(--border)",
+                color: "var(--foreground)",
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.border = "1px solid var(--brand-500)";
+                e.currentTarget.style.boxShadow = "0 0 0 3px rgba(0,240,255,0.08)";
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.border = "1px solid var(--border)";
+                e.currentTarget.style.boxShadow = "none";
+              }}
             />
           </div>
 
@@ -95,19 +173,42 @@ function LoginForm() {
             type="button"
             onClick={handleLogin}
             disabled={isPending || !email || !password}
-            className="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full rounded-xl px-4 py-2.5 text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{
+              background: "var(--brand-500)",
+              color: "#060913",
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              boxShadow: "0 0 20px rgba(0,240,255,0.2)",
+            }}
+            onMouseEnter={(e) => {
+              if (!isPending && email && password) {
+                e.currentTarget.style.boxShadow = "0 0 30px rgba(0,240,255,0.4)";
+                e.currentTarget.style.transform = "translateY(-1px)";
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = "0 0 20px rgba(0,240,255,0.2)";
+              e.currentTarget.style.transform = "translateY(0)";
+            }}
           >
-            {isPending ? "Signing in…" : "Continue"}
+            {isPending ? "Signing in…" : "Continue →"}
           </button>
 
           {errorMessage && (
-            <p className="rounded-lg bg-rose-50 border border-rose-200 px-3 py-2 text-sm text-rose-600">
+            <p
+              className="rounded-xl px-3 py-2.5 text-sm"
+              style={{
+                background: "var(--danger-bg)",
+                border: "1px solid rgba(251, 113, 133, 0.3)",
+                color: "var(--danger-fg)",
+              }}
+            >
               {errorMessage}
             </p>
           )}
         </div>
 
-        <div className="mt-5 flex flex-col gap-2">
+        <div className="mt-6 flex flex-col gap-2 pt-4" style={{ borderTop: "1px solid var(--border-light)" }}>
           <button
             type="button"
             onClick={() => {
@@ -116,13 +217,17 @@ function LoginForm() {
               setPassword("");
               setErrorMessage(null);
             }}
-            className="block w-full text-center text-sm text-slate-400 hover:text-slate-600 transition"
+            className="block w-full text-center text-sm transition-colors"
+            style={{ color: "var(--subtle-text)" }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "var(--muted-text)")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "var(--subtle-text)")}
           >
             Clear local session
           </button>
           <Link
             href="/pricing"
-            className="block text-center text-sm text-slate-400 hover:text-slate-600 transition"
+            className="block text-center text-sm transition-colors"
+            style={{ color: "var(--subtle-text)" }}
           >
             ← Back to pricing
           </Link>

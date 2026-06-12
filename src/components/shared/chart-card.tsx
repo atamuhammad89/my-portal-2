@@ -9,20 +9,30 @@ type ChartCardProps = {
 export function ChartCard({ title, subtitle, children }: ChartCardProps) {
   return (
     <article
-      className="rounded-2xl bg-white px-5 pt-5 pb-4 overflow-hidden"
-      style={{ boxShadow: "var(--shadow-sm)", border: "1px solid var(--border-light)" }}
+      className="rounded-xl px-5 pt-5 pb-4 overflow-hidden"
+      style={{
+        background: "var(--surface)",
+        boxShadow: "var(--shadow-sm)",
+        border: "1px solid var(--border)"
+      }}
     >
       <div className="flex items-center gap-2 mb-1">
-        <div className="h-3 w-3 rounded-full" style={{ background: "linear-gradient(135deg,#6366f1,#8b5cf6)" }} />
+        <div
+          className="h-2.5 w-2.5 rounded-full"
+          style={{
+            background: "var(--brand-500)",
+            boxShadow: "0 0 8px var(--brand-500)"
+          }}
+        />
         <h3
-          className="text-sm font-semibold"
-          style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: "var(--foreground)" }}
+          className="text-sm font-semibold text-white"
+          style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
         >
           {title}
         </h3>
       </div>
       {subtitle ? (
-        <p className="text-xs mb-4 ml-5" style={{ color: "var(--subtle-text)" }}>{subtitle}</p>
+        <p className="text-xs mb-4 ml-4.5" style={{ color: "var(--subtle-text)" }}>{subtitle}</p>
       ) : <div className="mb-4" />}
       <div className="h-72">{children}</div>
     </article>

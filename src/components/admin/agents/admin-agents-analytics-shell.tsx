@@ -19,50 +19,61 @@ function StatCard({
   color: string;
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div
+      className="rounded-xl p-5 flex flex-col gap-1 relative overflow-hidden transition-all duration-200 hover:translate-y-[-2px] hover:shadow-[0_0_15px_rgba(0,240,255,0.07)]"
+      style={{
+        background: "var(--surface)",
+        boxShadow: "var(--shadow-sm)",
+        border: "1px solid var(--border)",
+        borderLeft: "3px solid var(--brand-500)",
+      }}
+    >
       <div className="flex items-center justify-between">
-        <p className="text-sm text-slate-500">{label}</p>
-        <div className={cn("flex h-9 w-9 items-center justify-center rounded-lg", color)}>
+        <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--subtle-text)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          {label}
+        </p>
+        <div className={cn("flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--surface-2)]", color)}>
           <Icon className="h-4 w-4" />
         </div>
       </div>
-      <p className="mt-3 text-2xl font-semibold text-slate-900">{value}</p>
-      {sub && <p className="mt-1 text-xs text-slate-400">{sub}</p>}
+      <p className="mt-2 text-2xl font-bold text-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+        {value}
+      </p>
+      {sub && <p className="mt-1 text-xs" style={{ color: "var(--subtle-text)" }}>{sub}</p>}
     </div>
   );
 }
 
 function AgentRow({ agent, rank }: { agent: AgentAnalytics; rank: number }) {
-  const maxCalls = 100; // for bar width calculation — relative
   return (
-    <tr className="border-b last:border-0">
-      <td className="py-3 pr-4">
+    <tr>
+      <td className="py-3 pl-5 pr-4">
         <div className="flex items-center gap-3">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs text-slate-500 font-medium">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--surface-2)] text-xs text-slate-400 border border-[var(--border)] font-medium">
             {rank}
           </span>
           <div>
-            <p className="text-sm font-medium text-slate-900">{agent.agent_name}</p>
-            <p className="text-xs text-slate-400 font-mono">{agent.retell_agent_id.slice(0, 20)}…</p>
+            <p className="text-sm font-semibold text-white">{agent.agent_name}</p>
+            <p className="text-xs font-mono text-[var(--subtle-text)]">{agent.retell_agent_id.slice(0, 20)}…</p>
           </div>
         </div>
       </td>
-      <td className="px-4 py-3 text-sm text-slate-700 text-center">{agent.total_calls}</td>
-      <td className="px-4 py-3 text-sm text-slate-700 text-center">{agent.completed_calls}</td>
-      <td className="px-4 py-3 text-sm text-slate-700 text-center">
+      <td className="px-4 py-3 text-center">{agent.total_calls}</td>
+      <td className="px-4 py-3 text-center">{agent.completed_calls}</td>
+      <td className="px-4 py-3 text-center">
         {Math.floor(agent.avg_duration_seconds / 60)}m {agent.avg_duration_seconds % 60}s
       </td>
       <td className="px-4 py-3 text-center">
         <span className={cn(
-          "rounded-full px-2 py-0.5 text-xs font-medium",
-          agent.success_rate >= 80 ? "bg-green-100 text-green-700"
-            : agent.success_rate >= 50 ? "bg-yellow-100 text-yellow-700"
-            : "bg-red-100 text-red-700"
+          "rounded-full px-2 py-0.5 text-xs font-semibold border",
+          agent.success_rate >= 80 ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+            : agent.success_rate >= 50 ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+            : "bg-rose-500/10 text-rose-400 border-rose-500/20"
         )}>
           {agent.success_rate}%
         </span>
       </td>
-      <td className="px-4 py-3 text-sm text-slate-700 text-center">
+      <td className="px-4 py-3 text-center font-semibold text-brand-teal">
         ${agent.total_cost.toFixed(4)}
       </td>
     </tr>
@@ -82,13 +93,14 @@ export function AdminAgentsAnalyticsShell() {
     <div className="p-6">
       <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">Agents Analytics</h1>
-          <p className="mt-1 text-sm text-slate-500">Real-time insights from Retell call data. Auto-refreshes every 30s.</p>
+          <h1 className="text-xl font-bold text-white">Agents Analytics</h1>
+          <p className="mt-1 text-xs text-slate-400">Real-time insights from Retell call data. Auto-refreshes every 30s.</p>
         </div>
         <button
           onClick={() => refetch()}
           disabled={isRefetching}
-          className="rounded-lg border border-slate-200 p-2 text-slate-500 hover:bg-slate-50 disabled:opacity-50"
+          className="rounded-lg border p-2 transition-colors disabled:opacity-50 hover:bg-[var(--surface-2)] cursor-pointer"
+          style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--muted-text)" }}
           title="Refresh"
         >
           <RefreshCw className={cn("h-4 w-4", isRefetching && "animate-spin")} />
@@ -97,13 +109,13 @@ export function AdminAgentsAnalyticsShell() {
 
       {isLoading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+          <Loader2 className="h-6 w-6 animate-spin text-brand-cyan" />
         </div>
       ) : error ? (
         <div className="flex flex-col items-center gap-3 py-20 text-center">
-          <AlertCircle className="h-8 w-8 text-red-400" />
-          <p className="text-sm text-red-600">{(error as Error).message}</p>
-          <button onClick={() => refetch()} className="text-sm underline text-slate-500">Retry</button>
+          <AlertCircle className="h-8 w-8 text-rose-400" />
+          <p className="text-sm text-rose-400">{(error as Error).message}</p>
+          <button onClick={() => refetch()} className="text-sm underline text-slate-400 hover:text-white cursor-pointer">Retry</button>
         </div>
       ) : data ? (
         <>
@@ -114,51 +126,51 @@ export function AdminAgentsAnalyticsShell() {
               value={data.total_calls.toLocaleString()}
               sub={`${data.ongoing_calls} currently active`}
               icon={Phone}
-              color="bg-blue-50 text-blue-600"
+              color="text-brand-cyan"
             />
             <StatCard
               label="Completed Calls"
               value={data.completed_calls.toLocaleString()}
               sub={`${data.total_calls > 0 ? Math.round((data.completed_calls / data.total_calls) * 100) : 0}% completion rate`}
               icon={TrendingUp}
-              color="bg-green-50 text-green-600"
+              color="text-emerald-400"
             />
             <StatCard
               label="Total Talk Time"
               value={formatDurationFriendly(data.total_duration_seconds)}
               sub={`${data.per_agent.length} active agents`}
               icon={Clock}
-              color="bg-purple-50 text-purple-600"
+              color="text-brand-teal"
             />
             <StatCard
               label="Total Cost"
               value={`$${data.total_cost.toFixed(4)}`}
               sub="USD via Retell"
               icon={DollarSign}
-              color="bg-amber-50 text-amber-600"
+              color="text-amber-400"
             />
           </div>
 
           {/* Per-agent breakdown */}
           {data.per_agent.length > 0 ? (
-            <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
-              <div className="flex items-center gap-2 border-b px-5 py-4">
-                <Bot className="h-4 w-4 text-slate-500" />
-                <h2 className="text-sm font-semibold text-slate-900">Per-Agent Breakdown</h2>
+            <div className="premium-table-container">
+              <div className="flex items-center gap-2 border-b px-5 py-4" style={{ borderColor: "var(--border)" }}>
+                <Bot className="h-4 w-4 text-brand-cyan" />
+                <h2 className="text-sm font-semibold text-white">Per-Agent Breakdown</h2>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="premium-table">
                   <thead>
-                    <tr className="border-b bg-slate-50 text-left">
-                      <th className="py-3 pl-5 pr-4 font-medium text-slate-600">Agent</th>
-                      <th className="px-4 py-3 font-medium text-slate-600 text-center">Total Calls</th>
-                      <th className="px-4 py-3 font-medium text-slate-600 text-center">Completed</th>
-                      <th className="px-4 py-3 font-medium text-slate-600 text-center">Avg Duration</th>
-                      <th className="px-4 py-3 font-medium text-slate-600 text-center">Success Rate</th>
-                      <th className="px-4 py-3 font-medium text-slate-600 text-center">Total Cost</th>
+                    <tr>
+                      <th className="py-3 pl-5 pr-4 text-left">Agent</th>
+                      <th className="px-4 py-3 text-center">Total Calls</th>
+                      <th className="px-4 py-3 text-center">Completed</th>
+                      <th className="px-4 py-3 text-center">Avg Duration</th>
+                      <th className="px-4 py-3 text-center">Success Rate</th>
+                      <th className="px-4 py-3 text-center">Total Cost</th>
                     </tr>
                   </thead>
-                  <tbody className="pl-5">
+                  <tbody>
                     {data.per_agent.map((agent, i) => (
                       <AgentRow key={agent.agent_id} agent={agent} rank={i + 1} />
                     ))}
@@ -167,9 +179,9 @@ export function AdminAgentsAnalyticsShell() {
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center gap-3 rounded-xl border-2 border-dashed border-slate-200 py-16 text-center">
-              <Bot className="h-10 w-10 text-slate-300" />
-              <p className="text-sm text-slate-400">No call data yet. Calls will appear here after Retell sends webhook events.</p>
+            <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed py-16 text-center" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
+              <Bot className="h-10 w-10 text-[var(--subtle-text)]" />
+              <p className="text-sm text-[var(--muted-text)]">No call data yet. Calls will appear here after Retell sends webhook events.</p>
             </div>
           )}
         </>

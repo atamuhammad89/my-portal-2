@@ -1,8 +1,13 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { verifyRequestJwt, requireRole } from "@/lib/jwt-auth";
 
 // GET /api/admin/billing — all non-admin users with their active subscription billing info
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const jwt = await verifyRequestJwt(req);
+  if (!requireRole(jwt, ["super_admin", "finance"])) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
   try {
     const supabase = createServerSupabaseClient();
 

@@ -16,7 +16,7 @@ function PasswordInput({
   const [show, setShow] = useState(false);
   return (
     <div className="space-y-1.5">
-      <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider">
+      <label className="block text-xs font-semibold text-[var(--subtle-text)] uppercase tracking-wider">
         {label}
       </label>
       <div className="relative">
@@ -25,12 +25,12 @@ function PasswordInput({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 pr-10 text-sm text-slate-800 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition"
+          className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2.5 pr-10 text-sm text-white placeholder-slate-500 outline-none focus:border-[var(--brand-500)] focus:ring-1 focus:ring-[var(--brand-500)]/30 transition"
         />
         <button
           type="button"
           onClick={() => setShow(!show)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer"
         >
           {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
         </button>
@@ -46,7 +46,7 @@ function TextInput({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider">
+      <label className="block text-xs font-semibold text-[var(--subtle-text)] uppercase tracking-wider">
         {label}
       </label>
       <input
@@ -54,7 +54,7 @@ function TextInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-800 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition"
+        className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-[var(--brand-500)] focus:ring-1 focus:ring-[var(--brand-500)]/30 transition"
       />
     </div>
   );
@@ -170,15 +170,15 @@ export function SettingsShell() {
       />
 
       {/* Tabs */}
-      <div className="flex gap-1 rounded-xl bg-slate-100 p-1 max-w-sm">
+      <div className="flex gap-1 rounded-xl bg-[var(--surface)] border border-[var(--border)] p-1 max-w-sm">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+            className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-bold transition-all cursor-pointer ${
               activeTab === tab.id
-                ? "bg-white text-indigo-700 shadow-sm"
-                : "text-slate-500 hover:text-slate-700"
+                ? "bg-[var(--surface-2)] text-[var(--brand-500)] shadow-[0_2px_8px_rgba(0,240,255,0.08)]"
+                : "text-[var(--muted-text)] hover:text-white"
             }`}
           >
             {tab.icon}
@@ -190,12 +190,12 @@ export function SettingsShell() {
       {/* Edit Profile Panel */}
       {activeTab === "profile" && (
         <div
-          className="max-w-md rounded-2xl bg-white p-6 space-y-5"
-          style={{ boxShadow: "var(--shadow-sm)", border: "1px solid var(--border-light)" }}
+          className="max-w-md rounded-2xl p-6 space-y-5 border"
+          style={{ background: "var(--surface)", borderColor: "var(--border)", boxShadow: "var(--shadow-sm)" }}
         >
-          <div className="flex items-center gap-2 text-indigo-600">
+          <div className="flex items-center gap-2 text-[var(--brand-500)]">
             <Pencil className="h-4 w-4" />
-            <span className="text-sm font-semibold">Edit Profile</span>
+            <span className="text-sm font-semibold text-white">Edit Profile</span>
           </div>
 
           <TextInput
@@ -213,13 +213,13 @@ export function SettingsShell() {
           />
 
           {profileError && (
-            <p className="rounded-lg bg-rose-50 border border-rose-200 px-3 py-2 text-xs text-rose-600">
+            <p className="rounded-lg bg-rose-950/20 border border-rose-500/30 px-3 py-2 text-xs text-rose-400">
               {profileError}
             </p>
           )}
 
           {profileSuccess && (
-            <div className="flex items-center gap-2 rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-2 text-xs text-emerald-700">
+            <div className="flex items-center gap-2 rounded-lg bg-emerald-950/20 border border-emerald-500/30 px-3 py-2 text-xs text-emerald-400">
               <CheckCircle2 className="h-4 w-4" />
               Profile updated successfully.
             </div>
@@ -228,7 +228,7 @@ export function SettingsShell() {
           <button
             onClick={handleProfileSubmit}
             disabled={profileMutation.isPending}
-            className="w-full rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+            className="w-full rounded-xl bg-[var(--brand-500)] px-4 py-2.5 text-sm font-bold text-black hover:bg-white hover:text-black transition-colors disabled:opacity-50 cursor-pointer"
           >
             {profileMutation.isPending ? "Saving…" : "Save Changes"}
           </button>
@@ -238,12 +238,12 @@ export function SettingsShell() {
       {/* Change Password Panel */}
       {activeTab === "password" && (
         <div
-          className="max-w-md rounded-2xl bg-white p-6 space-y-5"
-          style={{ boxShadow: "var(--shadow-sm)", border: "1px solid var(--border-light)" }}
+          className="max-w-md rounded-2xl p-6 space-y-5 border"
+          style={{ background: "var(--surface)", borderColor: "var(--border)", boxShadow: "var(--shadow-sm)" }}
         >
-          <div className="flex items-center gap-2 text-indigo-600">
+          <div className="flex items-center gap-2 text-[var(--brand-500)]">
             <KeyRound className="h-4 w-4" />
-            <span className="text-sm font-semibold">Change Password</span>
+            <span className="text-sm font-semibold text-white">Change Password</span>
           </div>
 
           <PasswordInput label="Current Password" value={current} onChange={setCurrent} />
@@ -251,13 +251,13 @@ export function SettingsShell() {
           <PasswordInput label="Confirm New Password" value={confirm} onChange={setConfirm} />
 
           {pwError && (
-            <p className="rounded-lg bg-rose-50 border border-rose-200 px-3 py-2 text-xs text-rose-600">
+            <p className="rounded-lg bg-rose-950/20 border border-rose-500/30 px-3 py-2 text-xs text-rose-400">
               {pwError}
             </p>
           )}
 
           {pwSuccess && (
-            <div className="flex items-center gap-2 rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-2 text-xs text-emerald-700">
+            <div className="flex items-center gap-2 rounded-lg bg-emerald-950/20 border border-emerald-500/30 px-3 py-2 text-xs text-emerald-400">
               <CheckCircle2 className="h-4 w-4" />
               Password updated successfully.
             </div>
@@ -266,7 +266,7 @@ export function SettingsShell() {
           <button
             onClick={handlePasswordSubmit}
             disabled={passwordMutation.isPending}
-            className="w-full rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+            className="w-full rounded-xl bg-[var(--brand-500)] px-4 py-2.5 text-sm font-bold text-black hover:bg-white hover:text-black transition-colors disabled:opacity-50 cursor-pointer"
           >
             {passwordMutation.isPending ? "Updating…" : "Update Password"}
           </button>

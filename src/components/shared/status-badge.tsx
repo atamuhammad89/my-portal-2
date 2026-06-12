@@ -7,21 +7,21 @@ type StatusBadgeProps = {
   variant?: StatusVariant;
 };
 
-const variantStyles: Record<StatusVariant, { bg: string; color: string; dot: string }> = {
-  success: { bg: "#ecfdf5", color: "#059669", dot: "#10b981" },
-  warning: { bg: "#fffbeb", color: "#d97706", dot: "#f59e0b" },
-  danger:  { bg: "#fff1f2", color: "#e11d48", dot: "#fb7185" },
-  neutral: { bg: "#f0f2f8", color: "#6366f1", dot: "#818cf8" },
+const variantStyles: Record<StatusVariant, { bg: string; color: string; dot: string; border: string }> = {
+  success: { bg: "rgba(16, 185, 129, 0.08)", color: "#34d399", dot: "#10b981", border: "rgba(16, 185, 129, 0.2)" },
+  warning: { bg: "rgba(245, 158, 11, 0.08)", color: "#fbbf24", dot: "#f59e0b", border: "rgba(245, 158, 11, 0.2)" },
+  danger:  { bg: "rgba(244, 63, 94, 0.08)", color: "#fb7185", dot: "#f43f5e", border: "rgba(244, 63, 94, 0.2)" },
+  neutral: { bg: "rgba(0, 240, 255, 0.05)", color: "#00f0ff", dot: "#00f0ff", border: "rgba(0, 240, 255, 0.15)" },
 };
 
 export function StatusBadge({ text, variant = "neutral" }: StatusBadgeProps) {
   const s = variantStyles[variant];
   return (
     <span
-      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold"
-      style={{ background: s.bg, color: s.color }}
+      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold border"
+      style={{ background: s.bg, color: s.color, borderColor: s.border }}
     >
-      <span className="h-1.5 w-1.5 rounded-full inline-block" style={{ background: s.dot }} />
+      <span className="h-1.5 w-1.5 rounded-full inline-block" style={{ background: s.dot, boxShadow: `0 0 6px ${s.dot}` }} />
       {text}
     </span>
   );

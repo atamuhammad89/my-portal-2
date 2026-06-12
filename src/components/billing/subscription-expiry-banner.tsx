@@ -37,30 +37,29 @@ export function SubscriptionExpiryBanner({
   if (isExpired) {
     return (
       <div
-        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-2xl px-5 py-4"
+        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-2xl px-5 py-4 border"
         style={{
-          background: "linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%)",
-          border: "1px solid #fecdd3",
+          background: "var(--danger-bg)",
+          borderColor: "rgba(244, 63, 94, 0.2)",
         }}
       >
         <div className="flex items-start gap-3">
           <div
-            className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl"
-            style={{ background: "#fee2e2" }}
+            className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-rose-500/10"
           >
-            <XCircle className="h-5 w-5 text-rose-500" />
+            <XCircle className="h-5 w-5 text-rose-400" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-rose-900">Subscription Expired</p>
-            <p className="text-sm text-rose-600 mt-0.5">
+            <p className="text-sm font-bold text-rose-400">Subscription Expired</p>
+            <p className="text-sm text-slate-300 mt-0.5">
               Your subscription has ended. Renew now to restore full access to your dashboard.
             </p>
           </div>
         </div>
         <button
           onClick={onRenew}
-          className="flex flex-shrink-0 items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white transition-all hover:opacity-90 active:scale-95"
-          style={{ background: "linear-gradient(135deg, #e11d48, #f43f5e)", boxShadow: "0 4px 14px rgba(225,29,72,0.30)" }}
+          className="flex flex-shrink-0 items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-white hover:from-transparent hover:to-transparent hover:text-black hover:border-white border border-transparent active:scale-95 cursor-pointer shadow-[0_4px_16px_rgba(244,63,94,0.2)]"
+          style={{ background: "linear-gradient(135deg, #f43f5e, #e11d48)" }}
         >
           <RefreshCw className="h-4 w-4" />
           Renew Subscription
@@ -72,26 +71,25 @@ export function SubscriptionExpiryBanner({
   // Expiring soon
   return (
     <div
-      className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-2xl px-5 py-4"
+      className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-2xl px-5 py-4 border"
       style={{
-        background: "linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)",
-        border: "1px solid #fde68a",
+        background: "var(--warning-bg)",
+        borderColor: "rgba(245, 158, 11, 0.2)",
       }}
     >
       <div className="flex items-start gap-3">
         <div
-          className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl"
-          style={{ background: "#fef3c7" }}
+          className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-amber-500/10"
         >
-          <AlertTriangle className="h-5 w-5 text-amber-500" />
+          <AlertTriangle className="h-5 w-5 text-amber-400" />
         </div>
         <div>
-          <p className="text-sm font-semibold text-amber-900">
+          <p className="text-sm font-bold text-amber-400">
             Subscription Expiring in {daysLeft} {daysLeft === 1 ? "Day" : "Days"}
           </p>
-          <p className="text-sm text-amber-700 mt-0.5">
+          <p className="text-sm text-slate-300 mt-0.5">
             Renew before{" "}
-            <span className="font-medium">
+            <span className="font-semibold text-white">
               {endsAt ? new Date(endsAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : ""}
             </span>{" "}
             to avoid any service interruption.
@@ -100,8 +98,8 @@ export function SubscriptionExpiryBanner({
       </div>
       <button
         onClick={onRenew}
-        className="flex flex-shrink-0 items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white transition-all hover:opacity-90 active:scale-95"
-        style={{ background: "linear-gradient(135deg, #d97706, #f59e0b)", boxShadow: "0 4px 14px rgba(217,119,6,0.25)" }}
+        className="flex flex-shrink-0 items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-black text-black transition-all hover:bg-white hover:from-transparent hover:to-transparent hover:text-black hover:border-white border border-transparent active:scale-95 cursor-pointer shadow-[0_4px_16px_rgba(245,158,11,0.2)]"
+        style={{ background: "linear-gradient(135deg, #f59e0b, #d97706)" }}
       >
         <RefreshCw className="h-4 w-4" />
         Renew Now

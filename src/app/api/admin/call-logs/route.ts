@@ -37,7 +37,20 @@ export async function GET(req: NextRequest) {
 
   const supabase = createServerSupabaseClient();
 
-  // ── 1. Resolve assistant_id if customer_id filter is provided ──────────────
+  // ── 1. Fetch all customers (id + name + email) for the customer selector ───
+  const { data: customerRows } = await supabase
+    .from("users")
+    .select("id, full_name, email")
+    .in("role", ["owner", "member"])
+    .order("full_name", { ascending: true });
+
+  const customers = (customerRows ?? []).map((u: any) => ({
+    id:       u.id,
+    fullName: u.full_name,
+    email:    u.email,
+  }));
+
+  // ── 2. Resolve assistant_id if customer_id filter is provided ──────────────
   let assistantIdFilter: string | null = null;
 
   if (customerId) {
@@ -48,18 +61,11 @@ export async function GET(req: NextRequest) {
       .maybeSingle();
 
     if (!assignment?.assistant_id) {
-      // Customer has no assignment → return empty
-      return NextResponse.json({ data: [], total: 0, page, limit });
+      // Customer has no assignment → return empty but include customers list so dropdown doesn't disappear
+      return NextResponse.json({ data: [], total: 0, page, limit, customers });
     }
     assistantIdFilter = assignment.assistant_id;
   }
-
-  // ── 2. Fetch all customers (id + name + email) for the customer selector ───
-  const { data: customerRows } = await supabase
-    .from("users")
-    .select("id, full_name, email")
-    .in("role", ["owner", "member"])
-    .order("full_name", { ascending: true });
 
   // ── 3. Fetch all assistant assignments so we can label rows with customer ──
   const { data: allAssignments } = await supabase
@@ -81,9 +87,7 @@ export async function GET(req: NextRequest) {
   // ── 4. Build CDR query ────────────────────────────────────────────────────
   let query = supabase
     .from("cdrs")
-    .select("*", { count: "exact" })
-    .order("start_datetime", { ascending: sortOrder, nullsFirst: false })
-    .range(offset, offset + limit - 1);
+    .select("*"); // No count or range in database since we filter, sort and paginate in memory
 
   if (assistantIdFilter) {
     query = query.eq("assistant_id", assistantIdFilter);
@@ -93,27 +97,46 @@ export async function GET(req: NextRequest) {
     query = query.eq("is_successful", status === "passed");
   }
 
-  if (fromDate) {
-    // Convert YYYY-MM-DD to ISO for gte comparison on start_datetime
-    query = query.gte("start_datetime", `${fromDate}T00:00:00`);
-  }
-  if (toDate) {
-    query = query.lte("start_datetime", `${toDate}T23:59:59`);
-  }
-
   if (search) {
     query = query.ilike("customer_number", `%${search}%`);
   }
 
-  const { data: rows, error, count } = await query;
+  const { data: rows, error } = await query;
 
   if (error) {
     console.error("[GET /api/admin/call-logs]", error);
     return NextResponse.json({ error: "Failed to fetch call logs." }, { status: 500 });
   }
 
+  // Filter by date in memory
+  let filteredRows = rows ?? [];
+  if (fromDate || toDate) {
+    const fromTime = fromDate ? new Date(`${fromDate}T00:00:00`).getTime() : null;
+    const toTime   = toDate ? new Date(`${toDate}T23:59:59`).getTime() : null;
+
+    filteredRows = filteredRows.filter((row: any) => {
+      const callMs = parseCdrDate(row.start_datetime);
+      if (callMs === null) return false;
+
+      if (fromTime !== null && callMs < fromTime) return false;
+      if (toTime !== null && callMs > toTime) return false;
+      return true;
+    });
+  }
+
+  // Sort rows chronologically in memory
+  filteredRows.sort((a: any, b: any) => {
+    const timeA = parseCdrDate(a.start_datetime) ?? 0;
+    const timeB = parseCdrDate(b.start_datetime) ?? 0;
+    return sortOrder ? timeA - timeB : timeB - timeA;
+  });
+
+  // Paginate in memory
+  const total = filteredRows.length;
+  const paginatedRows = filteredRows.slice(offset, offset + limit);
+
   // ── 5. Shape response ─────────────────────────────────────────────────────
-  const data = (rows ?? []).map((row: any) => {
+  const data = paginatedRows.map((row: any) => {
     const durationSeconds =
       row.total_seconds ?? Math.round(Number(row.total_mins ?? 0) * 60);
     const userId   = assistantToUser[row.assistant_id] ?? null;
@@ -143,11 +166,32 @@ export async function GET(req: NextRequest) {
   });
 
   // ── 6. Return customers list alongside logs for the filter dropdown ────────
-  const customers = (customerRows ?? []).map((u: any) => ({
-    id:       u.id,
-    fullName: u.full_name,
-    email:    u.email,
-  }));
+  return NextResponse.json({ data, total, page, limit, customers });
+}
 
-  return NextResponse.json({ data, total: count ?? 0, page, limit, customers });
+function parseCdrDate(raw: string | number | null | undefined): number | null {
+  if (raw === null || raw === undefined || raw === "") return null;
+
+  const ts = Number(raw);
+  if (!isNaN(ts) && String(raw).trim() !== "") {
+    // > 1e12 → milliseconds, otherwise seconds
+    const ms = ts > 1e12 ? ts : ts * 1000;
+    return isNaN(ms) ? null : ms;
+  }
+
+  if (typeof raw === "string") {
+    // DD/MM/YYYY [HH:mm:ss]
+    const ddmm = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[,\s]+(\d{1,2}:\d{2}(?::\d{2})?))?/);
+    if (ddmm) {
+      const [, dd, mm, yyyy, time] = ddmm;
+      const iso = `${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}T${time ?? "00:00:00"}`;
+      const d = new Date(iso).getTime();
+      return isNaN(d) ? null : d;
+    }
+    // ISO or any other Date-parseable string
+    const d = new Date(raw).getTime();
+    return isNaN(d) ? null : d;
+  }
+
+  return null;
 }

@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { apiClient } from "@/lib/api-client";
 
 export type ManagedUser = {
   id: string;
@@ -22,9 +23,8 @@ export const adminUsersService = {
    * (uses service role key server-side to bypass RLS).
    */
   async getAllUsers(): Promise<ManagedUser[]> {
-    const res = await fetch("/api/admin/users");
-    if (!res.ok) throw new Error("Failed to fetch users.");
-    const data = await res.json();
+    const res = await apiClient.get("/admin/users");
+    const data = res.data;
     return data.map((row: any) => ({
       id: row.id,
       email: row.email,

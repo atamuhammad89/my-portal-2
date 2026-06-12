@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { adminCdrLogsService } from "@/services/admin/adminCdrLogsService";
 import { AdminCdrLog, AdminCdrCustomer, AdminCdrLogsParams } from "@/types/admin/cdr-log";
 
@@ -10,5 +10,6 @@ export function useAdminCdrLogsQuery(params: AdminCdrLogsParams) {
     queryKey: ["admin", "cdr-logs", params],
     queryFn: () => adminCdrLogsService.getCdrLogs(params),
     staleTime: 30_000,
+    placeholderData: keepPreviousData,
   });
 }

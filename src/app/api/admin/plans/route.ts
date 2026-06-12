@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { verifyRequestJwt, requireRole } from "@/lib/jwt-auth";
 
 // GET /api/admin/plans — list all plans
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const jwt = await verifyRequestJwt(req);
+  if (!requireRole(jwt, ["super_admin", "finance"])) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
   try {
     const supabase = createServerSupabaseClient();
     const { data, error } = await supabase
@@ -20,6 +25,10 @@ export async function GET() {
 
 // POST /api/admin/plans — create a new plan
 export async function POST(req: NextRequest) {
+  const jwt = await verifyRequestJwt(req);
+  if (!requireRole(jwt, ["super_admin", "finance"])) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
   try {
     const supabase = createServerSupabaseClient();
     const body = await req.json();

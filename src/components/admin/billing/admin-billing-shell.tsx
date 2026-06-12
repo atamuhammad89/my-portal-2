@@ -27,19 +27,24 @@ function subStatusVariant(status: string) {
 
 function BillingCard({ user }: { user: AdminUserBilling }) {
   const sub = user.subscription;
-  const pct = sub ? minutesPercent(user.usageMinutes, sub.totalMinutes) : 0;
+  const pct = sub ? minutesPercent(sub.minutesUsed, sub.totalMinutes) : 0;
 
   return (
     <div
-      className="rounded-2xl bg-white p-5 flex flex-col gap-4"
-      style={{ boxShadow: "var(--shadow-sm)", border: "1px solid var(--border-light)" }}
+      className="rounded-2xl p-5 flex flex-col gap-4 relative overflow-hidden transition-all duration-200 hover:translate-y-[-2px] hover:shadow-[0_0_15px_rgba(0,240,255,0.07)]"
+      style={{
+        background: "var(--surface)",
+        boxShadow: "var(--shadow-sm)",
+        border: "1px solid var(--border)",
+        borderLeft: "3px solid var(--brand-500)",
+      }}
     >
       {/* User info */}
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-slate-900 truncate">{user.fullName}</p>
-          <p className="text-xs text-slate-400 truncate">{user.email}</p>
-          <span className="mt-1 inline-block text-[10px] uppercase tracking-wide font-semibold text-indigo-500 bg-indigo-50 rounded px-1.5 py-0.5">
+          <p className="text-sm font-semibold text-white truncate">{user.fullName}</p>
+          <p className="text-xs text-[var(--subtle-text)] truncate">{user.email}</p>
+          <span className="mt-2 inline-block text-[10px] uppercase tracking-wide font-semibold text-brand-cyan bg-brand-cyan/10 border border-brand-cyan/20 rounded px-1.5 py-0.5">
             {user.role}
           </span>
         </div>
@@ -50,9 +55,9 @@ function BillingCard({ user }: { user: AdminUserBilling }) {
       </div>
 
       {/* CDR Usage — always shown */}
-      <div className="flex items-center justify-between rounded-xl bg-indigo-50 px-3 py-2">
-        <span className="text-xs font-medium text-indigo-600">CDR Usage (All-time)</span>
-        <span className="text-sm font-bold text-indigo-700">{user.usageMinutes} min</span>
+      <div className="flex items-center justify-between rounded-xl px-3 py-2 border border-[var(--border)] bg-[var(--surface-2)]">
+        <span className="text-xs font-semibold text-slate-300">CDR Usage (All-time)</span>
+        <span className="text-sm font-bold text-brand-cyan">{user.usageMinutes} min</span>
       </div>
 
       {sub ? (
@@ -61,27 +66,27 @@ function BillingCard({ user }: { user: AdminUserBilling }) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-slate-400">Plan</p>
-              <p className="text-sm font-semibold text-slate-800">{sub.planName}</p>
+              <p className="text-sm font-bold text-white">{sub.planName}</p>
             </div>
             <StatusBadge text={sub.status} variant={subStatusVariant(sub.status)} />
           </div>
 
           {/* Minutes usage bar */}
-          <div className="space-y-1">
-            <div className="flex items-center justify-between text-xs text-slate-500">
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-xs text-slate-400">
               <span>Plan Minutes Used</span>
-              <span>
+              <span className="font-semibold text-slate-300">
                 {sub.minutesUsed} / {sub.totalMinutes} min ({pct}%)
               </span>
             </div>
-            <div className="h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
+            <div className="h-2 w-full rounded-full bg-[var(--surface-2)] overflow-hidden border border-[var(--border)]">
               <div
                 className={`h-full rounded-full transition-all ${
                   pct >= 90
                     ? "bg-rose-500"
                     : pct >= 70
                     ? "bg-amber-400"
-                    : "bg-indigo-500"
+                    : "bg-brand-cyan"
                 }`}
                 style={{ width: `${pct}%` }}
               />
@@ -89,33 +94,33 @@ function BillingCard({ user }: { user: AdminUserBilling }) {
           </div>
 
           {/* Pricing */}
-          <div className="grid grid-cols-2 gap-2 rounded-xl bg-slate-50 p-3">
+          <div className="grid grid-cols-2 gap-2 rounded-xl p-3 border border-[var(--border)] bg-[var(--surface-2)]">
             <div>
               <p className="text-xs text-slate-400">Monthly Price</p>
-              <p className="text-sm font-bold text-slate-800">${sub.monthlyPrice.toFixed(2)}</p>
+              <p className="text-sm font-bold text-white">${sub.monthlyPrice.toFixed(2)}</p>
             </div>
             <div>
               <p className="text-xs text-slate-400">Per Minute</p>
-              <p className="text-sm font-bold text-slate-800">${sub.pricePerMinute.toFixed(6)}</p>
+              <p className="text-sm font-bold text-brand-teal">${sub.pricePerMinute.toFixed(6)}</p>
             </div>
           </div>
 
           {/* Dates */}
-          <div className="grid grid-cols-2 gap-2 text-xs text-slate-500">
+          <div className="grid grid-cols-2 gap-2 text-xs text-slate-400">
             <div>
-              <span className="text-slate-400">Started: </span>
+              <span className="text-slate-500">Started: </span>
               {formatDate(sub.startedAt)}
             </div>
             {sub.endsAt && (
               <div>
-                <span className="text-slate-400">Ends: </span>
+                <span className="text-slate-500">Ends: </span>
                 {formatDate(sub.endsAt)}
               </div>
             )}
           </div>
         </>
       ) : (
-        <div className="rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-400 text-center">
+        <div className="rounded-xl px-4 py-3 text-sm text-slate-400 text-center border border-[var(--border)] bg-[var(--surface-2)]">
           No active subscription
         </div>
       )}
@@ -151,7 +156,8 @@ export function AdminBillingShell() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name or email…"
-            className="w-full rounded-xl border border-slate-200 bg-white pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            className="w-full rounded-xl border pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-cyan/30"
+            style={{ background: "var(--surface)", borderColor: "var(--border)", color: "#fff" }}
           />
         </div>
 

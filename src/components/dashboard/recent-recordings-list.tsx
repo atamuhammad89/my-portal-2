@@ -35,7 +35,7 @@ function InlineAudioPlayer({ url }: { url: string }) {
   }
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+    <div className="rounded-xl border p-4" style={{ background: "var(--surface-2)", borderColor: "var(--border)" }}>
       <audio
         ref={audioRef}
         src={url}
@@ -54,7 +54,8 @@ function InlineAudioPlayer({ url }: { url: string }) {
         <button
           type="button"
           onClick={toggle}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-900 text-white shadow transition hover:bg-slate-700 active:scale-95"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-black shadow transition active:scale-95 cursor-pointer hover:shadow-[0_0_10px_rgba(0,240,255,0.4)]"
+          style={{ background: "var(--brand-500)" }}
         >
           {playing ? (
             <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
@@ -78,9 +79,9 @@ function InlineAudioPlayer({ url }: { url: string }) {
               setCurrentTime(t);
               setProgress(Number(e.target.value));
             }}
-            className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-slate-200 accent-slate-900"
+            className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-slate-800 accent-[var(--brand-500)]"
           />
-          <div className="flex justify-between text-xs text-slate-500">
+          <div className="flex justify-between text-xs text-slate-400">
             <span>{fmtTime(currentTime)}</span>
             <span>{fmtTime(duration)}</span>
           </div>
@@ -88,7 +89,8 @@ function InlineAudioPlayer({ url }: { url: string }) {
         <a
           href={url} download target="_blank" rel="noreferrer"
           title="Download MP3"
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 transition"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border text-slate-400 hover:text-white hover:bg-white/5 transition"
+          style={{ background: "var(--surface)", borderColor: "var(--border)" }}
         >
           <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.5">
             <path d="M6.5 1.5v7M3.5 6l3 3 3-3M1.5 11.5h10" strokeLinecap="round" strokeLinejoin="round"/>
@@ -106,7 +108,7 @@ type RecentRecordingsListProps = {
 export function RecentRecordingsList({ rows }: RecentRecordingsListProps) {
   if (!rows.length) {
     return (
-      <div className="rounded-xl border border-dashed border-slate-200 py-8 text-center text-sm text-slate-400">
+      <div className="rounded-xl border border-dashed py-8 text-center text-sm text-slate-500" style={{ borderColor: "var(--border)" }}>
         No recordings available yet
       </div>
     );
@@ -115,15 +117,15 @@ export function RecentRecordingsList({ rows }: RecentRecordingsListProps) {
   return (
     <div className="space-y-3">
       {rows.map((row) => (
-        <article key={row.id} className="rounded-xl border bg-white p-4 shadow-sm">
+        <article key={row.id} className="rounded-xl border p-4 shadow-sm" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
           <div className="mb-3 flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-sm font-semibold text-slate-900">
+              <p className="text-sm font-semibold text-white">
                 {row.customerNumber !== "—" ? row.customerNumber : "Unknown Caller"}
               </p>
-              <p className="text-xs text-slate-500">Agent: {row.agentName}</p>
+              <p className="text-xs text-slate-400">Agent: {row.agentName}</p>
             </div>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-400">
               {formatDuration(row.durationSeconds)} &middot; {formatDateSafe(row.createdAt)}
             </p>
           </div>

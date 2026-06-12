@@ -410,7 +410,7 @@ export function AdminSubscriptionsShell() {
               className={`rounded-full px-4 py-1.5 text-xs font-semibold capitalize transition-colors ${
                 filter === f
                   ? "bg-indigo-600 text-white shadow-sm"
-                  : "bg-white text-slate-500 border border-slate-200 hover:bg-slate-50"
+                  : "bg-[var(--surface-2)] text-slate-400 border border-[var(--border)] hover:bg-[var(--surface)] hover:text-white"
               }`}
             >
               {f}
@@ -428,22 +428,10 @@ export function AdminSubscriptionsShell() {
             message="No subscriptions match this filter."
           />
         ) : (
-          <div
-            className="overflow-x-auto rounded-2xl bg-white"
-            style={{
-              boxShadow: "var(--shadow-sm)",
-              border: "1px solid var(--border-light)",
-            }}
-          >
-            <table className="min-w-full text-left">
+          <div className="premium-table-container">
+            <table className="premium-table">
               <thead>
-                <tr
-                  style={{
-                    background:
-                      "linear-gradient(90deg, #f5f3ff 0%, #eef2ff 100%)",
-                    borderBottom: "1px solid var(--border)",
-                  }}
-                >
+                <tr>
                   {[
                     "Customer",
                     "Plan",
@@ -454,63 +442,53 @@ export function AdminSubscriptionsShell() {
                     "Ends",
                     "Actions",
                   ].map((h) => (
-                    <th
-                      key={h}
-                      className="px-4 py-3 text-xs font-semibold uppercase tracking-wider"
-                      style={{ color: "#6366f1" }}
-                    >
+                    <th key={h}>
                       {h}
                     </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((sub, i) => {
+                {filtered.map((sub) => {
                   return (
-                    <tr
-                      key={sub.id}
-                      style={{
-                        borderTop: "1px solid var(--border-light)",
-                        background: i % 2 === 1 ? "#fafbff" : "white",
-                      }}
-                    >
-                      <td className="px-4 py-3">
-                        <p className="text-sm font-medium text-slate-800">
+                    <tr key={sub.id}>
+                      <td>
+                        <p className="font-semibold text-white">
                           {sub.userFullName}
                         </p>
                         <p className="text-xs text-slate-400">
                           {sub.userEmail}
                         </p>
                       </td>
-                      <td className="px-4 py-3 text-sm text-slate-700">
+                      <td className="text-slate-300">
                         {sub.planDisplayName}
                       </td>
-                      <td className="px-4 py-3">
+                      <td>
                         <StatusBadge
                           text={sub.status}
                           variant={statusVariant(sub.status)}
                         />
                       </td>
-                      <td className="px-4 py-3 min-w-[180px]">
+                      <td className="min-w-[180px]">
                         <div className="space-y-1">
-                          <div className="flex items-center justify-between text-xs text-slate-600">
-                            <span>{sub.usageMinutes} min (CDR)</span>
+                          <div className="flex items-center justify-between text-xs text-slate-400">
+                            <span>{sub.minutesUsed} min (CDR)</span>
                             <span>
                               {sub.totalMinutes
-                                ? `${Math.round((sub.usageMinutes / sub.totalMinutes) * 100)}%`
+                                ? `${Math.round((sub.minutesUsed / sub.totalMinutes) * 100)}%`
                                 : "—"}
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <div className="flex-1 h-2 rounded-full bg-slate-100 overflow-hidden">
+                            <div className="flex-1 h-2 rounded-full bg-slate-800 overflow-hidden">
                               <div
-                                className="h-full rounded-full bg-indigo-500 transition-all"
+                                className="h-full rounded-full bg-[var(--brand-500)] transition-all"
                                 style={{
                                   width: sub.totalMinutes
                                     ? `${Math.min(
                                         100,
                                         Math.round(
-                                          (sub.usageMinutes /
+                                          (sub.minutesUsed /
                                             sub.totalMinutes) *
                                             100,
                                         ),
@@ -522,16 +500,16 @@ export function AdminSubscriptionsShell() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-sm text-slate-700">
+                      <td className="text-slate-300">
                         ${sub.monthlyPrice}
                       </td>
-                      <td className="px-4 py-3 text-sm text-slate-500">
+                      <td className="text-slate-400">
                         {formatDate(sub.startedAt)}
                       </td>
-                      <td className="px-4 py-3 text-sm text-slate-500">
+                      <td className="text-slate-400">
                         {sub.endsAt ? formatDate(sub.endsAt) : "—"}
                       </td>
-                      <td className="px-4 py-3">
+                      <td>
                         <div className="flex items-center gap-1">
                           {sub.status === "active" && (
                             <>
@@ -544,7 +522,7 @@ export function AdminSubscriptionsShell() {
                                     userName: sub.userFullName,
                                   })
                                 }
-                                className="p-1.5 rounded-lg text-amber-500 hover:bg-amber-50 transition-colors"
+                                className="p-1.5 rounded-lg text-amber-400 hover:bg-amber-500/10 transition-colors cursor-pointer"
                               >
                                 <PauseCircle className="h-4 w-4" />
                               </button>
@@ -557,7 +535,7 @@ export function AdminSubscriptionsShell() {
                                     userName: sub.userFullName,
                                   })
                                 }
-                                className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 transition-colors"
+                                className="p-1.5 rounded-lg text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
                               >
                                 <XCircle className="h-4 w-4" />
                               </button>
@@ -571,9 +549,9 @@ export function AdminSubscriptionsShell() {
                                   id: sub.id,
                                   action: "resume",
                                   userName: sub.userFullName,
-                                })
-                              }
-                              className="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-50 transition-colors"
+                                  })
+                                }
+                              className="p-1.5 rounded-lg text-emerald-400 hover:bg-emerald-500/10 transition-colors cursor-pointer"
                             >
                               <PlayCircle className="h-4 w-4" />
                             </button>
@@ -588,7 +566,7 @@ export function AdminSubscriptionsShell() {
                                   userName: sub.userFullName,
                                 })
                               }
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors text-xs font-semibold"
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[rgba(0,240,255,0.08)] text-[var(--brand-500)] border border-[rgba(0,240,255,0.2)] hover:bg-[rgba(0,240,255,0.15)] transition-colors text-xs font-semibold cursor-pointer"
                             >
                               <RefreshCw className="h-3.5 w-3.5" />
                               Renew

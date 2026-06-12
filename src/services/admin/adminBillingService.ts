@@ -1,3 +1,5 @@
+import { apiClient } from "@/lib/api-client";
+
 export type AdminUserBilling = {
   userId: string;
   fullName: string;
@@ -21,8 +23,7 @@ export type AdminUserBilling = {
 
 export const adminBillingService = {
   async getBillingData(): Promise<AdminUserBilling[]> {
-    const res = await fetch("/api/admin/billing");
-    if (!res.ok) throw new Error("Failed to fetch billing data.");
-    return res.json();
+    const res = await apiClient.get<AdminUserBilling[]>("/admin/billing");
+    return res.data;
   },
 };
