@@ -53,7 +53,7 @@ import { ApiError, ApiErrorPayload } from "@/types/api";
 import { clearAuthSession } from "@/utils/auth-session";
 
 export const apiClient = axios.create({
-  timeout: 10000,
+  timeout: 30000,
 });
 
 apiClient.interceptors.request.use((config) => {

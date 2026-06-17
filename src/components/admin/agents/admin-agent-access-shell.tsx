@@ -123,7 +123,7 @@ export function AdminAgentAccessShell() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search users…"
-                className="w-full rounded-xl border pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-cyan/30 text-white"
+                className="w-full rounded-xl border pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-cyan/30 text-[var(--foreground)]"
                 style={{ background: "var(--surface-2)", borderColor: "var(--border)" }}
               />
             </div>
@@ -148,8 +148,8 @@ export function AdminAgentAccessShell() {
                         }}
                         className={`w-full text-left rounded-xl px-4 py-3 text-sm transition-all flex items-center justify-between gap-2 border cursor-pointer relative ${
                           isActive
-                            ? "bg-[rgba(0,240,255,0.06)] text-white border-brand-cyan/35"
-                            : "hover:bg-[rgba(255,255,255,0.02)] text-slate-300 border-transparent hover:text-white"
+                            ? "bg-[var(--brand-50)] text-[var(--foreground)] border-brand-cyan/35"
+                            : "hover:bg-[var(--surface-2)] text-[var(--muted-text)] border-transparent hover:text-[var(--foreground)]"
                         }`}
                       >
                         {isActive && (
@@ -157,7 +157,7 @@ export function AdminAgentAccessShell() {
                         )}
                         <div className="min-w-0">
                           <p className="font-semibold truncate">{user.fullName || user.email}</p>
-                          <p className={`text-xs truncate ${isActive ? "text-brand-cyan/80" : "text-slate-500"}`}>
+                          <p className={`text-xs truncate ${isActive ? "text-brand-cyan/85" : "text-[var(--subtle-text)]"}`}>
                             {user.email}
                           </p>
                         </div>
@@ -165,7 +165,7 @@ export function AdminAgentAccessShell() {
                           <span className={`shrink-0 flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold border ${
                             isActive
                               ? "bg-brand-cyan/20 border-brand-cyan/30 text-brand-cyan"
-                              : "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                              : "bg-[var(--success-bg)] border-[var(--success-fg)]/20 text-[var(--success-fg)]"
                           }`}>
                             <UserCheck className="h-2.5 w-2.5" /> Assigned
                           </span>
@@ -194,7 +194,7 @@ export function AdminAgentAccessShell() {
                      style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
                   <div className="flex items-start justify-between flex-wrap gap-2">
                     <div>
-                      <h2 className="text-lg font-bold text-white">
+                      <h2 className="text-lg font-bold text-[var(--foreground)]">
                         {selectedUser.fullName || selectedUser.email}
                       </h2>
                       <p className="text-xs text-[var(--subtle-text)] mt-0.5">{selectedUser.email}</p>
@@ -207,7 +207,7 @@ export function AdminAgentAccessShell() {
                           variant={selectedUser.isActive ? "success" : "neutral"}
                         />
                         {selectedUser.tenantId && (
-                          <span className="text-xs font-mono text-slate-400 bg-[var(--surface-2)] border border-[var(--border)] px-1.5 py-0.5 rounded">
+                          <span className="text-xs font-mono text-[var(--muted-text)] bg-[var(--surface-2)] border border-[var(--border)] px-1.5 py-0.5 rounded">
                             Tenant: {selectedUser.tenantId.slice(0, 8)}…
                           </span>
                         )}
@@ -224,13 +224,13 @@ export function AdminAgentAccessShell() {
                   <div className="rounded-2xl border p-4 flex items-center justify-between flex-wrap gap-3"
                        style={{ background: "rgba(16,185,129,0.05)", borderColor: "rgba(16,185,129,0.2)" }}>
                     <div>
-                      <p className="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-1">
+                      <p className="text-xs font-bold uppercase tracking-wider text-[var(--success-fg)] mb-1">
                         Currently Assigned
                       </p>
-                      <p className="text-sm font-mono font-bold text-white bg-[var(--surface-2)] border border-[var(--border)] px-2.5 py-1.5 rounded-lg inline-block">
+                      <p className="text-sm font-mono font-bold text-[var(--foreground)] bg-[var(--surface-2)] border border-[var(--border)] px-2.5 py-1.5 rounded-lg inline-block">
                         {currentAssignment.assistant_id}
                       </p>
-                      <p className="text-xs text-slate-400 mt-2">
+                      <p className="text-xs text-[var(--muted-text)] mt-2">
                         Assigned {formatDateTime(currentAssignment.assigned_at)}
                       </p>
                     </div>
@@ -248,22 +248,22 @@ export function AdminAgentAccessShell() {
                 {/* Assign new */}
                 <div className="rounded-2xl border p-5 space-y-4"
                      style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
-                  <h3 className="text-sm font-bold text-white">
+                  <h3 className="text-sm font-bold text-[var(--foreground)]">
                     {currentAssignment ? "Change Assignment" : "Assign Assistant ID"}
                   </h3>
                   <div className="flex flex-col sm:flex-row gap-3">
                     <select
                       value={selectedAssistantId}
                       onChange={(e) => setSelectedAssistantId(e.target.value)}
-                      className="flex-1 rounded-xl border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-cyan/30 text-white cursor-pointer"
+                      className="flex-1 rounded-xl border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-cyan/30 text-[var(--foreground)] cursor-pointer"
                       style={{ background: "var(--surface-2)", borderColor: "var(--border)" }}
                       disabled={idsLoading}
                     >
-                      <option value="" className="bg-[var(--surface)] text-white">
+                      <option value="" className="bg-[var(--surface)] text-[var(--foreground)]">
                         {idsLoading ? "Loading assistant IDs…" : "Select an assistant ID…"}
                       </option>
                       {assistantIds.map((id) => (
-                        <option key={id} value={id} className="bg-[var(--surface)] text-white font-mono">{id}</option>
+                        <option key={id} value={id} className="bg-[var(--surface)] text-[var(--foreground)] font-mono">{id}</option>
                       ))}
                     </select>
                     <button
@@ -286,7 +286,7 @@ export function AdminAgentAccessShell() {
                 {assignments.length > 0 && (
                   <div className="rounded-2xl border p-5"
                        style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
-                    <h3 className="text-sm font-bold text-white mb-3">
+                    <h3 className="text-sm font-bold text-[var(--foreground)] mb-3">
                       All Assignments ({assignments.length})
                     </h3>
                     <div className="space-y-2 max-h-56 overflow-y-auto pr-1 scrollbar-thin">
@@ -296,13 +296,13 @@ export function AdminAgentAccessShell() {
                           <div key={a.id} className="flex flex-col sm:flex-row sm:items-center justify-between rounded-lg px-3 py-2 text-sm gap-2 border"
                                style={{ background: "var(--surface-2)", borderColor: "var(--border)" }}>
                             <div>
-                              <span className="font-semibold text-white">
+                              <span className="font-semibold text-[var(--foreground)]">
                                 {user?.fullName || user?.email || a.user_id.slice(0, 8)}
                               </span>
                               <span className="mx-2 text-brand-cyan">→</span>
-                              <span className="font-mono text-xs text-brand-teal bg-[var(--surface)] px-2 py-0.5 rounded border border-[var(--border)]">{a.assistant_id}</span>
+                              <span className="font-mono text-xs text-[var(--brand-500)] bg-[var(--surface)] px-2 py-0.5 rounded border border-[var(--border)]">{a.assistant_id}</span>
                             </div>
-                            <span className="text-xs text-[var(--subtle-text)] font-semibold">{formatDateTime(a.assigned_at)}</span>
+                            <span className="text-xs text-[var(--muted-text)] font-semibold">{formatDateTime(a.assigned_at)}</span>
                           </div>
                         );
                       })}

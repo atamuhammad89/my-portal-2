@@ -118,7 +118,7 @@ export function AdminPlansShell() {
           action={
             <button
               onClick={openCreate}
-              className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-colors"
+              className="inline-flex items-center gap-2 rounded-xl bg-[var(--brand-500)] px-4 py-2 text-sm font-bold text-[var(--brand-btn-text)] shadow-sm hover:opacity-90 transition-all cursor-pointer"
             >
               <Plus className="h-4 w-4" />
               Add Plan
@@ -137,7 +137,7 @@ export function AdminPlansShell() {
             {plans.map((plan) => (
               <div
                 key={plan.id}
-                className="rounded-2xl p-5 flex flex-col gap-3 relative overflow-hidden transition-all duration-200 hover:translate-y-[-2px] hover:shadow-[0_0_15px_rgba(0,240,255,0.07)]"
+                className="rounded-2xl p-5 flex flex-col gap-3 relative overflow-hidden transition-all duration-200 hover:translate-y-[-2px] hover:shadow-[var(--card-hover-shadow)]"
                 style={{
                   background: "var(--surface)",
                   boxShadow: "var(--shadow-sm)",
@@ -148,7 +148,7 @@ export function AdminPlansShell() {
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <div className="flex items-center gap-1.5">
-                      <p className="text-base font-bold text-white">{plan.display_name}</p>
+                      <p className="text-base font-bold text-[var(--foreground)]">{plan.display_name}</p>
                       {plan.is_featured && (
                         <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
                       )}
@@ -162,29 +162,29 @@ export function AdminPlansShell() {
                 </div>
 
                 {plan.description && (
-                  <p className="text-sm text-slate-400">{plan.description}</p>
+                  <p className="text-sm text-[var(--muted-text)]">{plan.description}</p>
                 )}
 
                 <div className="grid grid-cols-3 gap-2 rounded-xl p-3 border border-[var(--border)] bg-[var(--surface-2)]">
                   <div className="text-center">
-                    <p className="text-xs text-slate-500">Monthly</p>
-                    <p className="text-sm font-bold text-white">${plan.monthly_price}</p>
+                    <p className="text-xs text-[var(--subtle-text)] font-semibold uppercase tracking-wider text-[10px]">Monthly</p>
+                    <p className="text-sm font-bold text-[var(--foreground)]">${plan.monthly_price}</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-xs text-slate-500">Minutes</p>
-                    <p className="text-sm font-bold text-white">{plan.total_minutes}</p>
+                    <p className="text-xs text-[var(--subtle-text)] font-semibold uppercase tracking-wider text-[10px]">Minutes</p>
+                    <p className="text-sm font-bold text-[var(--foreground)]">{plan.total_minutes}</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-xs text-slate-500">Per Min</p>
-                    <p className="text-sm font-bold text-brand-teal">${plan.price_per_minute}</p>
+                    <p className="text-xs text-[var(--subtle-text)] font-semibold uppercase tracking-wider text-[10px]">Per Min</p>
+                    <p className="text-sm font-bold text-[var(--brand-500)]">${plan.price_per_minute}</p>
                   </div>
                 </div>
 
                 {plan.features && plan.features.length > 0 && (
                   <ul className="space-y-1">
                     {plan.features.map((f, i) => (
-                      <li key={i} className="flex items-center gap-1.5 text-xs text-slate-400">
-                        <span className="h-1.5 w-1.5 rounded-full bg-brand-cyan flex-shrink-0" />
+                      <li key={i} className="flex items-center gap-1.5 text-xs text-[var(--muted-text)]">
+                        <span className="h-1.5 w-1.5 rounded-full bg-[var(--brand-500)] flex-shrink-0" />
                         {f}
                       </li>
                     ))}
@@ -200,7 +200,7 @@ export function AdminPlansShell() {
                 <div className="flex gap-2 pt-1">
                   <button
                     onClick={() => openEdit(plan)}
-                    className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors hover:bg-[var(--surface)] hover:text-white cursor-pointer"
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors hover:bg-[var(--surface)] hover:text-[var(--foreground)] cursor-pointer"
                     style={{ background: "var(--surface-2)", borderColor: "var(--border)", color: "var(--muted-text)" }}
                   >
                     <Pencil className="h-3.5 w-3.5" />
@@ -208,8 +208,8 @@ export function AdminPlansShell() {
                   </button>
                   <button
                     onClick={() => setConfirmDeleteId(plan.id)}
-                    className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors hover:bg-rose-500/20 cursor-pointer"
-                    style={{ background: "rgba(244,63,94,0.1)", borderColor: "rgba(244,63,94,0.2)", color: "#fb7185" }}
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors hover:opacity-90 cursor-pointer"
+                    style={{ background: "var(--danger-bg)", borderColor: "var(--danger-border)", color: "var(--danger-fg)" }}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                     Delete
@@ -227,35 +227,33 @@ export function AdminPlansShell() {
           <div className="w-full max-w-lg rounded-2xl flex flex-col overflow-hidden max-h-[90vh] border"
                style={{ background: "var(--surface)", borderColor: "var(--border)", boxShadow: "0 10px 50px rgba(0,0,0,0.8)" }}>
             <div className="flex items-center justify-between border-b px-6 py-4" style={{ borderColor: "var(--border)" }}>
-              <h3 className="text-base font-bold text-white">
+              <h3 className="text-base font-bold text-[var(--foreground)]">
                 {editingPlan ? "Edit Plan" : "New Plan"}
               </h3>
-              <button onClick={closeModal} className="text-slate-400 hover:text-white text-xl leading-none cursor-pointer">×</button>
+              <button onClick={closeModal} className="text-[var(--muted-text)] hover:text-[var(--foreground)] text-xl leading-none cursor-pointer">×</button>
             </div>
             <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
 
               {/* Name fields */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-1">Internal Name <span className="text-rose-400">*</span></label>
+                  <label className="form-label">Internal Name <span className="text-[var(--danger-fg)]">*</span></label>
                   <input
                     required
                     value={form.name}
                     onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                     placeholder="e.g. starter"
-                    className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-cyan/30 text-white"
-                    style={{ background: "var(--surface-2)", borderColor: "var(--border)" }}
+                    className="form-input"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-1">Display Name <span className="text-rose-400">*</span></label>
+                  <label className="form-label">Display Name <span className="text-[var(--danger-fg)]">*</span></label>
                   <input
                     required
                     value={form.display_name}
                     onChange={(e) => setForm((f) => ({ ...f, display_name: e.target.value }))}
                     placeholder="e.g. Starter Plan"
-                    className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-cyan/30 text-white"
-                    style={{ background: "var(--surface-2)", borderColor: "var(--border)" }}
+                    className="form-input"
                   />
                 </div>
               </div>
@@ -263,74 +261,68 @@ export function AdminPlansShell() {
               {/* Pricing fields */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-1">Monthly Price ($)</label>
+                  <label className="form-label">Monthly Price ($)</label>
                   <input
                     type="number" min="0" step="0.01" required
                     value={form.monthly_price === 0 ? "" : form.monthly_price}
                     onChange={(e) => setForm((f) => ({ ...f, monthly_price: parseFloat(e.target.value) || 0 }))}
-                    className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-cyan/30 text-white"
-                    style={{ background: "var(--surface-2)", borderColor: "var(--border)" }}
+                    className="form-input"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-1">Total Minutes</label>
+                  <label className="form-label">Total Minutes</label>
                   <input
                     type="number" min="1" required
                     value={form.total_minutes === 0 ? "" : form.total_minutes}
                     onChange={(e) => setForm((f) => ({ ...f, total_minutes: parseInt(e.target.value) || 0 }))}
-                    className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-cyan/30 text-white"
-                    style={{ background: "var(--surface-2)", borderColor: "var(--border)" }}
+                    className="form-input"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-1">Price/Minute ($)</label>
+                  <label className="form-label">Price/Minute ($)</label>
                   <input
                     type="number" min="0" step="0.000001" required
                     value={form.price_per_minute === 0 ? "" : form.price_per_minute}
                     onChange={(e) => setForm((f) => ({ ...f, price_per_minute: parseFloat(e.target.value) || 0 }))}
-                    className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-cyan/30 text-white"
-                    style={{ background: "var(--surface-2)", borderColor: "var(--border)" }}
+                    className="form-input"
                   />
                 </div>
               </div>
 
               {/* Description */}
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1">Description</label>
+                <label className="form-label">Description</label>
                 <textarea
                   rows={2}
                   value={form.description ?? ""}
                   onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                   placeholder="Optional plan description..."
-                  className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-cyan/30 text-white resize-none"
-                  style={{ background: "var(--surface-2)", borderColor: "var(--border)" }}
+                  className="form-textarea resize-none"
                 />
               </div>
 
               {/* Stripe Price ID */}
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1">Stripe Price ID</label>
+                <label className="form-label">Stripe Price ID</label>
                 <input
                   value={form.stripe_price_id ?? ""}
                   onChange={(e) => setForm((f) => ({ ...f, stripe_price_id: e.target.value || null }))}
                   placeholder="e.g. price_1ABC..."
-                  className="w-full rounded-lg border px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-brand-cyan/30 text-white"
-                  style={{ background: "var(--surface-2)", borderColor: "var(--border)" }}
+                  className="form-input font-mono"
                 />
               </div>
 
               {/* Features */}
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1">Features</label>
-                <div className="space-y-2">
-                  {(form.features ?? []).map((feat, i) => (
+                <label className="form-label">Features</label>
+                <div className="space-y-2">                  {(form.features ?? []).map((feat, i) => (
                     <div key={i} className="flex items-center gap-2 rounded-lg px-3 py-1.5 border"
-                         style={{ background: "var(--surface-2)", borderColor: "var(--border)" }}>
-                      <span className="flex-1 text-sm text-slate-300">{feat}</span>
+                          style={{ background: "var(--surface-2)", borderColor: "var(--border)" }}>
+                      <span className="flex-1 text-sm text-[var(--muted-text)]">{feat}</span>
                       <button
                         type="button"
                         onClick={() => removeFeature(i)}
-                        className="text-slate-400 hover:text-rose-400 transition-colors cursor-pointer"
+                        className="text-[var(--muted-text)] hover:text-[var(--danger-fg)] transition-colors cursor-pointer"
                       >
                         <X className="h-3.5 w-3.5" />
                       </button>
@@ -342,13 +334,12 @@ export function AdminPlansShell() {
                       onChange={(e) => setNewFeature(e.target.value)}
                       onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addFeature(); } }}
                       placeholder="Add a feature and press Enter"
-                      className="flex-1 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-cyan/30 text-white"
-                      style={{ background: "var(--surface-2)", borderColor: "var(--border)" }}
+                      className="form-input flex-1"
                     />
                     <button
                       type="button"
                       onClick={addFeature}
-                      className="rounded-lg border px-4 py-2 text-sm font-semibold transition-colors hover:bg-[var(--surface)] hover:text-white cursor-pointer"
+                      className="rounded-lg border px-4 py-2 text-sm font-semibold transition-colors hover:bg-[var(--surface)] hover:text-[var(--foreground)] cursor-pointer"
                       style={{ background: "var(--surface-2)", borderColor: "var(--border)", color: "var(--muted-text)" }}
                     >
                       Add
@@ -363,32 +354,32 @@ export function AdminPlansShell() {
                   <button
                     type="button"
                     onClick={() => setForm((f) => ({ ...f, is_active: !f.is_active }))}
-                    className={`transition-colors cursor-pointer ${form.is_active ? "text-brand-cyan" : "text-slate-500"}`}
+                    className={`transition-colors cursor-pointer ${form.is_active ? "text-[var(--brand-500)]" : "text-[var(--muted-text)]"}`}
                   >
                     {form.is_active ? <ToggleRight className="h-6 w-6" /> : <ToggleLeft className="h-6 w-6" />}
                   </button>
-                  <span className="text-sm text-slate-400">{form.is_active ? "Active" : "Inactive"}</span>
+                  <span className="text-sm text-[var(--muted-text)]">{form.is_active ? "Active" : "Inactive"}</span>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => setForm((f) => ({ ...f, is_featured: !f.is_featured }))}
-                    className={`transition-colors cursor-pointer ${form.is_featured ? "text-amber-500" : "text-slate-500"}`}
+                    className={`transition-colors cursor-pointer ${form.is_featured ? "text-amber-500" : "text-[var(--muted-text)]"}`}
                   >
                     <Star className={`h-5 w-5 ${form.is_featured ? "fill-amber-400" : ""}`} />
                   </button>
-                  <span className="text-sm text-slate-400">{form.is_featured ? "Featured" : "Not Featured"}</span>
+                  <span className="text-sm text-[var(--muted-text)]">{form.is_featured ? "Featured" : "Not Featured"}</span>
                 </div>
               </div>
 
-              {formError && <p className="text-xs text-rose-400">{formError}</p>}
+              {formError && <p className="text-xs text-[var(--danger-fg)]">{formError}</p>}
             </form>
             <div className="flex gap-3 border-t px-6 py-4" style={{ borderColor: "var(--border)" }}>
               <button
                 type="button"
                 onClick={closeModal}
-                className="flex-1 rounded-lg border px-4 py-2 text-sm font-semibold transition-colors hover:bg-[var(--surface)] hover:text-white cursor-pointer"
+                className="flex-1 rounded-lg border px-4 py-2 text-sm font-semibold transition-colors hover:bg-[var(--surface)] hover:text-[var(--foreground)] cursor-pointer"
                 style={{ background: "var(--surface-2)", borderColor: "var(--border)", color: "var(--muted-text)" }}
               >
                 Cancel
@@ -396,7 +387,7 @@ export function AdminPlansShell() {
               <button
                 onClick={handleSubmit as any}
                 disabled={isSubmitting}
-                className="flex-1 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors cursor-pointer"
+                className="flex-1 rounded-lg bg-[var(--brand-500)] px-4 py-2 text-sm font-bold text-[var(--brand-btn-text)] hover:opacity-90 disabled:opacity-50 transition-all cursor-pointer shadow-sm"
               >
                 {isSubmitting ? "Saving…" : editingPlan ? "Save Changes" : "Create Plan"}
               </button>
@@ -409,15 +400,15 @@ export function AdminPlansShell() {
       {confirmDeleteId && (
         <div className="fixed inset-0 z-45 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
           <div className="w-full max-w-sm rounded-2xl p-6 space-y-4 border"
-               style={{ background: "var(--surface)", borderColor: "var(--border)", boxShadow: "0 10px 30px rgba(0,0,0,0.8)" }}>
-            <h3 className="text-base font-bold text-white">Delete Plan?</h3>
-            <p className="text-sm text-slate-400">
+               style={{ background: "var(--surface)", borderColor: "var(--border)", boxShadow: "var(--shadow-lg)" }}>
+            <h3 className="text-base font-bold text-[var(--foreground)]">Delete Plan?</h3>
+            <p className="text-sm text-[var(--muted-text)]">
               This will permanently delete the plan. Any subscriptions referencing it will be restricted.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setConfirmDeleteId(null)}
-                className="flex-1 rounded-lg border px-4 py-2 text-sm font-semibold transition-colors hover:bg-[var(--surface)] hover:text-white cursor-pointer"
+                className="flex-1 rounded-lg border px-4 py-2 text-sm font-semibold transition-colors hover:bg-[var(--surface)] hover:text-[var(--foreground)] cursor-pointer"
                 style={{ background: "var(--surface-2)", borderColor: "var(--border)", color: "var(--muted-text)" }}
               >
                 Cancel
@@ -425,7 +416,7 @@ export function AdminPlansShell() {
               <button
                 onClick={() => handleDelete(confirmDeleteId)}
                 disabled={deletePlan.isPending}
-                className="flex-1 rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-700 disabled:opacity-50 transition-colors cursor-pointer"
+                className="flex-1 rounded-lg bg-[var(--danger-fg)] px-4 py-2 text-sm font-bold text-[var(--brand-btn-text)] hover:opacity-90 disabled:opacity-50 transition-all cursor-pointer shadow-sm"
               >
                 {deletePlan.isPending ? "Deleting…" : "Delete"}
               </button>

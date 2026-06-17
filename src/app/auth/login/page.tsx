@@ -3,8 +3,10 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { Eye, EyeOff } from "lucide-react";
 import { useLogin } from "@/hooks/use-login";
 import { useAuthStore } from "@/store/auth-store";
+import { ThemeToggle } from "@/components/shared/theme-toggle";
 
 function LoginForm() {
   const router = useRouter();
@@ -13,6 +15,7 @@ function LoginForm() {
   const clearSession = useAuthStore((s) => s.clearSession);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPass, setShowPass] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const isPostCheckout = searchParams.get("checkout") === "success";
@@ -44,12 +47,15 @@ function LoginForm() {
       className="flex min-h-screen items-center justify-center p-6"
       style={{ background: "var(--background)" }}
     >
+      <div className="absolute top-4 right-4 z-20">
+        <ThemeToggle />
+      </div>
+
       {/* Subtle radial glow behind the card */}
       <div
         className="pointer-events-none fixed inset-0 z-0"
         style={{
-          background:
-            "radial-gradient(ellipse 60% 40% at 50% 40%, rgba(0,240,255,0.06) 0%, transparent 70%)",
+          background: "var(--hero-glow-2)",
         }}
       />
 
@@ -68,7 +74,7 @@ function LoginForm() {
             style={{
               fontFamily: "'Plus Jakarta Sans', sans-serif",
               color: "var(--brand-500)",
-              textShadow: "0 0 20px rgba(0, 240, 255, 0.35)",
+              textShadow: "var(--brand-glow-text)",
             }}
           >
             CallAutomate
@@ -133,7 +139,7 @@ function LoginForm() {
               }}
               onFocus={(e) => {
                 e.currentTarget.style.border = "1px solid var(--brand-500)";
-                e.currentTarget.style.boxShadow = "0 0 0 3px rgba(0,240,255,0.08)";
+                e.currentTarget.style.boxShadow = "0 0 0 3px var(--brand-100)";
               }}
               onBlur={(e) => {
                 e.currentTarget.style.border = "1px solid var(--border)";
@@ -146,27 +152,38 @@ function LoginForm() {
             <label className="text-sm font-medium" style={{ color: "var(--muted-text)" }}>
               Password
             </label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
-              className="w-full rounded-xl px-3 py-2.5 text-sm outline-none transition-all"
-              style={{
-                background: "var(--surface-2)",
-                border: "1px solid var(--border)",
-                color: "var(--foreground)",
-              }}
-              onFocus={(e) => {
-                e.currentTarget.style.border = "1px solid var(--brand-500)";
-                e.currentTarget.style.boxShadow = "0 0 0 3px rgba(0,240,255,0.08)";
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.border = "1px solid var(--border)";
-                e.currentTarget.style.boxShadow = "none";
-              }}
-            />
+            <div className="relative">
+              <input
+                type={showPass ? "text" : "password"}
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                className="w-full rounded-xl px-3 py-2.5 pr-10 text-sm outline-none transition-all"
+                style={{
+                  background: "var(--surface-2)",
+                  border: "1px solid var(--border)",
+                  color: "var(--foreground)",
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.border = "1px solid var(--brand-500)";
+                  e.currentTarget.style.boxShadow = "0 0 0 3px var(--brand-100)";
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.border = "1px solid var(--border)";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPass(!showPass)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors cursor-pointer"
+                style={{ color: "var(--subtle-text)" }}
+                tabIndex={-1}
+              >
+                {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
 
           <button
@@ -176,18 +193,18 @@ function LoginForm() {
             className="w-full rounded-xl px-4 py-2.5 text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             style={{
               background: "var(--brand-500)",
-              color: "#060913",
+              color: "var(--brand-btn-text)",
               fontFamily: "'Plus Jakarta Sans', sans-serif",
-              boxShadow: "0 0 20px rgba(0,240,255,0.2)",
+              boxShadow: "var(--brand-btn-shadow)",
             }}
             onMouseEnter={(e) => {
               if (!isPending && email && password) {
-                e.currentTarget.style.boxShadow = "0 0 30px rgba(0,240,255,0.4)";
+                e.currentTarget.style.boxShadow = "var(--brand-btn-shadow-hover)";
                 e.currentTarget.style.transform = "translateY(-1px)";
               }
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.boxShadow = "0 0 20px rgba(0,240,255,0.2)";
+              e.currentTarget.style.boxShadow = "var(--brand-btn-shadow)";
               e.currentTarget.style.transform = "translateY(0)";
             }}
           >

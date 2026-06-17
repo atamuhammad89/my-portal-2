@@ -17,7 +17,7 @@ export default function DashboardLayout({
           className="flex items-center justify-center py-3.5 px-6 text-xs"
           style={{
             borderTop: "1px solid var(--border-light)",
-            background: "rgba(6, 10, 19, 0.5)",
+            background: "var(--footer-bg)",
             color: "var(--subtle-text)"
           }}
         >
@@ -25,7 +25,7 @@ export default function DashboardLayout({
             Powered by{" "}
             <span
               className="font-semibold text-[var(--brand-500)]"
-              style={{ textShadow: "0 0 10px rgba(0, 240, 255, 0.2)" }}
+              style={{ textShadow: "var(--footer-glow)" }}
             >
               CallAutomate
             </span>

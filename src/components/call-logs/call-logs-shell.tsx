@@ -109,7 +109,7 @@ function getSentimentDisplay(sentiment: string | null) {
     return {
       emoji: "😊",
       label: "Positive",
-      color: "text-emerald-600 bg-emerald-50 border-emerald-100",
+      color: "sentiment-chip sentiment-positive",
     };
   if (
     s.includes("negative") ||
@@ -120,19 +120,19 @@ function getSentimentDisplay(sentiment: string | null) {
     return {
       emoji: "😤",
       label: "Negative",
-      color: "text-rose-600 bg-rose-50 border-rose-100",
+      color: "sentiment-chip sentiment-negative",
     };
   if (s.includes("neutral"))
     return {
       emoji: "😐",
       label: "Neutral",
-      color: "text-slate-600 bg-slate-100 border-slate-200",
+      color: "sentiment-chip sentiment-neutral",
     };
   if (sentiment)
     return {
       emoji: "🤔",
       label: sentiment,
-      color: "text-amber-600 bg-amber-50 border-amber-100",
+      color: "sentiment-chip sentiment-other",
     };
   return null;
 }
@@ -213,7 +213,7 @@ function AudioPlayer({ url }: { url: string }) {
               setCurrentTime(t);
               setProgress(Number(e.target.value));
             }}
-            className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-slate-800 accent-[var(--brand-500)]"
+            className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-[var(--border)] accent-[var(--brand-500)]"
           />
           <div className="flex justify-between text-xs text-slate-400">
             <span>{fmtTime(currentTime)}</span>
@@ -260,9 +260,6 @@ function CallDetailDrawer({
   onClose: () => void;
 }) {
   const sentiment = getSentimentDisplay(log.customerSentiment ?? null);
-  const transcriptSnippet = log.transcript
-    ? log.transcript.slice(0, 500) + (log.transcript.length > 500 ? "…" : "")
-    : null;
 
   const metaItems: {
     label: string;
@@ -302,7 +299,7 @@ function CallDetailDrawer({
                   variant={getStatusVariant(badge)}
                 />
               ) : (
-                <p className="truncate font-semibold text-white">
+                <p className="truncate font-semibold text-[var(--foreground)]">
                   {value ?? "—"}
                 </p>
               )}
@@ -331,7 +328,7 @@ function CallDetailDrawer({
             <div className="flex flex-wrap items-center gap-2">
               {sentiment ? (
                 <span
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-semibold ${sentiment.color}`}
+                  className={sentiment.color}
                 >
                   <span>{sentiment.emoji}</span>
                   <span>{sentiment.label}</span>
@@ -343,34 +340,34 @@ function CallDetailDrawer({
               )}
               {log.isSuccessful !== null && (
                 <span
-                  className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold border ${
-                    log.isSuccessful
-                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                      : "bg-rose-500/10 text-rose-400 border-rose-500/20"
-                  }`}
+                  className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold border"
+                  style={log.isSuccessful
+                    ? { background: "var(--success-bg)", color: "var(--success-fg)", borderColor: "rgba(16, 185, 129, 0.2)" }
+                    : { background: "var(--danger-bg)", color: "var(--danger-fg)", borderColor: "rgba(244, 63, 94, 0.2)" }
+                  }
                 >
                   {log.isSuccessful ? "✓ Successful" : "✗ Unsuccessful"}
                 </span>
               )}
             </div>
             {log.callInfo && (
-              <div className="rounded-lg border p-3" style={{ background: "rgba(0, 240, 255, 0.05)", borderColor: "rgba(0, 240, 255, 0.15)" }}>
-                <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-brand-cyan">
+              <div className="rounded-lg border p-3" style={{ background: "var(--brand-50)", borderColor: "var(--brand-200)" }}>
+                <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-[var(--brand-500)]">
                   Call Summary
                 </p>
-                <p className="text-xs leading-relaxed text-slate-300">
+                <p className="text-xs leading-relaxed text-[var(--muted-text)]">
                   {log.callInfo}
                 </p>
               </div>
             )}
-            {transcriptSnippet && (
+            {log.transcript && (
               <div className="rounded-lg border p-3" style={{ background: "var(--surface-2)", borderColor: "var(--border)" }}>
                 <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-[var(--subtle-text)]">
-                  Transcript Preview
+                  Transcript
                 </p>
-                <p className="whitespace-pre-wrap text-xs leading-relaxed text-slate-300">
-                  {transcriptSnippet}
-                </p>
+                <div className="whitespace-pre-wrap text-xs leading-relaxed text-[var(--muted-text)] max-h-80 overflow-y-auto pr-1">
+                  {log.transcript}
+                </div>
               </div>
             )}
           </div>
@@ -498,7 +495,7 @@ export function CallLogsShell() {
                 setQuery(e.target.value);
               }}
               placeholder="Search by number…"
-              className="w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-400"
+              className="w-full bg-transparent text-sm text-[var(--foreground)] outline-none placeholder:text-slate-400"
             />
             {query && (
               <button
@@ -507,7 +504,7 @@ export function CallLogsShell() {
                   resetPage();
                   setQuery("");
                 }}
-                className="text-slate-400 hover:text-white cursor-pointer"
+                className="text-slate-400 hover:text-[var(--foreground)] cursor-pointer"
               >
                 <svg
                   width="12"
@@ -533,16 +530,16 @@ export function CallLogsShell() {
             className="rounded-xl px-3 py-2 text-sm font-medium cursor-pointer"
             style={{
               border: "1px solid var(--border)",
-              color: "#fff",
+              color: "var(--foreground)",
               background: "var(--surface-2)",
             }}
           >
-            <option value="all" className="bg-[var(--surface)] text-white">All Statuses</option>
-            <option value="passed" className="bg-[var(--surface)] text-white">Passed</option>
-            <option value="failed" className="bg-[var(--surface)] text-white">Failed</option>
-            <option value="missed" className="bg-[var(--surface)] text-white">Missed</option>
+            <option value="all" className="bg-[var(--surface)] text-[var(--foreground)]">All Statuses</option>
+            <option value="passed" className="bg-[var(--surface)] text-[var(--foreground)]">Passed</option>
+            <option value="failed" className="bg-[var(--surface)] text-[var(--foreground)]">Failed</option>
+            <option value="missed" className="bg-[var(--surface)] text-[var(--foreground)]">Missed</option>
           </select>
-
+ 
           {/* Date preset */}
           <select
             value={datePreset}
@@ -553,20 +550,20 @@ export function CallLogsShell() {
             className="rounded-xl px-3 py-2 text-sm font-medium cursor-pointer"
             style={{
               border: "1px solid var(--border)",
-              color: "#fff",
+              color: "var(--foreground)",
               background: "var(--surface-2)",
             }}
           >
-            <option value="all" className="bg-[var(--surface)] text-white">All Dates</option>
-            <option value="today" className="bg-[var(--surface)] text-white">Today</option>
-            <option value="last_7" className="bg-[var(--surface)] text-white">Last 7 Days</option>
-            <option value="this_week" className="bg-[var(--surface)] text-white">This Week</option>
-            <option value="this_month" className="bg-[var(--surface)] text-white">This Month</option>
-            <option value="last_month" className="bg-[var(--surface)] text-white">Last Month</option>
-            <option value="last_30" className="bg-[var(--surface)] text-white">Last 30 Days</option>
-            <option value="custom" className="bg-[var(--surface)] text-white">Custom Range…</option>
+            <option value="all" className="bg-[var(--surface)] text-[var(--foreground)]">All Dates</option>
+            <option value="today" className="bg-[var(--surface)] text-[var(--foreground)]">Today</option>
+            <option value="last_7" className="bg-[var(--surface)] text-[var(--foreground)]">Last 7 Days</option>
+            <option value="this_week" className="bg-[var(--surface)] text-[var(--foreground)]">This Week</option>
+            <option value="this_month" className="bg-[var(--surface)] text-[var(--foreground)]">This Month</option>
+            <option value="last_month" className="bg-[var(--surface)] text-[var(--foreground)]">Last Month</option>
+            <option value="last_30" className="bg-[var(--surface)] text-[var(--foreground)]">Last 30 Days</option>
+            <option value="custom" className="bg-[var(--surface)] text-[var(--foreground)]">Custom Range…</option>
           </select>
-
+ 
           {/* Sort order */}
           <select
             value={sortOrder}
@@ -577,12 +574,12 @@ export function CallLogsShell() {
             className="rounded-xl px-3 py-2 text-sm font-medium cursor-pointer"
             style={{
               border: "1px solid var(--border)",
-              color: "#fff",
+              color: "var(--foreground)",
               background: "var(--surface-2)",
             }}
           >
-            <option value="newest" className="bg-[var(--surface)] text-white">↓ Newest First</option>
-            <option value="oldest" className="bg-[var(--surface)] text-white">↑ Oldest First</option>
+            <option value="newest" className="bg-[var(--surface)] text-[var(--foreground)]">↓ Newest First</option>
+            <option value="oldest" className="bg-[var(--surface)] text-[var(--foreground)]">↑ Oldest First</option>
           </select>
 
           {/* Custom range pickers */}
@@ -595,8 +592,8 @@ export function CallLogsShell() {
                   resetPage();
                   setCustomFrom(e.target.value);
                 }}
-                className="rounded-lg border px-3 py-2 text-sm text-white cursor-pointer"
-                style={{ background: "var(--surface-2)", borderColor: "var(--border)" }}
+                className="rounded-lg border px-3 py-2 text-sm cursor-pointer"
+                style={{ background: "var(--surface-2)", borderColor: "var(--border)", color: "var(--foreground)" }}
               />
               <span className="text-xs text-slate-400">to</span>
               <input
@@ -606,8 +603,8 @@ export function CallLogsShell() {
                   resetPage();
                   setCustomTo(e.target.value);
                 }}
-                className="rounded-lg border px-3 py-2 text-sm text-white cursor-pointer"
-                style={{ background: "var(--surface-2)", borderColor: "var(--border)" }}
+                className="rounded-lg border px-3 py-2 text-sm cursor-pointer"
+                style={{ background: "var(--surface-2)", borderColor: "var(--border)", color: "var(--foreground)" }}
               />
             </div>
           )}
@@ -652,7 +649,7 @@ export function CallLogsShell() {
               key: "startedAt",
               label: "Date / Time",
               render: (value) => (
-                <span className="whitespace-nowrap text-slate-700">
+                <span className="whitespace-nowrap">
                   {parseDateSafe(String(value))}
                 </span>
               ),
@@ -693,7 +690,7 @@ export function CallLogsShell() {
               label: "Cost",
               render: (value) =>
                 value !== null && value !== undefined ? (
-                  <span className="font-mono text-slate-700">
+                  <span className="font-mono">
                     ${Number(value).toFixed(2)}
                   </span>
                 ) : (
@@ -707,7 +704,7 @@ export function CallLogsShell() {
                 <button
                   type="button"
                   onClick={() => setSelectedLog(row)}
-                  className="rounded-lg px-3 py-1 text-xs font-bold text-black bg-[var(--brand-500)] transition active:scale-95 hover:bg-white hover:text-black cursor-pointer hover:shadow-[0_0_10px_rgba(0,240,255,0.35)]"
+                  className="rounded-lg px-3 py-1 text-xs font-bold text-[var(--brand-btn-text)] bg-[var(--brand-500)] transition active:scale-95 hover:bg-[var(--foreground)] hover:text-[var(--background)] cursor-pointer hover:shadow-[var(--card-hover-shadow)]"
                 >
                   View Details
                 </button>

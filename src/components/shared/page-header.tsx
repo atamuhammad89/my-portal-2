@@ -11,9 +11,11 @@ export function PageHeader({ title, description, action }: PageHeaderProps) {
     <div
       className="flex flex-col gap-3 rounded-xl px-6 py-6 md:flex-row md:items-center md:justify-between relative overflow-hidden"
       style={{
-        background: "linear-gradient(135deg, rgba(13, 20, 36, 0.45) 0%, rgba(18, 27, 48, 0.3) 100%)",
+        background: "var(--page-header-bg)",
+        backdropFilter: "blur(16px)",
+        WebkitBackdropFilter: "blur(16px)",
         border: "1px solid var(--border)",
-        boxShadow: "0 4px 30px rgba(0, 240, 255, 0.02)"
+        boxShadow: "var(--page-header-shadow)"
       }}
     >
       {/* Subtle neon light ray/gradient in background */}
@@ -26,24 +28,27 @@ export function PageHeader({ title, description, action }: PageHeaderProps) {
         style={{ background: "var(--brand-500)" }}
       />
 
-      <div className="relative space-y-1.5">
-        <div className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-[var(--brand-500)] bg-[rgba(0,240,255,0.08)] border border-[rgba(0,240,255,0.15)]">
-          <span className="h-1.5 w-1.5 rounded-full bg-[var(--brand-500)] animate-pulse" />
+      <div className="relative space-y-1.5 z-10">
+        <div className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-[var(--success-fg)] bg-[var(--success-bg)] border border-[var(--success-fg)]/25">
+          <span className="h-1.5 w-1.5 rounded-full bg-[var(--success-fg)] animate-pulse" />
           Voice Service Console Active
         </div>
         <h2
-          className="text-2xl font-bold text-white tracking-tight md:text-3xl"
+          className="text-2xl font-bold tracking-tight md:text-3xl text-[var(--foreground)]"
           style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
         >
           {title}
         </h2>
         {description ? (
-          <p className="text-sm font-medium leading-relaxed max-w-2xl" style={{ color: "var(--muted-text)" }}>
+          <p className="text-sm font-medium leading-relaxed max-w-lg text-[var(--muted-text)]">
             {description}
           </p>
         ) : null}
       </div>
-      {action ? <div className="relative">{action}</div> : null}
+      
+
+
+      {action ? <div className="relative z-10">{action}</div> : null}
     </div>
   );
 }

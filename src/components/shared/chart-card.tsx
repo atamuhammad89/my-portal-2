@@ -25,7 +25,7 @@ export function ChartCard({ title, subtitle, children }: ChartCardProps) {
           }}
         />
         <h3
-          className="text-sm font-semibold text-white"
+          className="text-sm font-semibold text-[var(--foreground)]"
           style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
         >
           {title}

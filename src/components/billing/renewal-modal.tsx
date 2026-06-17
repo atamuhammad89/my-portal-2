@@ -70,7 +70,7 @@ export function RenewalModal({
         >
           <div>
             <h2
-              className="text-xl font-bold text-white"
+              className="text-xl font-bold text-[var(--foreground)]"
               style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
             >
               Renew Your Subscription
@@ -81,7 +81,7 @@ export function RenewalModal({
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-2 text-[var(--muted-text)] hover:bg-[var(--surface-2)] hover:text-white transition-colors cursor-pointer"
+            className="rounded-lg p-2 text-[var(--muted-text)] hover:bg-[var(--surface-2)] hover:text-[var(--foreground)] transition-colors cursor-pointer"
             aria-label="Close"
           >
             <X className="h-5 w-5" />
@@ -108,11 +108,11 @@ export function RenewalModal({
                   className="rounded-xl p-5 animate-pulse border"
                   style={{ background: "var(--surface-2)", borderColor: "var(--border)" }}
                 >
-                  <div className="h-3 w-24 rounded bg-slate-800 mb-3" />
-                  <div className="h-8 w-20 rounded bg-slate-800 mb-4" />
+                  <div className="h-3 w-24 rounded bg-[var(--border)] mb-3" />
+                  <div className="h-8 w-20 rounded bg-[var(--border)] mb-4" />
                   <div className="space-y-2">
                     {[1, 2, 3].map((j) => (
-                      <div key={j} className="h-3 rounded bg-slate-800" />
+                      <div key={j} className="h-3 rounded bg-[var(--border)]" />
                     ))}
                   </div>
                 </div>
@@ -137,28 +137,28 @@ export function RenewalModal({
                         ? "2px solid transparent"
                         : `1px solid ${isCurrent ? "var(--brand-500)" : "var(--border)"}`,
                       background: isFeatured
-                        ? "linear-gradient(var(--surface-2), var(--surface-2)) padding-box, linear-gradient(135deg, var(--brand-500), #38bdf8) border-box"
+                        ? "linear-gradient(var(--surface-2), var(--surface-2)) padding-box, linear-gradient(135deg, var(--brand-500), var(--brand-400)) border-box"
                         : "var(--surface-2)",
                       boxShadow: isFeatured
-                        ? "0 8px 32px rgba(0, 240, 255, 0.12)"
+                        ? "var(--brand-btn-shadow)"
                         : isCurrent
-                          ? "0 4px 20px rgba(0, 240, 255, 0.08)"
+                          ? "var(--brand-btn-shadow)"
                           : "var(--shadow-sm)",
                     }}
                   >
                     {isFeatured && (
                       <div
-                        className="flex items-center justify-center gap-1.5 py-1.5 text-xs font-black text-black"
-                        style={{ background: "linear-gradient(135deg, var(--brand-500), #38bdf8)" }}
+                        className="flex items-center justify-center gap-1.5 py-1.5 text-xs font-black text-[var(--brand-btn-text)]"
+                        style={{ background: "linear-gradient(135deg, var(--brand-500), var(--brand-400))" }}
                       >
-                        <Zap className="h-3 w-3 fill-black text-black" /> Most Popular
+                        <Zap className="h-3 w-3 fill-[var(--brand-btn-text)] text-[var(--brand-btn-text)]" /> Most Popular
                       </div>
                     )}
 
                     {isCurrent && !isFeatured && (
                       <div
                         className="flex items-center justify-center py-1.5 text-xs font-semibold"
-                        style={{ background: "rgba(0, 240, 255, 0.08)", color: "var(--brand-500)" }}
+                        style={{ background: "var(--brand-100)", color: "var(--brand-500)" }}
                       >
                         Current Plan
                       </div>
@@ -174,7 +174,7 @@ export function RenewalModal({
                         </span>
                         <div className="mt-1 flex items-end gap-1">
                           <span
-                            className="text-3xl font-extrabold text-white"
+                            className="text-3xl font-extrabold text-[var(--foreground)]"
                             style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", letterSpacing: "-0.03em" }}
                           >
                             ${plan.monthly_price.toFixed(0)}
@@ -185,16 +185,16 @@ export function RenewalModal({
 
                       <div
                         className="flex items-center gap-3 rounded-xl p-3 mb-4"
-                        style={{ background: isFeatured ? "rgba(0, 240, 255, 0.06)" : "var(--surface)" }}
+                        style={{ background: isFeatured ? "var(--featured-bg-opacity)" : "var(--surface)" }}
                       >
                         <div
                           className="flex h-7 w-7 items-center justify-center rounded-lg flex-shrink-0"
                           style={{ background: isFeatured ? "var(--brand-500)" : "var(--border)" }}
                         >
-                          <Phone className="h-3.5 w-3.5" color={isFeatured ? "black" : "var(--muted-text)"} />
+                          <Phone className="h-3.5 w-3.5" color={isFeatured ? "var(--brand-btn-text)" : "var(--muted-text)"} />
                         </div>
                         <div>
-                          <div className="text-sm font-bold text-white">
+                          <div className="text-sm font-bold text-[var(--foreground)]">
                             {plan.total_minutes.toLocaleString()} minutes
                           </div>
                           <div className="text-xs text-[var(--muted-text)]">
@@ -209,7 +209,7 @@ export function RenewalModal({
                             <li key={text} className="flex items-start gap-2.5">
                               <div
                                 className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md"
-                                style={{ background: isFeatured ? "rgba(0, 240, 255, 0.12)" : "var(--success-bg)" }}
+                                style={{ background: isFeatured ? "var(--featured-bg-opacity)" : "var(--success-bg)" }}
                               >
                                 <Check
                                   className="h-3 w-3"
@@ -217,7 +217,7 @@ export function RenewalModal({
                                   strokeWidth={2.5}
                                 />
                               </div>
-                              <span className="text-sm text-slate-300">{text}</span>
+                              <span className="text-sm text-[var(--muted-text)]">{text}</span>
                             </li>
                           ))}
                         </ul>
@@ -227,16 +227,20 @@ export function RenewalModal({
                         onClick={() => onRenew(plan)}
                         disabled={!!loadingPlanId || missingStripe}
                         title={missingStripe ? "Stripe price not configured for this plan" : undefined}
-                        className={`flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition-all disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer 
-                          ${isFeatured
-                            ? "text-black hover:bg-white hover:from-transparent hover:to-transparent hover:text-black border border-transparent hover:border-white shadow-[0_4px_16px_rgba(0,240,255,0.2)]"
-                            : "border border-[var(--border)] bg-[var(--surface)] text-[var(--brand-500)] hover:bg-white hover:text-black hover:border-white"
-                          }`}
-                        style={{
-                          background: isFeatured
-                            ? "linear-gradient(135deg, var(--brand-500), #38bdf8)"
-                            : undefined,
-                        }}
+                        className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition-all disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer border"
+                        style={isFeatured
+                          ? {
+                              background: "var(--brand-500)",
+                              color: "var(--brand-btn-text)",
+                              borderColor: "transparent",
+                              boxShadow: "var(--brand-btn-shadow)",
+                            }
+                          : {
+                              background: "var(--surface)",
+                              color: "var(--brand-500)",
+                              borderColor: "var(--border)",
+                            }
+                        }
                       >
                         {isLoading ? (
                           <>

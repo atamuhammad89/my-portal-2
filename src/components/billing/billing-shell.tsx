@@ -123,7 +123,7 @@ export function BillingShell() {
                 <CreditCard className="h-4 w-4" />
                 <span className="text-xs font-semibold uppercase tracking-wider">Plan</span>
               </div>
-              <p className="text-xl font-bold text-white">{data.subscription.planName}</p>
+              <p className="text-xl font-bold text-[var(--foreground)]">{data.subscription.planName}</p>
               <p className="text-sm text-[var(--muted-text)]">
                 ${data.subscription.monthlyPrice.toFixed(2)} / month
               </p>
@@ -133,7 +133,7 @@ export function BillingShell() {
               />
               <button
                 onClick={renewal.open}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-[var(--brand-500)] px-3 py-2 text-xs font-bold transition-all hover:bg-white hover:text-black hover:border-white cursor-pointer"
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-[var(--brand-500)] px-3 py-2 text-xs font-bold transition-all hover:bg-[var(--surface)] hover:text-[var(--foreground)] hover:border-[var(--brand-500)] cursor-pointer"
               >
                 <RefreshCw className="h-3.5 w-3.5" />
                 Renew / Change Plan
@@ -172,14 +172,14 @@ export function BillingShell() {
               <div className="space-y-2">
                 <div>
                   <p className="text-xs text-[var(--subtle-text)]">Started</p>
-                  <p className="text-sm font-semibold text-white">
+                  <p className="text-sm font-semibold text-[var(--foreground)]">
                     {formatDate(data.subscription.startedAt)}
                   </p>
                 </div>
                 {data.subscription.endsAt && (
                   <div>
                     <p className="text-xs text-[var(--subtle-text)]">Renews / Ends</p>
-                    <p className="text-sm font-semibold text-white">
+                    <p className="text-sm font-semibold text-[var(--foreground)]">
                       {formatDate(data.subscription.endsAt)}
                     </p>
                   </div>
@@ -207,7 +207,7 @@ export function BillingShell() {
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 text-sm">
                 <div>
                   <p className="text-xs text-[var(--subtle-text)]">Plan</p>
-                  <p className="font-semibold text-white">{data.subscription.planName}</p>
+                  <p className="font-semibold text-[var(--foreground)]">{data.subscription.planName}</p>
                 </div>
                 <div>
                   <p className="text-xs text-[var(--subtle-text)]">Status</p>
@@ -218,11 +218,11 @@ export function BillingShell() {
                 </div>
                 <div>
                   <p className="text-xs text-[var(--subtle-text)]">Minutes Used (CDR)</p>
-                  <p className="font-semibold text-white">{data.usageMinutes} min</p>
+                  <p className="font-semibold text-[var(--foreground)]">{data.usageMinutes} min</p>
                 </div>
                 <div>
                   <p className="text-xs text-[var(--subtle-text)]">Plan Minutes</p>
-                  <p className="font-semibold text-white">
+                  <p className="font-semibold text-[var(--foreground)]">
                     {data.subscription.totalMinutes ?? "—"} min
                   </p>
                 </div>
@@ -245,7 +245,7 @@ export function BillingShell() {
                   Subscription History
                 </span>
                 <span
-                  className="ml-auto text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300"
+                  className="ml-auto text-xs font-semibold px-2 py-0.5 rounded-full bg-[var(--surface-2)] text-[var(--muted-text)]"
                 >
                   {pastSubscriptions.length} previous {pastSubscriptions.length === 1 ? "record" : "records"}
                 </span>
@@ -266,7 +266,7 @@ export function BillingShell() {
                   <tbody>
                     {pastSubscriptions.map((sub) => (
                       <tr key={sub.id}>
-                        <td className="font-semibold text-white">{sub.planName}</td>
+                        <td className="font-semibold text-[var(--foreground)]">{sub.planName}</td>
                         <td>
                           <StatusBadge text={sub.status} variant={statusVariant(sub.status)} />
                         </td>
@@ -295,7 +295,7 @@ export function BillingShell() {
                 {pastSubscriptions.map((sub) => (
                   <div key={sub.id} className="px-5 py-4 space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold text-white">{sub.planName}</span>
+                      <span className="font-semibold text-[var(--foreground)]">{sub.planName}</span>
                       <StatusBadge text={sub.status} variant={statusVariant(sub.status)} />
                     </div>
                     <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-[var(--subtle-text)]">

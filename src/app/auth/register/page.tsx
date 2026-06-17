@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle, Eye, EyeOff, Loader2 } from "lucide-react";
+import { ThemeToggle } from "@/components/shared/theme-toggle";
 
 function capitalize(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1);
@@ -12,7 +13,9 @@ function capitalize(s: string) {
 function validatePassword(pw: string): string | null {
   if (pw.length < 8)         return "Password must be at least 8 characters.";
   if (!/[A-Z]/.test(pw))     return "Include at least one uppercase letter.";
-  if (!/[0-9]/.test(pw))     return "Include at least one number.";
+  if (!(/[0-9]/.test(pw) || /[^A-Za-z0-9]/.test(pw))) {
+    return "Include at least one number or special character.";
+  }
   return null;
 }
 
@@ -90,7 +93,7 @@ function RegisterForm() {
 
   const inputFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     e.currentTarget.style.border = "1px solid var(--brand-500)";
-    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(0,240,255,0.08)";
+    e.currentTarget.style.boxShadow = "0 0 0 3px var(--brand-100)";
   };
   const inputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     e.currentTarget.style.border = "1px solid var(--border)";
@@ -105,6 +108,9 @@ function RegisterForm() {
         className="flex min-h-screen items-center justify-center p-6"
         style={{ background: "var(--background)" }}
       >
+        <div className="absolute top-4 right-4 z-20">
+          <ThemeToggle />
+        </div>
         <section
           className="w-full max-w-md rounded-2xl p-8 text-center"
           style={{
@@ -138,11 +144,14 @@ function RegisterForm() {
       className="flex min-h-screen items-center justify-center p-6"
       style={{ background: "var(--background)" }}
     >
+      <div className="absolute top-4 right-4 z-20">
+        <ThemeToggle />
+      </div>
+
       <div
         className="pointer-events-none fixed inset-0 z-0"
         style={{
-          background:
-            "radial-gradient(ellipse 60% 40% at 50% 40%, rgba(0,240,255,0.06) 0%, transparent 70%)",
+          background: "var(--hero-glow-2)",
         }}
       />
 
@@ -161,7 +170,7 @@ function RegisterForm() {
             style={{
               fontFamily: "'Plus Jakarta Sans', sans-serif",
               color: "var(--brand-500)",
-              textShadow: "0 0 20px rgba(0, 240, 255, 0.35)",
+              textShadow: "var(--brand-glow-text)",
             }}
           >
             CallAutomate
@@ -261,7 +270,7 @@ function RegisterForm() {
               </button>
             </div>
             <p className="text-xs" style={{ color: "var(--subtle-text)" }}>
-              Min 8 characters, one uppercase letter and one number.
+              Min 8 characters, one uppercase letter and one number or special character.
             </p>
           </div>
 
@@ -287,18 +296,18 @@ function RegisterForm() {
             className="w-full rounded-xl px-4 py-2.5 text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             style={{
               background: "var(--brand-500)",
-              color: "#060913",
+              color: "var(--brand-btn-text)",
               fontFamily: "'Plus Jakarta Sans', sans-serif",
-              boxShadow: "0 0 20px rgba(0,240,255,0.2)",
+              boxShadow: "var(--brand-btn-shadow)",
             }}
             onMouseEnter={(e) => {
               if (!submitting) {
-                e.currentTarget.style.boxShadow = "0 0 30px rgba(0,240,255,0.4)";
+                e.currentTarget.style.boxShadow = "var(--brand-btn-shadow-hover)";
                 e.currentTarget.style.transform = "translateY(-1px)";
               }
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.boxShadow = "0 0 20px rgba(0,240,255,0.2)";
+              e.currentTarget.style.boxShadow = "var(--brand-btn-shadow)";
               e.currentTarget.style.transform = "translateY(0)";
             }}
           >

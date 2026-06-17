@@ -40,7 +40,7 @@
 import { Bell, Menu, Search } from "lucide-react";
 import { adminRoleLabels } from "@/types/admin/roles";
 import { useAdminRole } from "@/hooks/admin/use-admin-role";
-import { LogoutButton } from "@/components/shared/logout-button";
+import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { useAuthStore } from "@/store/auth-store";
 import { useUIStore } from "@/store/ui-store";
 
@@ -57,9 +57,9 @@ export function AdminTopHeader({ title }: AdminTopHeaderProps) {
     <header
       className="sticky top-0 z-10 flex h-16 items-center justify-between border-b px-4 backdrop-blur lg:px-6"
       style={{
-        background: "rgba(6, 9, 19, 0.8)",
+        background: "var(--header-bg)",
         borderBottom: "1px solid var(--border)",
-        boxShadow: "0 1px 0 rgba(0, 240, 255, 0.05)"
+        boxShadow: "var(--header-shadow)"
       }}
     >
       <div className="flex items-center gap-3">
@@ -71,17 +71,28 @@ export function AdminTopHeader({ title }: AdminTopHeaderProps) {
         >
           <Menu className="h-4 w-4" />
         </button>
-        <h1 className="text-lg font-semibold text-white">{title}</h1>
+        <h1 className="text-lg font-semibold text-[var(--foreground)]">{title}</h1>
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="hidden flex-col items-end md:flex">
-          <span className="text-xs font-medium text-white">
-            {user?.fullName ?? user?.email}
-          </span>
-          <span className="text-xs text-slate-400 uppercase tracking-wider">{adminRoleLabels[role]}</span>
+        <ThemeToggle />
+        
+        {/* User profile with avatar */}
+        <div className="flex items-center gap-2 px-1.5 py-1 rounded-xl transition hover:bg-[var(--surface-2)]">
+          <div className="h-8.5 w-8.5 rounded-full overflow-hidden border border-[var(--border)] bg-[var(--brand-100)] flex items-center justify-center text-xs font-bold text-[var(--brand-500)] shadow-sm">
+            {user?.fullName
+              ? user.fullName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
+              : user?.email?.slice(0, 2).toUpperCase() ?? "A"}
+          </div>
+          <div className="hidden flex-col md:flex text-left">
+            <span className="text-xs font-bold text-[var(--foreground)] leading-tight">
+              {user?.fullName ?? user?.email}
+            </span>
+            <span className="text-[10px] font-semibold text-[var(--muted-text)] uppercase tracking-wider">
+              {adminRoleLabels[role]}
+            </span>
+          </div>
         </div>
-        <LogoutButton />
       </div>
     </header>
   );

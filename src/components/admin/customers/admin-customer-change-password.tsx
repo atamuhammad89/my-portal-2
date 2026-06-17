@@ -32,8 +32,17 @@ export function AdminCustomerChangePassword({ userId, userName }: { userId: stri
   function handleSubmit() {
     setFieldError("");
     setSuccess(false);
-    if (!newPw || newPw.length < 8) {
+    if (!newPw) {
+      setFieldError("Password is required."); return;
+    }
+    if (newPw.length < 8) {
       setFieldError("Password must be at least 8 characters."); return;
+    }
+    if (!/[A-Z]/.test(newPw)) {
+      setFieldError("Password must include at least one uppercase letter."); return;
+    }
+    if (!(/[0-9]/.test(newPw) || /[^A-Za-z0-9]/.test(newPw))) {
+      setFieldError("Password must include at least one number or special character."); return;
     }
     mutation.mutate();
   }
@@ -57,7 +66,7 @@ export function AdminCustomerChangePassword({ userId, userName }: { userId: stri
             type={show ? "text" : "password"}
             value={newPw}
             onChange={(e) => setNewPw(e.target.value)}
-            placeholder="Min. 8 characters"
+            placeholder="Min 8 chars, 1 uppercase, 1 number/special char"
             className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 pr-10 text-sm text-slate-800 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition"
           />
           <button

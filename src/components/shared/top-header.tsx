@@ -1,7 +1,7 @@
 "use client";
 
 import { Menu } from "lucide-react";
-import { LogoutButton } from "@/components/shared/logout-button";
+import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { useAuthStore } from "@/store/auth-store";
 import { useUIStore } from "@/store/ui-store";
 
@@ -18,10 +18,10 @@ export function TopHeader({ title }: TopHeaderProps) {
     <header
       className="sticky top-0 z-10 flex h-16 items-center justify-between px-4 lg:px-6"
       style={{
-        background: "rgba(6, 9, 19, 0.8)",
+        background: "var(--header-bg)",
         backdropFilter: "blur(12px)",
         borderBottom: "1px solid var(--border)",
-        boxShadow: "0 1px 0 rgba(0,240,255,0.05)"
+        boxShadow: "var(--header-shadow)"
       }}
     >
       {/* Left */}
@@ -44,20 +44,24 @@ export function TopHeader({ title }: TopHeaderProps) {
 
       {/* Right */}
       <div className="flex items-center gap-3">
+        <ThemeToggle />
+
+        {/* User profile with avatar */}
         {user && (
-          <div className="hidden md:flex items-center gap-2.5">
-            <div
-              className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white border border-brand-cyan/20"
-              style={{ background: "rgba(0, 240, 255, 0.15)", boxShadow: "0 0 8px rgba(0, 240, 255, 0.1)" }}
-            >
+          <div className="flex items-center gap-2 px-1.5 py-1 rounded-xl transition hover:bg-[var(--surface-2)]">
+            <div className="h-8.5 w-8.5 rounded-full overflow-hidden border border-[var(--border)] bg-[var(--brand-100)] flex items-center justify-center text-xs font-bold text-[var(--brand-500)] shadow-sm">
               {initials}
             </div>
-            <span className="text-sm font-medium" style={{ color: "var(--muted-text)" }}>
-              {user.fullName ?? user.email}
-            </span>
+            <div className="hidden flex-col md:flex text-left">
+              <span className="text-xs font-bold text-[var(--foreground)] leading-tight">
+                {user.fullName ?? user.email}
+              </span>
+              <span className="text-[10px] font-semibold text-[var(--muted-text)] uppercase tracking-wider">
+                Customer
+              </span>
+            </div>
           </div>
         )}
-        <LogoutButton />
       </div>
     </header>
   );

@@ -41,36 +41,36 @@ function StatusBadge({ status }: { status: string }) {
 function TranscriptModal({ log, onClose }: { log: CallLog; onClose: () => void }) {
   const turns = log.transcript_object ?? [];
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-2xl rounded-xl bg-white shadow-xl">
-        <div className="flex items-center justify-between border-b px-6 py-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-xs">
+      <div className="w-full max-w-2xl rounded-2xl bg-[var(--surface)] border border-[var(--border)] shadow-2xl">
+        <div className="flex items-center justify-between border-b px-6 py-4" style={{ borderColor: "var(--border)" }}>
           <div>
-            <h2 className="text-base font-semibold text-slate-900">Call Transcript</h2>
-            <p className="text-xs text-slate-400 mt-0.5 font-mono">{log.retell_call_id}</p>
+            <h2 className="text-base font-semibold text-[var(--foreground)]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Call Transcript</h2>
+            <p className="text-xs text-[var(--subtle-text)] mt-0.5 font-mono">{log.retell_call_id}</p>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-xl leading-none">×</button>
+          <button onClick={onClose} className="text-[var(--muted-text)] hover:text-[var(--foreground)] text-xl leading-none cursor-pointer">×</button>
         </div>
         <div className="max-h-[60vh] overflow-y-auto px-6 py-4 space-y-3">
           {turns.length > 0 ? turns.map((t, i) => (
             <div key={i} className={cn("flex gap-3", t.role === "agent" ? "justify-start" : "justify-end")}>
               <div className={cn(
-                "max-w-[80%] rounded-lg px-4 py-2.5 text-sm",
+                "max-w-[80%] rounded-xl px-4 py-2.5 text-sm",
                 t.role === "agent"
-                  ? "bg-slate-100 text-slate-800"
-                  : "bg-slate-900 text-white"
+                  ? "bg-[var(--surface-2)] text-[var(--foreground)]"
+                  : "bg-[var(--brand-100)] text-[var(--brand-500)] border border-[var(--brand-200)]"
               )}>
-                <p className="text-xs font-medium mb-1 opacity-60 capitalize">{t.role}</p>
+                <p className="text-xs font-semibold mb-1 opacity-60 capitalize">{t.role}</p>
                 <p>{t.content}</p>
               </div>
             </div>
           )) : log.transcript ? (
-            <pre className="whitespace-pre-wrap text-sm text-slate-700">{log.transcript}</pre>
+            <pre className="whitespace-pre-wrap text-sm text-[var(--foreground)] font-sans">{log.transcript}</pre>
           ) : (
-            <p className="py-8 text-center text-sm text-slate-400">No transcript available.</p>
+            <p className="py-8 text-center text-sm text-[var(--muted-text)]">No transcript available.</p>
           )}
         </div>
-        <div className="border-t px-6 py-4">
-          <button onClick={onClose} className="w-full rounded-lg bg-slate-100 py-2 text-sm hover:bg-slate-200">
+        <div className="border-t px-6 py-4" style={{ borderColor: "var(--border)" }}>
+          <button onClick={onClose} className="w-full rounded-xl bg-[var(--surface-2)] text-[var(--foreground)] hover:bg-[var(--surface)] hover:border-[var(--border)] py-2 text-sm border transition-colors cursor-pointer">
             Close
           </button>
         </div>
@@ -103,37 +103,37 @@ export function AdminCallLogsShell() {
   return (
     <div className="p-6">
       <div className="mb-6">
-        <h1 className="text-xl font-semibold text-slate-900">Call Logs</h1>
-        <p className="mt-1 text-sm text-slate-500">All calls received via Retell webhook — updated in real time.</p>
+        <h1 className="text-xl font-semibold text-[var(--foreground)]">Call Logs</h1>
+        <p className="mt-1 text-sm text-[var(--muted-text)]">All calls received via Retell webhook — updated in real time.</p>
       </div>
 
       {/* Filters */}
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2">
+        <div className="flex items-center gap-2 rounded-xl border px-3 py-2" style={{ background: "var(--surface-2)", borderColor: "var(--border)" }}>
           <Filter className="h-4 w-4 text-slate-400" />
           <select
-            className="text-sm bg-transparent focus:outline-none"
+            className="text-sm bg-transparent focus:outline-none cursor-pointer text-[var(--foreground)]"
             value={filters.agent_id}
             onChange={(e) => { setFilters((p) => ({ ...p, agent_id: e.target.value })); setPage(1); }}
           >
-            <option value="">All Agents</option>
-            {agents.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+            <option value="" className="bg-[var(--surface)] text-[var(--foreground)]">All Agents</option>
+            {agents.map((a) => <option key={a.id} value={a.id} className="bg-[var(--surface)] text-[var(--foreground)]">{a.name}</option>)}
           </select>
         </div>
-        <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2">
+        <div className="flex items-center gap-2 rounded-xl border px-3 py-2" style={{ background: "var(--surface-2)", borderColor: "var(--border)" }}>
           <select
-            className="text-sm bg-transparent focus:outline-none"
+            className="text-sm bg-transparent focus:outline-none cursor-pointer text-[var(--foreground)]"
             value={filters.status}
             onChange={(e) => { setFilters((p) => ({ ...p, status: e.target.value })); setPage(1); }}
           >
-            <option value="all">All Statuses</option>
-            <option value="ended">Ended</option>
-            <option value="ongoing">Ongoing</option>
-            <option value="registered">Registered</option>
-            <option value="error">Error</option>
+            <option value="all" className="bg-[var(--surface)] text-[var(--foreground)]">All Statuses</option>
+            <option value="ended" className="bg-[var(--surface)] text-[var(--foreground)]">Ended</option>
+            <option value="ongoing" className="bg-[var(--surface)] text-[var(--foreground)]">Ongoing</option>
+            <option value="registered" className="bg-[var(--surface)] text-[var(--foreground)]">Registered</option>
+            <option value="error" className="bg-[var(--surface)] text-[var(--foreground)]">Error</option>
           </select>
         </div>
-        <span className="ml-auto text-sm text-slate-400">{total} total</span>
+        <span className="ml-auto text-sm text-[var(--subtle-text)]">{total} total</span>
       </div>
 
       {isLoading ? (
@@ -169,26 +169,26 @@ export function AdminCallLogsShell() {
               <tbody>
                 {logs.map((log) => (
                   <tr key={log.id}>
-                    <td className="font-mono text-xs text-slate-400 max-w-[120px] truncate">
+                    <td className="font-mono text-xs text-[var(--subtle-text)] max-w-[120px] truncate">
                       {log.retell_call_id}
                     </td>
-                    <td className="text-white font-medium">
-                      {(log.agent as { name?: string })?.name ?? <span className="text-slate-500">—</span>}
+                    <td className="text-[var(--foreground)] font-medium">
+                      {(log.agent as { name?: string })?.name ?? <span className="text-[var(--subtle-text)]">—</span>}
                     </td>
                     <td>
                       <StatusBadge status={log.call_status} />
                     </td>
-                    <td className="text-slate-300">{log.from_number ?? "—"}</td>
-                    <td className="text-slate-400 text-xs whitespace-nowrap">
+                    <td className="text-[var(--muted-text)]">{log.from_number ?? "—"}</td>
+                    <td className="text-[var(--subtle-text)] text-xs whitespace-nowrap">
                       {formatTimestamp(log.start_timestamp)}
                     </td>
-                    <td className="text-slate-300">
+                    <td className="text-[var(--muted-text)]">
                       <span className="flex items-center gap-1">
                         <Clock className="h-3.5 w-3.5 text-slate-500" />
                         {formatDuration(log.duration_seconds)}
                       </span>
                     </td>
-                    <td className="text-slate-300">
+                    <td className="text-[var(--muted-text)]">
                       {log.call_cost != null ? (
                         <span className="flex items-center gap-1">
                           <DollarSign className="h-3.5 w-3.5 text-slate-500" />
@@ -201,7 +201,7 @@ export function AdminCallLogsShell() {
                         {(log.transcript || log.transcript_object) && (
                           <button
                             onClick={() => setTranscript(log)}
-                            className="text-xs text-[var(--brand-500)] underline hover:text-white cursor-pointer"
+                            className="text-xs text-[var(--brand-500)] underline hover:text-[var(--foreground)] cursor-pointer font-semibold"
                           >
                             Transcript
                           </button>
@@ -227,21 +227,21 @@ export function AdminCallLogsShell() {
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-[var(--muted-text)]">
                 Page {page} of {totalPages}
               </p>
               <div className="flex gap-2">
                 <button
                   disabled={page === 1}
                   onClick={() => setPage((p) => p - 1)}
-                  className="rounded-lg border border-[var(--border)] bg-[rgba(0,240,255,0.03)] px-3 py-1.5 text-sm text-[var(--brand-500)] transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed enabled:hover:bg-white enabled:hover:text-black enabled:hover:border-white"
+                  className="rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-sm text-[var(--brand-500)] transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed enabled:hover:bg-[var(--surface)] enabled:hover:text-[var(--foreground)]"
                 >
                   Previous
                 </button>
                 <button
                   disabled={page === totalPages}
                   onClick={() => setPage((p) => p + 1)}
-                  className="rounded-lg border border-transparent bg-[var(--brand-500)] px-3 py-1.5 text-sm text-black transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed enabled:hover:bg-white enabled:hover:text-black enabled:hover:border-white"
+                  className="rounded-lg border border-[var(--border)] bg-[var(--brand-500)] px-3 py-1.5 text-sm text-[var(--brand-btn-text)] transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed enabled:hover:opacity-90"
                 >
                   Next
                 </button>

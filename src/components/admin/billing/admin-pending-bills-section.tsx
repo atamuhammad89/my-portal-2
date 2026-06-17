@@ -89,8 +89,8 @@ function InvoiceCard({ bill }: { bill: PendingBill }) {
             {bill.userName.charAt(0)}
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-white truncate">{bill.userName}</p>
-            <p className="text-xs text-slate-400 truncate">{bill.userEmail}</p>
+            <p className="text-sm font-semibold text-[var(--foreground)] truncate">{bill.userName}</p>
+            <p className="text-xs text-[var(--muted-text)] truncate">{bill.userEmail}</p>
           </div>
         </div>
 
@@ -101,11 +101,11 @@ function InvoiceCard({ bill }: { bill: PendingBill }) {
               Live
             </span>
           ) : (
-            <span className="rounded-full border border-slate-600 bg-slate-800 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-400">
+            <span className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[var(--muted-text)]">
               {bill.subscriptionStatus}
             </span>
           )}
-          <span className="text-lg font-bold text-rose-400">
+          <span className="text-lg font-bold text-rose-500 dark:text-rose-400">
             ${bill.overageAmount.toFixed(2)}
           </span>
         </div>
@@ -116,21 +116,21 @@ function InvoiceCard({ bill }: { bill: PendingBill }) {
         {/* Plan + period row */}
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Plan</p>
-            <p className="text-sm font-semibold text-white mt-0.5">{bill.planName}</p>
+            <p className="text-xs text-[var(--subtle-text)] uppercase tracking-wider font-semibold">Plan</p>
+            <p className="text-sm font-semibold text-[var(--foreground)] mt-0.5">{bill.planName}</p>
           </div>
           <div className="text-right">
-            <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Period</p>
-            <p className="text-xs text-slate-300 mt-0.5">
+            <p className="text-xs text-[var(--subtle-text)] uppercase tracking-wider font-semibold">Period</p>
+            <p className="text-xs text-[var(--muted-text)] mt-0.5">
               {formatDate(bill.periodStart)}
             </p>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-[var(--subtle-text)]">
               → {bill.periodEnd ? formatDate(bill.periodEnd) : "present"}
             </p>
           </div>
           <div className="text-right">
-            <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Invoice</p>
-            <p className="font-mono text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-[var(--subtle-text)] uppercase tracking-wider font-semibold">Invoice</p>
+            <p className="font-mono text-xs text-[var(--muted-text)] mt-0.5">
               #{bill.invoiceId.slice(-8).toUpperCase()}
             </p>
           </div>
@@ -139,20 +139,20 @@ function InvoiceCard({ bill }: { bill: PendingBill }) {
         {/* Usage bar */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-slate-400">
-              {bill.usedMinutes} <span className="text-slate-600">/</span> {bill.allocatedMinutes} min used
+            <span className="text-[var(--muted-text)]">
+              {bill.usedMinutes} <span className="text-[var(--subtle-text)]">/</span> {bill.allocatedMinutes} min used
             </span>
-            <span className="font-semibold text-rose-400">
+            <span className="font-semibold text-rose-500 dark:text-rose-400">
               +{bill.overageMinutes} min overage
             </span>
           </div>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-[var(--surface-2)] border border-[var(--border)]">
             <div
               className="h-full rounded-full bg-rose-500"
               style={{ width: `${usagePct}%` }}
             />
           </div>
-          <p className="text-[10px] text-slate-500">
+          <p className="text-[10px] text-[var(--subtle-text)]">
             {bill.overageMinutes} min × ${bill.pricePerMinute.toFixed(4)}/min
           </p>
         </div>
@@ -162,7 +162,7 @@ function InvoiceCard({ bill }: { bill: PendingBill }) {
           {/* Download */}
           <button
             onClick={() => downloadInvoicePdf(bill)}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-xs font-semibold text-slate-300 transition-all hover:bg-white hover:text-black hover:border-white cursor-pointer"
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-xs font-semibold text-[var(--muted-text)] transition-all hover:bg-[var(--surface)] hover:text-[var(--foreground)] hover:border-[var(--brand-500)] cursor-pointer"
           >
             <Download className="h-3.5 w-3.5" />
             Download PDF
@@ -172,7 +172,7 @@ function InvoiceCard({ bill }: { bill: PendingBill }) {
           <button
             disabled={isPending}
             onClick={() => doAction("mark_paid")}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-400 transition-all hover:bg-emerald-500 hover:text-white hover:border-emerald-500 disabled:opacity-40 cursor-pointer"
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400 transition-all hover:bg-emerald-500 hover:text-white hover:border-emerald-500 disabled:opacity-40 cursor-pointer"
           >
             <CheckCircle2 className="h-3.5 w-3.5" />
             Mark Paid
@@ -182,7 +182,7 @@ function InvoiceCard({ bill }: { bill: PendingBill }) {
           <button
             disabled={isPending}
             onClick={() => doAction("waive_off")}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-xs font-semibold text-slate-400 transition-all hover:bg-slate-700 hover:text-white disabled:opacity-40 cursor-pointer"
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-xs font-semibold text-[var(--muted-text)] transition-all hover:bg-rose-500/10 hover:text-rose-500 hover:border-rose-500/30 disabled:opacity-40 cursor-pointer"
           >
             <XCircle className="h-3.5 w-3.5" />
             Waive Off
@@ -249,18 +249,18 @@ export function AdminPendingBillsSection() {
             <FileText className="h-5 w-5 text-rose-500" />
           </div>
           <div>
-            <p className="text-sm font-bold text-white">Pending Overage Bills</p>
+            <p className="text-sm font-bold text-[var(--foreground)]">Pending Overage Bills</p>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5">
-              <span className="text-xs text-rose-400">
+              <span className="text-xs text-rose-600 dark:text-rose-400">
                 {allBills.length} invoice{allBills.length !== 1 ? "s" : ""}
               </span>
               {activeCount > 0 && (
-                <span className="flex items-center gap-1 text-xs text-amber-400">
+                <span className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
                   <TrendingUp className="h-3 w-3" />
                   {activeCount} live overage{activeCount !== 1 ? "s" : ""}
                 </span>
               )}
-              <span className="text-xs font-bold text-rose-300">
+              <span className="text-xs font-bold text-rose-600 dark:text-rose-400">
                 ${totalDue.toFixed(2)} total due
               </span>
             </div>
@@ -274,7 +274,7 @@ export function AdminPendingBillsSection() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search customer or plan…"
-            className="w-full rounded-xl border pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-rose-500/30 transition"
+            className="w-full rounded-xl border pl-9 pr-3 py-2 text-xs text-[var(--foreground)] placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-rose-500/30 transition"
             style={{ background: "var(--surface)", borderColor: "var(--border)" }}
           />
         </div>

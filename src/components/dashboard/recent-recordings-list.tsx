@@ -54,7 +54,7 @@ function InlineAudioPlayer({ url }: { url: string }) {
         <button
           type="button"
           onClick={toggle}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-black shadow transition active:scale-95 cursor-pointer hover:shadow-[0_0_10px_rgba(0,240,255,0.4)]"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-black shadow transition active:scale-95 cursor-pointer hover:opacity-90"
           style={{ background: "var(--brand-500)" }}
         >
           {playing ? (
@@ -79,7 +79,7 @@ function InlineAudioPlayer({ url }: { url: string }) {
               setCurrentTime(t);
               setProgress(Number(e.target.value));
             }}
-            className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-slate-800 accent-[var(--brand-500)]"
+            className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-[var(--border)] accent-[var(--brand-500)]"
           />
           <div className="flex justify-between text-xs text-slate-400">
             <span>{fmtTime(currentTime)}</span>
@@ -89,7 +89,7 @@ function InlineAudioPlayer({ url }: { url: string }) {
         <a
           href={url} download target="_blank" rel="noreferrer"
           title="Download MP3"
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border text-slate-400 hover:text-white hover:bg-white/5 transition"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border text-slate-400 hover:text-[var(--foreground)] hover:bg-[var(--surface-2)] transition"
           style={{ background: "var(--surface)", borderColor: "var(--border)" }}
         >
           <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -120,7 +120,7 @@ export function RecentRecordingsList({ rows }: RecentRecordingsListProps) {
         <article key={row.id} className="rounded-xl border p-4 shadow-sm" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
           <div className="mb-3 flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-sm font-semibold text-white">
+              <p className="text-sm font-semibold text-[var(--foreground)]">
                 {row.customerNumber !== "—" ? row.customerNumber : "Unknown Caller"}
               </p>
               <p className="text-xs text-slate-400">Agent: {row.agentName}</p>

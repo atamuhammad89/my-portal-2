@@ -31,7 +31,7 @@ function BillingCard({ user }: { user: AdminUserBilling }) {
 
   return (
     <div
-      className="rounded-2xl p-5 flex flex-col gap-4 relative overflow-hidden transition-all duration-200 hover:translate-y-[-2px] hover:shadow-[0_0_15px_rgba(0,240,255,0.07)]"
+      className="rounded-2xl p-5 flex flex-col gap-4 relative overflow-hidden transition-all duration-200 hover:translate-y-[-2px] hover:shadow-[var(--card-hover-shadow)]"
       style={{
         background: "var(--surface)",
         boxShadow: "var(--shadow-sm)",
@@ -42,7 +42,7 @@ function BillingCard({ user }: { user: AdminUserBilling }) {
       {/* User info */}
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-white truncate">{user.fullName}</p>
+          <p className="text-sm font-semibold text-[var(--foreground)] truncate">{user.fullName}</p>
           <p className="text-xs text-[var(--subtle-text)] truncate">{user.email}</p>
           <span className="mt-2 inline-block text-[10px] uppercase tracking-wide font-semibold text-brand-cyan bg-brand-cyan/10 border border-brand-cyan/20 rounded px-1.5 py-0.5">
             {user.role}
@@ -65,17 +65,17 @@ function BillingCard({ user }: { user: AdminUserBilling }) {
           {/* Plan + subscription status */}
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-slate-400">Plan</p>
-              <p className="text-sm font-bold text-white">{sub.planName}</p>
+              <p className="text-xs text-[var(--muted-text)]">Plan</p>
+              <p className="text-sm font-bold text-[var(--foreground)]">{sub.planName}</p>
             </div>
             <StatusBadge text={sub.status} variant={subStatusVariant(sub.status)} />
           </div>
 
           {/* Minutes usage bar */}
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between text-xs text-slate-400">
+            <div className="flex items-center justify-between text-xs text-[var(--muted-text)]">
               <span>Plan Minutes Used</span>
-              <span className="font-semibold text-slate-300">
+              <span className="font-semibold text-[var(--muted-text)]">
                 {sub.minutesUsed} / {sub.totalMinutes} min ({pct}%)
               </span>
             </div>
@@ -96,11 +96,11 @@ function BillingCard({ user }: { user: AdminUserBilling }) {
           {/* Pricing */}
           <div className="grid grid-cols-2 gap-2 rounded-xl p-3 border border-[var(--border)] bg-[var(--surface-2)]">
             <div>
-              <p className="text-xs text-slate-400">Monthly Price</p>
-              <p className="text-sm font-bold text-white">${sub.monthlyPrice.toFixed(2)}</p>
+              <p className="text-xs text-[var(--muted-text)]">Monthly Price</p>
+              <p className="text-sm font-bold text-[var(--foreground)]">${sub.monthlyPrice.toFixed(2)}</p>
             </div>
             <div>
-              <p className="text-xs text-slate-400">Per Minute</p>
+              <p className="text-xs text-[var(--muted-text)]">Per Minute</p>
               <p className="text-sm font-bold text-brand-teal">${sub.pricePerMinute.toFixed(6)}</p>
             </div>
           </div>
@@ -157,7 +157,7 @@ export function AdminBillingShell() {
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name or email…"
             className="w-full rounded-xl border pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-cyan/30"
-            style={{ background: "var(--surface)", borderColor: "var(--border)", color: "#fff" }}
+            style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--foreground)" }}
           />
         </div>
 

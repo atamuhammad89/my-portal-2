@@ -63,13 +63,13 @@ function getStatusVariant(status: CallStatus) {
 function getSentimentDisplay(sentiment: string | null) {
   const s = (sentiment ?? "").toLowerCase();
   if (s.includes("positive") || s.includes("happy") || s.includes("satisfied"))
-    return { emoji: "😊", label: "Positive", color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" };
+    return { emoji: "😊", label: "Positive", color: "sentiment-chip sentiment-positive" };
   if (s.includes("negative") || s.includes("frustrated") || s.includes("angry") || s.includes("unhappy"))
-    return { emoji: "😤", label: "Negative", color: "text-rose-400 bg-rose-500/10 border-rose-500/20" };
+    return { emoji: "😤", label: "Negative", color: "sentiment-chip sentiment-negative" };
   if (s.includes("neutral"))
-    return { emoji: "😐", label: "Neutral", color: "text-slate-300 bg-slate-500/10 border-slate-500/20" };
+    return { emoji: "😐", label: "Neutral", color: "sentiment-chip sentiment-neutral" };
   if (sentiment)
-    return { emoji: "🤔", label: sentiment, color: "text-amber-400 bg-amber-500/10 border-amber-500/20" };
+    return { emoji: "🤔", label: sentiment, color: "sentiment-chip sentiment-other" };
   return null;
 }
 
@@ -139,7 +139,7 @@ function AudioPlayer({ url }: { url: string }) {
               setCurrentTime(t);
               setProgress(Number(e.target.value));
             }}
-            className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-slate-800 accent-[var(--brand-500)]"
+            className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-[var(--border)] accent-[var(--brand-500)]"
           />
           <div className="flex justify-between text-xs text-slate-400">
             <span>{fmtTime(currentTime)}</span>
@@ -148,7 +148,7 @@ function AudioPlayer({ url }: { url: string }) {
         </div>
         <a
           href={url} download target="_blank" rel="noreferrer" title="Download"
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border text-slate-400 hover:text-white hover:bg-white/5 transition"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border text-slate-400 hover:text-[var(--foreground)] hover:bg-[var(--surface-2)] transition"
           style={{ background: "var(--surface)", borderColor: "var(--border)" }}
         >
           <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -164,9 +164,6 @@ function AudioPlayer({ url }: { url: string }) {
 
 function CallDetailDrawer({ log, onClose }: { log: AdminCdrLog; onClose: () => void }) {
   const sentiment      = getSentimentDisplay(log.customerSentiment ?? null);
-  const transcriptSnip = log.transcript
-    ? log.transcript.slice(0, 500) + (log.transcript.length > 500 ? "…" : "")
-    : null;
 
   const metaItems = [
     { label: "Call ID",          value: log.callId },
@@ -196,7 +193,7 @@ function CallDetailDrawer({ log, onClose }: { log: AdminCdrLog; onClose: () => v
                   variant={getStatusVariant(badge)}
                 />
               ) : (
-                <p className="truncate font-semibold text-white">{value ?? "—"}</p>
+                <p className="truncate font-semibold text-[var(--foreground)]">{value ?? "—"}</p>
               )}
             </div>
           ))}
@@ -204,7 +201,7 @@ function CallDetailDrawer({ log, onClose }: { log: AdminCdrLog; onClose: () => v
 
         {/* Recording */}
         <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Recording</p>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--subtle-text)]">Recording</p>
           {log.recordingUrl ? (
             <AudioPlayer url={log.recordingUrl} />
           ) : (
@@ -216,11 +213,11 @@ function CallDetailDrawer({ log, onClose }: { log: AdminCdrLog; onClose: () => v
 
         {/* Sentiment + Summary + Transcript */}
         <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Sentiment & Analysis</p>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--subtle-text)]">Sentiment & Analysis</p>
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-2">
               {sentiment ? (
-                <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-semibold ${sentiment.color}`}>
+                <span className={sentiment.color}>
                   <span>{sentiment.emoji}</span>
                   <span>{sentiment.label}</span>
                 </span>
@@ -230,21 +227,27 @@ function CallDetailDrawer({ log, onClose }: { log: AdminCdrLog; onClose: () => v
                 </span>
               )}
               {log.isSuccessful !== null && (
-                <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold border ${log.isSuccessful ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-rose-500/10 text-rose-400 border-rose-500/20"}`}>
+                <span
+                  className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold border"
+                  style={log.isSuccessful
+                    ? { background: "var(--success-bg)", color: "var(--success-fg)", borderColor: "rgba(16, 185, 129, 0.2)" }
+                    : { background: "var(--danger-bg)", color: "var(--danger-fg)", borderColor: "rgba(244, 63, 94, 0.2)" }
+                  }
+                >
                   {log.isSuccessful ? "✓ Successful" : "✗ Unsuccessful"}
                 </span>
               )}
             </div>
             {log.callInfo && (
-              <div className="rounded-lg border p-3" style={{ background: "rgba(0, 240, 255, 0.05)", borderColor: "rgba(0, 240, 255, 0.15)" }}>
-                <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-brand-cyan">Call Summary</p>
-                <p className="text-xs leading-relaxed text-slate-300">{log.callInfo}</p>
+              <div className="rounded-lg border p-3" style={{ background: "var(--brand-50)", borderColor: "var(--brand-200)" }}>
+                <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-[var(--brand-500)]">Call Summary</p>
+                <p className="text-xs leading-relaxed text-[var(--muted-text)]">{log.callInfo}</p>
               </div>
             )}
-            {transcriptSnip && (
+            {log.transcript && (
               <div className="rounded-lg border p-3" style={{ background: "var(--surface-2)", borderColor: "var(--border)" }}>
-                <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-[var(--subtle-text)]">Transcript Preview</p>
-                <p className="whitespace-pre-wrap text-xs leading-relaxed text-slate-300">{transcriptSnip}</p>
+                <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-[var(--subtle-text)]">Transcript</p>
+                <div className="whitespace-pre-wrap text-xs leading-relaxed text-[var(--muted-text)] max-h-80 overflow-y-auto pr-1">{log.transcript}</div>
               </div>
             )}
           </div>
@@ -317,11 +320,11 @@ export function AdminCdrLogsShell() {
             <select
               value={customerId}
               onChange={(e) => { resetPage(); setCustomerId(e.target.value); }}
-              className="w-full bg-transparent text-sm text-white outline-none cursor-pointer"
+              className="w-full bg-transparent text-sm text-[var(--foreground)] outline-none cursor-pointer"
             >
-              <option value="" className="bg-[var(--surface)] text-white">All Customers</option>
+              <option value="" className="bg-[var(--surface)] text-[var(--foreground)]">All Customers</option>
               {customers.map((c) => (
-                <option key={c.id} value={c.id} className="bg-[var(--surface)] text-white">
+                <option key={c.id} value={c.id} className="bg-[var(--surface)] text-[var(--foreground)]">
                   {c.fullName || c.email}
                 </option>
               ))}
@@ -336,10 +339,10 @@ export function AdminCdrLogsShell() {
               value={search}
               onChange={(e) => { resetPage(); setSearch(e.target.value); }}
               placeholder="Search by number…"
-              className="w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-400"
+              className="w-full bg-transparent text-sm text-[var(--foreground)] outline-none placeholder:text-slate-400"
             />
             {search && (
-              <button type="button" onClick={() => { resetPage(); setSearch(""); }} className="text-slate-400 hover:text-white cursor-pointer">
+              <button type="button" onClick={() => { resetPage(); setSearch(""); }} className="text-slate-400 hover:text-[var(--foreground)] cursor-pointer">
                 <X className="h-3.5 w-3.5" />
               </button>
             )}
@@ -350,11 +353,11 @@ export function AdminCdrLogsShell() {
             value={status}
             onChange={(e) => { resetPage(); setStatus(e.target.value as "all" | CallStatus); }}
             className="rounded-xl px-3 py-2 text-sm font-medium cursor-pointer"
-            style={{ border: "1px solid var(--border)", color: "#fff", background: "var(--surface-2)" }}
+            style={{ border: "1px solid var(--border)", color: "var(--foreground)", background: "var(--surface-2)" }}
           >
-            <option value="all" className="bg-[var(--surface)] text-white">All Statuses</option>
-            <option value="passed" className="bg-[var(--surface)] text-white">Passed</option>
-            <option value="failed" className="bg-[var(--surface)] text-white">Failed</option>
+            <option value="all" className="bg-[var(--surface)] text-[var(--foreground)]">All Statuses</option>
+            <option value="passed" className="bg-[var(--surface)] text-[var(--foreground)]">Passed</option>
+            <option value="failed" className="bg-[var(--surface)] text-[var(--foreground)]">Failed</option>
           </select>
 
           {/* Date preset */}
@@ -362,16 +365,16 @@ export function AdminCdrLogsShell() {
             value={datePreset}
             onChange={(e) => { resetPage(); setDatePreset(e.target.value); }}
             className="rounded-xl px-3 py-2 text-sm font-medium cursor-pointer"
-            style={{ border: "1px solid var(--border)", color: "#fff", background: "var(--surface-2)" }}
+            style={{ border: "1px solid var(--border)", color: "var(--foreground)", background: "var(--surface-2)" }}
           >
-            <option value="all" className="bg-[var(--surface)] text-white">All Dates</option>
-            <option value="today" className="bg-[var(--surface)] text-white">Today</option>
-            <option value="last_7" className="bg-[var(--surface)] text-white">Last 7 Days</option>
-            <option value="this_week" className="bg-[var(--surface)] text-white">This Week</option>
-            <option value="this_month" className="bg-[var(--surface)] text-white">This Month</option>
-            <option value="last_month" className="bg-[var(--surface)] text-white">Last Month</option>
-            <option value="last_30" className="bg-[var(--surface)] text-white">Last 30 Days</option>
-            <option value="custom" className="bg-[var(--surface)] text-white">Custom Range…</option>
+            <option value="all" className="bg-[var(--surface)] text-[var(--foreground)]">All Dates</option>
+            <option value="today" className="bg-[var(--surface)] text-[var(--foreground)]">Today</option>
+            <option value="last_7" className="bg-[var(--surface)] text-[var(--foreground)]">Last 7 Days</option>
+            <option value="this_week" className="bg-[var(--surface)] text-[var(--foreground)]">This Week</option>
+            <option value="this_month" className="bg-[var(--surface)] text-[var(--foreground)]">This Month</option>
+            <option value="last_month" className="bg-[var(--surface)] text-[var(--foreground)]">Last Month</option>
+            <option value="last_30" className="bg-[var(--surface)] text-[var(--foreground)]">Last 30 Days</option>
+            <option value="custom" className="bg-[var(--surface)] text-[var(--foreground)]">Custom Range…</option>
           </select>
 
           {/* Sort */}
@@ -379,10 +382,10 @@ export function AdminCdrLogsShell() {
             value={sortOrder}
             onChange={(e) => { resetPage(); setSortOrder(e.target.value as SortOrder); }}
             className="rounded-xl px-3 py-2 text-sm font-medium cursor-pointer"
-            style={{ border: "1px solid var(--border)", color: "#fff", background: "var(--surface-2)" }}
+            style={{ border: "1px solid var(--border)", color: "var(--foreground)", background: "var(--surface-2)" }}
           >
-            <option value="newest" className="bg-[var(--surface)] text-white">↓ Newest First</option>
-            <option value="oldest" className="bg-[var(--surface)] text-white">↑ Oldest First</option>
+            <option value="newest" className="bg-[var(--surface)] text-[var(--foreground)]">↓ Newest First</option>
+            <option value="oldest" className="bg-[var(--surface)] text-[var(--foreground)]">↑ Oldest First</option>
           </select>
 
           {/* Custom date range pickers */}
@@ -390,12 +393,14 @@ export function AdminCdrLogsShell() {
             <div className="flex flex-wrap items-center gap-2">
               <input type="date" value={customFrom}
                 onChange={(e) => { resetPage(); setCustomFrom(e.target.value); }}
-                className="rounded-lg border bg-slate-50 px-3 py-2 text-sm text-slate-700"
+                className="rounded-lg border px-3 py-2 text-sm cursor-pointer"
+                style={{ background: "var(--surface-2)", borderColor: "var(--border)", color: "var(--foreground)" }}
               />
               <span className="text-xs text-slate-400">to</span>
               <input type="date" value={customTo}
                 onChange={(e) => { resetPage(); setCustomTo(e.target.value); }}
-                className="rounded-lg border bg-slate-50 px-3 py-2 text-sm text-slate-700"
+                className="rounded-lg border px-3 py-2 text-sm cursor-pointer"
+                style={{ background: "var(--surface-2)", borderColor: "var(--border)", color: "var(--foreground)" }}
               />
             </div>
           )}
@@ -416,7 +421,7 @@ export function AdminCdrLogsShell() {
       {/* ── Table / States ───────────────────────────────────────────────── */}
       {isLoading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-7 w-7 animate-spin text-slate-300" />
+          <Loader2 className="h-7 w-7 animate-spin text-[var(--brand-500)]" />
         </div>
       ) : error ? (
         <div className="flex flex-col items-center gap-3 rounded-2xl border py-20 text-center animate-pulse" style={{ borderColor: "rgba(244,63,94,0.25)", background: "rgba(244,63,94,0.05)" }}>
@@ -445,23 +450,23 @@ export function AdminCdrLogsShell() {
                 const sentiment = getSentimentDisplay(log.customerSentiment ?? null);
                 return (
                   <tr key={log.id}>
-                    <td className="whitespace-nowrap text-slate-400 text-xs">
+                    <td className="whitespace-nowrap text-xs">
                       {parseDateSafe(log.startedAt)}
                     </td>
                     <td>
                       {log.customerName ? (
                         <div>
-                          <p className="font-semibold text-white text-xs">{log.customerName}</p>
-                          <p className="text-slate-400 text-xs">{log.customerEmail ?? ""}</p>
+                          <p className="font-semibold text-[var(--foreground)] text-xs">{log.customerName}</p>
+                          <p className="text-[var(--muted-text)] text-xs">{log.customerEmail ?? ""}</p>
                         </div>
                       ) : (
                         <span className="text-slate-500">—</span>
                       )}
                     </td>
-                    <td className="font-mono text-xs text-slate-400">{log.fromNumber}</td>
-                    <td className="whitespace-nowrap text-slate-400">
+                    <td className="font-mono text-xs">{log.fromNumber}</td>
+                    <td className="whitespace-nowrap">
                       <span className="flex items-center gap-1">
-                        <Clock className="h-3.5 w-3.5 text-slate-500" />
+                        <Clock className="h-3.5 w-3.5 text-[var(--subtle-text)]" />
                         {formatDuration(log.durationSeconds)}
                       </span>
                     </td>
@@ -484,7 +489,7 @@ export function AdminCdrLogsShell() {
                       <button
                         type="button"
                         onClick={() => setSelectedLog(log)}
-                        className="rounded-lg px-3 py-1 text-xs font-bold text-black bg-[var(--brand-500)] transition active:scale-95 cursor-pointer hover:bg-white hover:text-black hover:shadow-[0_0_10px_rgba(0,240,255,0.35)]"
+                        className="rounded-lg px-3 py-1 text-xs font-bold text-[var(--brand-btn-text)] bg-[var(--brand-500)] transition active:scale-95 cursor-pointer hover:bg-[var(--foreground)] hover:text-[var(--background)] hover:shadow-[var(--card-hover-shadow)]"
                       >
                         View Details
                       </button>
@@ -507,14 +512,14 @@ export function AdminCdrLogsShell() {
             <button
               disabled={page === 1}
               onClick={() => setPage((p) => p - 1)}
-              className="flex items-center gap-1 rounded-lg border border-[var(--border)] bg-[rgba(0,240,255,0.03)] px-3 py-1.5 text-sm text-[var(--brand-500)] transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed enabled:hover:bg-white enabled:hover:text-black enabled:hover:border-white"
+              className="flex items-center gap-1 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-sm text-[var(--brand-500)] transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed enabled:hover:bg-[var(--surface)] enabled:hover:text-[var(--foreground)]"
             >
               <ChevronLeft className="h-4 w-4 transition-colors" /> Previous
             </button>
             <button
               disabled={page === totalPages}
               onClick={() => setPage((p) => p + 1)}
-              className="flex items-center gap-1 rounded-lg border border-transparent bg-[var(--brand-500)] px-3 py-1.5 text-sm text-black transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed enabled:hover:bg-white enabled:hover:text-black enabled:hover:border-white"
+              className="flex items-center gap-1 rounded-lg border border-[var(--border)] bg-[var(--brand-500)] px-3 py-1.5 text-sm text-[var(--brand-btn-text)] transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed enabled:hover:opacity-90"
             >
               Next <ChevronRight className="h-4 w-4 transition-colors" />
             </button>

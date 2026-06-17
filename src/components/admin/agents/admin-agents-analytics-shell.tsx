@@ -36,7 +36,7 @@ function StatCard({
           <Icon className="h-4 w-4" />
         </div>
       </div>
-      <p className="mt-2 text-2xl font-bold text-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+      <p className="mt-2 text-2xl font-bold text-[var(--foreground)]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
         {value}
       </p>
       {sub && <p className="mt-1 text-xs" style={{ color: "var(--subtle-text)" }}>{sub}</p>}
@@ -49,11 +49,11 @@ function AgentRow({ agent, rank }: { agent: AgentAnalytics; rank: number }) {
     <tr>
       <td className="py-3 pl-5 pr-4">
         <div className="flex items-center gap-3">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--surface-2)] text-xs text-slate-400 border border-[var(--border)] font-medium">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--surface-2)] text-xs text-[var(--muted-text)] border border-[var(--border)] font-medium">
             {rank}
           </span>
           <div>
-            <p className="text-sm font-semibold text-white">{agent.agent_name}</p>
+            <p className="text-sm font-semibold text-[var(--foreground)]">{agent.agent_name}</p>
             <p className="text-xs font-mono text-[var(--subtle-text)]">{agent.retell_agent_id.slice(0, 20)}…</p>
           </div>
         </div>
@@ -93,8 +93,8 @@ export function AdminAgentsAnalyticsShell() {
     <div className="p-6">
       <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-white">Agents Analytics</h1>
-          <p className="mt-1 text-xs text-slate-400">Real-time insights from Retell call data. Auto-refreshes every 30s.</p>
+          <h1 className="text-xl font-bold text-[var(--foreground)]">Agents Analytics</h1>
+          <p className="mt-1 text-xs text-[var(--muted-text)]">Real-time insights from Retell call data. Auto-refreshes every 30s.</p>
         </div>
         <button
           onClick={() => refetch()}
@@ -156,7 +156,7 @@ export function AdminAgentsAnalyticsShell() {
             <div className="premium-table-container">
               <div className="flex items-center gap-2 border-b px-5 py-4" style={{ borderColor: "var(--border)" }}>
                 <Bot className="h-4 w-4 text-brand-cyan" />
-                <h2 className="text-sm font-semibold text-white">Per-Agent Breakdown</h2>
+                <h2 className="text-sm font-semibold text-[var(--foreground)]">Per-Agent Breakdown</h2>
               </div>
               <div className="overflow-x-auto">
                 <table className="premium-table">

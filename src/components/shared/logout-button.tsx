@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { LogOut } from "lucide-react";
+import { Power } from "lucide-react";
 import { useAuthStore } from "@/store/auth-store";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -30,19 +30,23 @@ export function LogoutButton() {
   return (
     <button
       onClick={handleLogout}
-      className="flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition cursor-pointer hover:shadow-[0_0_8px_rgba(244,63,94,0.15)]"
-      style={{ border: "1px solid rgba(244,63,94,0.3)", color: "#fb7185", background: "rgba(244,63,94,0.08)" }}
+      className="flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold transition-all duration-200 cursor-pointer hover:shadow-sm"
+      style={{
+        border: "1px solid var(--danger-border)",
+        color: "var(--danger-fg)",
+        background: "var(--danger-bg)"
+      }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.background = "rgba(244,63,94,0.15)";
-        e.currentTarget.style.borderColor = "rgba(244,63,94,0.45)";
+        e.currentTarget.style.background = "var(--danger-hover-bg)";
+        e.currentTarget.style.borderColor = "var(--danger-hover-border)";
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.background = "rgba(244,63,94,0.08)";
-        e.currentTarget.style.borderColor = "rgba(244,63,94,0.3)";
+        e.currentTarget.style.background = "var(--danger-bg)";
+        e.currentTarget.style.borderColor = "var(--danger-border)";
       }}
     >
-      <LogOut className="h-3.5 w-3.5" />
-      <span className="hidden sm:inline">Sign out</span>
+      <Power className="h-3.5 w-3.5" />
+      <span>Sign out</span>
     </button>
   );
 }

@@ -75,14 +75,14 @@ export function AdminCustomersShell() {
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search name, email, or tenant ID…"
               className="w-full rounded-xl border pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-cyan/30"
-              style={{ background: "var(--surface)", borderColor: "var(--border)", color: "#fff" }}
+              style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--foreground)" }}
             />
           </div>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
             className="rounded-xl border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-cyan/30 cursor-pointer"
-            style={{ background: "var(--surface)", borderColor: "var(--border)", color: "#fff" }}
+            style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--foreground)" }}
           >
             <option value="all" className="bg-[var(--surface-2)]">All Statuses</option>
             <option value="active" className="bg-[var(--surface-2)]">Active</option>
@@ -107,7 +107,7 @@ export function AdminCustomersShell() {
                 key: "fullName",
                 label: "Name",
                 render: (v) => (
-                  <span className="font-semibold text-white">
+                  <span className="font-semibold text-[var(--foreground)]">
                     {String(v)}
                   </span>
                 ),

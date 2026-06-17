@@ -50,7 +50,7 @@ function InlineAudioPlayer({ url }: { url: string }) {
   }
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+    <div className="rounded-xl border p-4" style={{ background: "var(--surface-2)", borderColor: "var(--border)" }}>
       <audio
         ref={audioRef}
         src={url}
@@ -69,7 +69,8 @@ function InlineAudioPlayer({ url }: { url: string }) {
         <button
           type="button"
           onClick={toggle}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-900 text-white shadow transition hover:bg-slate-700 active:scale-95"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full shadow transition active:scale-95 cursor-pointer"
+          style={{ background: "var(--foreground)", color: "var(--background)" }}
         >
           {playing ? (
             <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
@@ -93,9 +94,10 @@ function InlineAudioPlayer({ url }: { url: string }) {
               setCurrentTime(t);
               setProgress(Number(e.target.value));
             }}
-            className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-slate-200 accent-slate-900"
+            className="h-1.5 w-full cursor-pointer appearance-none rounded-full accent-[var(--brand-500)]"
+            style={{ background: "var(--border)" }}
           />
-          <div className="flex justify-between text-xs text-slate-500">
+          <div className="flex justify-between text-xs" style={{ color: "var(--muted-text)" }}>
             <span>{fmtTime(currentTime)}</span>
             <span>{fmtTime(duration)}</span>
           </div>
@@ -103,7 +105,8 @@ function InlineAudioPlayer({ url }: { url: string }) {
         <a
           href={url} download target="_blank" rel="noreferrer"
           title="Download MP3"
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 transition"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition cursor-pointer"
+          style={{ borderColor: "var(--border)", background: "var(--surface)", color: "var(--muted-text)" }}
         >
           <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.5">
             <path d="M6.5 1.5v7M3.5 6l3 3 3-3M1.5 11.5h10" strokeLinecap="round" strokeLinejoin="round"/>
@@ -191,11 +194,11 @@ export function RecordingsShell() {
       />
 
       {/* Filter bar */}
-      <div className="rounded-xl border bg-white p-4 shadow-sm">
+      <div className="rounded-xl border p-4 shadow-sm" style={{ background: "var(--surface)", borderColor: "var(--border)", boxShadow: "var(--shadow-sm)" }}>
         <div className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-end">
 
           {/* Search */}
-          <div className="flex min-w-[200px] flex-1 items-center gap-2 rounded-lg border bg-slate-50 px-3 py-2">
+          <div className="flex min-w-[200px] flex-1 items-center gap-2 rounded-lg border px-3 py-2" style={{ background: "var(--surface-2)", borderColor: "var(--border)" }}>
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" className="shrink-0 text-slate-400">
               <circle cx="6" cy="6" r="4.5"/>
               <path d="M9.5 9.5l3 3" strokeLinecap="round"/>
@@ -205,9 +208,10 @@ export function RecordingsShell() {
               onChange={(e) => { resetPage(); setQuery(e.target.value); }}
               placeholder="Search by customer number or call ID"
               className="w-full bg-transparent text-sm outline-none placeholder:text-slate-400"
+              style={{ color: "var(--foreground)" }}
             />
             {query && (
-              <button type="button" onClick={() => { resetPage(); setQuery(""); }} className="text-slate-400 hover:text-slate-700">
+              <button type="button" onClick={() => { resetPage(); setQuery(""); }} className="text-slate-400 hover:text-[var(--foreground)] cursor-pointer">
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M1 1l10 10M11 1L1 11" strokeLinecap="round"/>
                 </svg>
@@ -219,11 +223,12 @@ export function RecordingsShell() {
           <select
             value={agentFilter}
             onChange={(e) => { resetPage(); setAgentFilter(e.target.value); }}
-            className="rounded-lg border bg-slate-50 px-3 py-2 text-sm text-slate-700"
+            className="rounded-lg border px-3 py-2 text-sm cursor-pointer focus:outline-none focus:ring-1 focus:ring-[var(--brand-500)]/30"
+            style={{ background: "var(--surface-2)", borderColor: "var(--border)", color: "var(--foreground)" }}
           >
-            <option value="all">All Agents</option>
+            <option value="all" className="bg-[var(--surface-2)]">All Agents</option>
             {agentOptions.map((a) => (
-              <option key={a} value={a}>{a.length > 20 ? a.slice(0, 18) + "…" : a}</option>
+              <option key={a} value={a} className="bg-[var(--surface-2)]">{a.length > 20 ? a.slice(0, 18) + "…" : a}</option>
             ))}
           </select>
 
@@ -231,16 +236,17 @@ export function RecordingsShell() {
           <select
             value={datePreset}
             onChange={(e) => { resetPage(); setDatePreset(e.target.value); }}
-            className="rounded-lg border bg-slate-50 px-3 py-2 text-sm text-slate-700"
+            className="rounded-lg border px-3 py-2 text-sm cursor-pointer focus:outline-none focus:ring-1 focus:ring-[var(--brand-500)]/30"
+            style={{ background: "var(--surface-2)", borderColor: "var(--border)", color: "var(--foreground)" }}
           >
-            <option value="all">All Dates</option>
-            <option value="today">Today</option>
-            <option value="last_7">Last 7 Days</option>
-            <option value="this_week">This Week</option>
-            <option value="this_month">This Month</option>
-            <option value="last_month">Last Month</option>
-            <option value="last_30">Last 30 Days</option>
-            <option value="custom">Custom Range…</option>
+            <option value="all" className="bg-[var(--surface-2)]">All Dates</option>
+            <option value="today" className="bg-[var(--surface-2)]">Today</option>
+            <option value="last_7" className="bg-[var(--surface-2)]">Last 7 Days</option>
+            <option value="this_week" className="bg-[var(--surface-2)]">This Week</option>
+            <option value="this_month" className="bg-[var(--surface-2)]">This Month</option>
+            <option value="last_month" className="bg-[var(--surface-2)]">Last Month</option>
+            <option value="last_30" className="bg-[var(--surface-2)]">Last 30 Days</option>
+            <option value="custom" className="bg-[var(--surface-2)]">Custom Range…</option>
           </select>
 
           {/* Custom date range */}
@@ -248,23 +254,25 @@ export function RecordingsShell() {
             <div className="flex flex-wrap items-center gap-2">
               <input type="date" value={customFrom}
                 onChange={(e) => { resetPage(); setCustomFrom(e.target.value); }}
-                className="rounded-lg border bg-slate-50 px-3 py-2 text-sm text-slate-700"
+                className="rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--brand-500)]/30"
+                style={{ background: "var(--surface-2)", borderColor: "var(--border)", color: "var(--foreground)" }}
               />
-              <span className="text-xs text-slate-400">to</span>
+              <span className="text-xs" style={{ color: "var(--muted-text)" }}>to</span>
               <input type="date" value={customTo}
                 onChange={(e) => { resetPage(); setCustomTo(e.target.value); }}
-                className="rounded-lg border bg-slate-50 px-3 py-2 text-sm text-slate-700"
+                className="rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--brand-500)]/30"
+                style={{ background: "var(--surface-2)", borderColor: "var(--border)", color: "var(--foreground)" }}
               />
             </div>
           )}
 
           {effectiveRange.from && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">
+            <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs" style={{ background: "var(--surface-2)", color: "var(--muted-text)" }}>
               {effectiveRange.from} → {effectiveRange.to || "today"}
             </span>
           )}
         </div>
-        <p className="mt-2 text-xs text-slate-400">
+        <p className="mt-2 text-xs" style={{ color: "var(--subtle-text)" }}>
           {filteredRows.length} recording{filteredRows.length !== 1 ? "s" : ""} found
         </p>
       </div>
@@ -275,19 +283,19 @@ export function RecordingsShell() {
       ) : (
         <section className="space-y-3">
           {pagedRows.map((recording) => (
-            <article key={recording.id} className="rounded-xl border bg-white p-4 shadow-sm">
+            <article key={recording.id} className="rounded-xl border p-4 shadow-sm" style={{ background: "var(--surface)", borderColor: "var(--border)", boxShadow: "var(--shadow-sm)" }}>
               <div className="mb-3 flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-slate-900">
+                  <p className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                     {recording.agentName.length > 30
                       ? recording.agentName.slice(0, 28) + "…"
                       : recording.agentName}
                   </p>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs" style={{ color: "var(--muted-text)" }}>
                     Call: {recording.callId} · Customer: {recording.customerNumber}
                   </p>
                 </div>
-                <p className="whitespace-nowrap text-xs text-slate-500">
+                <p className="whitespace-nowrap text-xs" style={{ color: "var(--muted-text)" }}>
                   {formatDuration(recording.durationSeconds)} · {formatDateSafe(recording.createdAt)}
                 </p>
               </div>

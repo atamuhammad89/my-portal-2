@@ -377,10 +377,10 @@ export function AdminSubscriptionsShell() {
   }
 
   function confirmLabel(action: SubscriptionAction) {
-    if (action === "renew") return "bg-indigo-600 hover:bg-indigo-700";
-    if (action === "terminate") return "bg-rose-600 hover:bg-rose-700";
-    if (action === "pause") return "bg-amber-500 hover:bg-amber-600";
-    return "bg-emerald-600 hover:bg-emerald-700";
+    if (action === "renew") return "bg-[var(--brand-500)] hover:opacity-90";
+    if (action === "terminate") return "bg-[var(--danger-fg)] hover:opacity-90";
+    if (action === "pause") return "bg-[var(--warning-fg)] hover:opacity-90";
+    return "bg-[var(--success-fg)] hover:opacity-90";
   }
 
   function confirmDescription(a: ConfirmAction) {
@@ -409,8 +409,8 @@ export function AdminSubscriptionsShell() {
               onClick={() => setFilter(f)}
               className={`rounded-full px-4 py-1.5 text-xs font-semibold capitalize transition-colors ${
                 filter === f
-                  ? "bg-indigo-600 text-white shadow-sm"
-                  : "bg-[var(--surface-2)] text-slate-400 border border-[var(--border)] hover:bg-[var(--surface)] hover:text-white"
+                  ? "bg-[var(--brand-500)] text-[var(--brand-btn-text)] shadow-sm"
+                  : "bg-[var(--surface-2)] text-[var(--muted-text)] border border-[var(--border)] hover:bg-[var(--surface)] hover:text-[var(--foreground)]"
               }`}
             >
               {f}
@@ -453,14 +453,14 @@ export function AdminSubscriptionsShell() {
                   return (
                     <tr key={sub.id}>
                       <td>
-                        <p className="font-semibold text-white">
+                        <p className="font-semibold text-[var(--foreground)]">
                           {sub.userFullName}
                         </p>
-                        <p className="text-xs text-slate-400">
+                        <p className="text-xs text-[var(--muted-text)]">
                           {sub.userEmail}
                         </p>
                       </td>
-                      <td className="text-slate-300">
+                      <td className="text-[var(--foreground)]">
                         {sub.planDisplayName}
                       </td>
                       <td>
@@ -471,7 +471,7 @@ export function AdminSubscriptionsShell() {
                       </td>
                       <td className="min-w-[180px]">
                         <div className="space-y-1">
-                          <div className="flex items-center justify-between text-xs text-slate-400">
+                          <div className="flex items-center justify-between text-xs text-[var(--muted-text)]">
                             <span>{sub.minutesUsed} min (CDR)</span>
                             <span>
                               {sub.totalMinutes
@@ -480,7 +480,7 @@ export function AdminSubscriptionsShell() {
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <div className="flex-1 h-2 rounded-full bg-slate-800 overflow-hidden">
+                            <div className="flex-1 h-2 rounded-full bg-[var(--surface-2)] border border-[var(--border)] overflow-hidden">
                               <div
                                 className="h-full rounded-full bg-[var(--brand-500)] transition-all"
                                 style={{
@@ -500,13 +500,13 @@ export function AdminSubscriptionsShell() {
                           </div>
                         </div>
                       </td>
-                      <td className="text-slate-300">
+                      <td className="text-[var(--foreground)]">
                         ${sub.monthlyPrice}
                       </td>
-                      <td className="text-slate-400">
+                      <td className="text-[var(--muted-text)]">
                         {formatDate(sub.startedAt)}
                       </td>
-                      <td className="text-slate-400">
+                      <td className="text-[var(--muted-text)]">
                         {sub.endsAt ? formatDate(sub.endsAt) : "—"}
                       </td>
                       <td>
@@ -522,7 +522,7 @@ export function AdminSubscriptionsShell() {
                                     userName: sub.userFullName,
                                   })
                                 }
-                                className="p-1.5 rounded-lg text-amber-400 hover:bg-amber-500/10 transition-colors cursor-pointer"
+                                className="p-1.5 rounded-lg text-[var(--warning-fg)] hover:bg-[var(--warning-bg)] transition-colors cursor-pointer"
                               >
                                 <PauseCircle className="h-4 w-4" />
                               </button>
@@ -535,7 +535,7 @@ export function AdminSubscriptionsShell() {
                                     userName: sub.userFullName,
                                   })
                                 }
-                                className="p-1.5 rounded-lg text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                                className="p-1.5 rounded-lg text-[var(--danger-fg)] hover:bg-[var(--danger-bg)] transition-colors cursor-pointer"
                               >
                                 <XCircle className="h-4 w-4" />
                               </button>
@@ -551,7 +551,7 @@ export function AdminSubscriptionsShell() {
                                   userName: sub.userFullName,
                                   })
                                 }
-                              className="p-1.5 rounded-lg text-emerald-400 hover:bg-emerald-500/10 transition-colors cursor-pointer"
+                              className="p-1.5 rounded-lg text-[var(--success-fg)] hover:bg-[var(--success-bg)] transition-colors cursor-pointer"
                             >
                               <PlayCircle className="h-4 w-4" />
                             </button>
@@ -566,7 +566,7 @@ export function AdminSubscriptionsShell() {
                                   userName: sub.userFullName,
                                 })
                               }
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[rgba(0,240,255,0.08)] text-[var(--brand-500)] border border-[rgba(0,240,255,0.2)] hover:bg-[rgba(0,240,255,0.15)] transition-colors text-xs font-semibold cursor-pointer"
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--brand-100)] text-[var(--brand-500)] border border-[var(--brand-200)] hover:bg-[var(--brand-200)] transition-colors text-xs font-semibold cursor-pointer"
                             >
                               <RefreshCw className="h-3.5 w-3.5" />
                               Renew
@@ -585,30 +585,31 @@ export function AdminSubscriptionsShell() {
 
       {/* Confirm Action Modal */}
       {confirm && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-sm rounded-2xl bg-white shadow-2xl p-6 space-y-4">
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-2xl bg-[var(--surface)] border border-[var(--border)] shadow-2xl p-6 space-y-4">
             <div className="flex items-center gap-2">
               {confirm.action === "renew" && (
-                <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
-                  <RefreshCw className="h-4 w-4 text-indigo-600" />
+                <div className="w-8 h-8 rounded-full bg-[var(--brand-100)] flex items-center justify-center flex-shrink-0">
+                  <RefreshCw className="h-4 w-4 text-[var(--brand-500)]" />
                 </div>
               )}
-              <h3 className="text-base font-semibold text-slate-900 capitalize">
+              <h3 className="text-base font-semibold text-[var(--foreground)] capitalize">
                 {confirm.action} Subscription
               </h3>
             </div>
-            <p className="text-sm text-slate-500">{confirmDescription(confirm)}</p>
+            <p className="text-sm text-[var(--muted-text)]">{confirmDescription(confirm)}</p>
             <div className="flex gap-3">
               <button
                 onClick={() => setConfirm(null)}
-                className="flex-1 rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
+                className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] text-[var(--muted-text)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] px-4 py-2 text-sm font-semibold transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirm}
                 disabled={action.isPending}
-                className={`flex-1 rounded-lg px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 ${confirmLabel(confirm.action)}`}
+                className="flex-1 rounded-lg px-4 py-2 text-sm font-bold text-[var(--brand-btn-text)] disabled:opacity-50 transition-all cursor-pointer shadow-sm"
+                style={{ background: confirmLabel(confirm.action).split(" ")[0].match(/var\(--[a-z0-9-]+\)/)?.[0] || "var(--brand-500)" }}
               >
                 {action.isPending ? "Processing…" : `Confirm ${confirm.action}`}
               </button>

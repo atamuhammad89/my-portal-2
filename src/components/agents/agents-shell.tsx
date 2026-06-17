@@ -80,12 +80,13 @@ export function AgentsShell() {
             setPage(1);
             setStatusFilter(event.target.value as "all" | Agent["status"]);
           }}
-          className="rounded-lg border bg-white px-3 py-2 text-sm"
+          className="rounded-lg border px-3 py-2 text-sm cursor-pointer focus:outline-none focus:ring-1 focus:ring-[var(--brand-500)]/30"
+          style={{ background: "var(--surface)", color: "var(--foreground)", borderColor: "var(--border)" }}
         >
-          <option value="all">All Statuses</option>
-          <option value="active">Active</option>
-          <option value="paused">Paused</option>
-          <option value="draft">Draft</option>
+          <option value="all" className="bg-[var(--surface)]">All Statuses</option>
+          <option value="active" className="bg-[var(--surface)]">Active</option>
+          <option value="paused" className="bg-[var(--surface)]">Paused</option>
+          <option value="draft" className="bg-[var(--surface)]">Draft</option>
         </select>
       </FilterBar>
 
@@ -99,7 +100,7 @@ export function AgentsShell() {
               key: "name",
               label: "Agent",
               render: (_, row) => (
-                <Link href={`/agents/${row.id}`} className="font-medium text-slate-900 hover:underline">
+                <Link href={`/agents/${row.id}`} className="font-medium text-[var(--foreground)] hover:underline">
                   {row.name}
                 </Link>
               )

@@ -25,12 +25,12 @@ function PasswordInput({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2.5 pr-10 text-sm text-white placeholder-slate-500 outline-none focus:border-[var(--brand-500)] focus:ring-1 focus:ring-[var(--brand-500)]/30 transition"
+          className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2.5 pr-10 text-sm text-[var(--foreground)] placeholder-slate-500 outline-none focus:border-[var(--brand-500)] focus:ring-1 focus:ring-[var(--brand-500)]/30 transition"
         />
         <button
           type="button"
           onClick={() => setShow(!show)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[var(--foreground)] cursor-pointer"
         >
           {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
         </button>
@@ -54,7 +54,7 @@ function TextInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-[var(--brand-500)] focus:ring-1 focus:ring-[var(--brand-500)]/30 transition"
+        className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2.5 text-sm text-[var(--foreground)] placeholder-slate-500 outline-none focus:border-[var(--brand-500)] focus:ring-1 focus:ring-[var(--brand-500)]/30 transition"
       />
     </div>
   );
@@ -151,6 +151,12 @@ export function SettingsShell() {
     if (next.length < 8) {
       setPwError("New password must be at least 8 characters."); return;
     }
+    if (!/[A-Z]/.test(next)) {
+      setPwError("New password must include at least one uppercase letter."); return;
+    }
+    if (!(/[0-9]/.test(next) || /[^A-Za-z0-9]/.test(next))) {
+      setPwError("New password must include at least one number or special character."); return;
+    }
     if (next !== confirm) {
       setPwError("New passwords do not match."); return;
     }
@@ -177,8 +183,8 @@ export function SettingsShell() {
             onClick={() => setActiveTab(tab.id)}
             className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-bold transition-all cursor-pointer ${
               activeTab === tab.id
-                ? "bg-[var(--surface-2)] text-[var(--brand-500)] shadow-[0_2px_8px_rgba(0,240,255,0.08)]"
-                : "text-[var(--muted-text)] hover:text-white"
+                ? "bg-[var(--surface-2)] text-[var(--brand-500)] shadow-sm"
+                : "text-[var(--muted-text)] hover:text-[var(--foreground)]"
             }`}
           >
             {tab.icon}
@@ -195,7 +201,7 @@ export function SettingsShell() {
         >
           <div className="flex items-center gap-2 text-[var(--brand-500)]">
             <Pencil className="h-4 w-4" />
-            <span className="text-sm font-semibold text-white">Edit Profile</span>
+            <span className="text-sm font-semibold text-[var(--foreground)]">Edit Profile</span>
           </div>
 
           <TextInput
@@ -213,13 +219,13 @@ export function SettingsShell() {
           />
 
           {profileError && (
-            <p className="rounded-lg bg-rose-950/20 border border-rose-500/30 px-3 py-2 text-xs text-rose-400">
+            <p className="rounded-lg bg-[var(--danger-bg)] border border-[var(--danger-border)] px-3 py-2 text-xs text-[var(--danger-fg)]">
               {profileError}
             </p>
           )}
 
           {profileSuccess && (
-            <div className="flex items-center gap-2 rounded-lg bg-emerald-950/20 border border-emerald-500/30 px-3 py-2 text-xs text-emerald-400">
+            <div className="flex items-center gap-2 rounded-lg bg-[var(--success-bg)] border border-[var(--success-border)] px-3 py-2 text-xs text-[var(--success-fg)]">
               <CheckCircle2 className="h-4 w-4" />
               Profile updated successfully.
             </div>
@@ -228,7 +234,7 @@ export function SettingsShell() {
           <button
             onClick={handleProfileSubmit}
             disabled={profileMutation.isPending}
-            className="w-full rounded-xl bg-[var(--brand-500)] px-4 py-2.5 text-sm font-bold text-black hover:bg-white hover:text-black transition-colors disabled:opacity-50 cursor-pointer"
+            className="w-full rounded-xl bg-[var(--brand-500)] px-4 py-2.5 text-sm font-bold text-[var(--brand-btn-text)] hover:opacity-90 transition-all disabled:opacity-50 cursor-pointer shadow-sm"
           >
             {profileMutation.isPending ? "Saving…" : "Save Changes"}
           </button>
@@ -243,21 +249,21 @@ export function SettingsShell() {
         >
           <div className="flex items-center gap-2 text-[var(--brand-500)]">
             <KeyRound className="h-4 w-4" />
-            <span className="text-sm font-semibold text-white">Change Password</span>
+            <span className="text-sm font-semibold text-[var(--foreground)]">Change Password</span>
           </div>
 
           <PasswordInput label="Current Password" value={current} onChange={setCurrent} />
-          <PasswordInput label="New Password" value={next} onChange={setNext} placeholder="Min. 8 characters" />
+          <PasswordInput label="New Password" value={next} onChange={setNext} placeholder="Min 8 chars, 1 uppercase, 1 number/special char" />
           <PasswordInput label="Confirm New Password" value={confirm} onChange={setConfirm} />
 
           {pwError && (
-            <p className="rounded-lg bg-rose-950/20 border border-rose-500/30 px-3 py-2 text-xs text-rose-400">
+            <p className="rounded-lg bg-[var(--danger-bg)] border border-[var(--danger-border)] px-3 py-2 text-xs text-[var(--danger-fg)]">
               {pwError}
             </p>
           )}
 
           {pwSuccess && (
-            <div className="flex items-center gap-2 rounded-lg bg-emerald-950/20 border border-emerald-500/30 px-3 py-2 text-xs text-emerald-400">
+            <div className="flex items-center gap-2 rounded-lg bg-[var(--success-bg)] border border-[var(--success-border)] px-3 py-2 text-xs text-[var(--success-fg)]">
               <CheckCircle2 className="h-4 w-4" />
               Password updated successfully.
             </div>
@@ -266,7 +272,7 @@ export function SettingsShell() {
           <button
             onClick={handlePasswordSubmit}
             disabled={passwordMutation.isPending}
-            className="w-full rounded-xl bg-[var(--brand-500)] px-4 py-2.5 text-sm font-bold text-black hover:bg-white hover:text-black transition-colors disabled:opacity-50 cursor-pointer"
+            className="w-full rounded-xl bg-[var(--brand-500)] px-4 py-2.5 text-sm font-bold text-[var(--brand-btn-text)] hover:opacity-90 transition-all disabled:opacity-50 cursor-pointer shadow-sm"
           >
             {passwordMutation.isPending ? "Updating…" : "Update Password"}
           </button>

@@ -47,15 +47,15 @@ function CreateAgentModal({ onClose }: { onClose: () => void }) {
     createAgent(form, { onSuccess: onClose });
   }
 
-  const inputCls = "w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900";
-  const labelCls = "mb-1 block text-sm font-medium text-slate-700";
+  const inputCls = "w-full rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-[var(--foreground)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-500)]/30 placeholder-[var(--subtle-text)] transition";
+  const labelCls = "mb-1.5 block text-xs font-bold uppercase tracking-wider text-[var(--subtle-text)]";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-lg rounded-xl bg-white shadow-xl">
-        <div className="flex items-center justify-between border-b px-6 py-4">
-          <h2 className="text-base font-semibold text-slate-900">Create New Agent</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-xl leading-none">×</button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+      <div className="w-full max-w-lg rounded-2xl bg-[var(--surface)] border border-[var(--border)] shadow-xl overflow-hidden">
+        <div className="flex items-center justify-between border-b border-[var(--border)] px-6 py-4 bg-[var(--surface-2)]">
+          <h2 className="text-base font-bold text-[var(--foreground)]">Create New Agent</h2>
+          <button onClick={onClose} className="text-[var(--muted-text)] hover:text-[var(--foreground)] text-xl leading-none cursor-pointer">×</button>
         </div>
 
         <form onSubmit={handleSubmit} className="max-h-[80vh] overflow-y-auto px-6 py-5 space-y-4">
@@ -155,22 +155,22 @@ function CreateAgentModal({ onClose }: { onClose: () => void }) {
           {regularUsers.length > 0 && (
             <div>
               <label className={labelCls}>Grant Access To Users</label>
-              <div className="max-h-40 overflow-y-auto rounded-lg border border-slate-200 divide-y">
+              <div className="max-h-40 overflow-y-auto rounded-xl border border-[var(--border)] divide-y divide-[var(--border-light)] bg-[var(--surface-2)]">
                 {regularUsers.map((u) => {
                   const checked = (form.assign_user_ids ?? []).includes(u.id);
                   return (
                     <label
                       key={u.id}
-                      className="flex cursor-pointer items-center gap-3 px-3 py-2 hover:bg-slate-50"
+                      className="flex cursor-pointer items-center gap-3 px-3 py-2 hover:bg-[var(--surface)] transition-colors"
                     >
                       <input
                         type="checkbox"
-                        className="h-4 w-4 rounded"
+                        className="h-4 w-4 rounded border-[var(--border)] accent-[var(--brand-500)]"
                         checked={checked}
                         onChange={() => toggle(u.id)}
                       />
-                      <span className="text-sm text-slate-700">{u.fullName}</span>
-                      <span className="ml-auto text-xs text-slate-400">{u.email}</span>
+                      <span className="text-sm text-[var(--foreground)]">{u.fullName}</span>
+                      <span className="ml-auto text-xs text-[var(--muted-text)]">{u.email}</span>
                     </label>
                   );
                 })}
@@ -178,18 +178,18 @@ function CreateAgentModal({ onClose }: { onClose: () => void }) {
             </div>
           )}
 
-          <div className="flex flex-wrap justify-end gap-3 pt-2">
+          <div className="flex flex-wrap justify-end gap-3 pt-2 border-t border-[var(--border-light)]">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg border border-slate-200 px-4 py-2 text-sm hover:bg-slate-50"
+              className="rounded-xl border border-[var(--border)] px-4 py-2 text-xs font-semibold bg-[var(--surface-2)] text-[var(--muted-text)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] hover:border-[var(--brand-500)] transition cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isPending}
-              className="flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm text-white hover:bg-slate-700 disabled:opacity-60"
+              className="flex items-center gap-2 rounded-xl bg-[var(--brand-500)] px-4 py-2 text-xs font-bold text-[var(--brand-btn-text)] shadow-[var(--brand-btn-shadow)] hover:shadow-[var(--brand-btn-shadow-hover)] hover:bg-[var(--brand-600)] transition disabled:opacity-60 cursor-pointer"
             >
               {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
               {isPending ? "Creating on Retell…" : "Create Agent"}
@@ -212,53 +212,62 @@ function AgentCard({
   onManageAccess: (agent: RetellAgent) => void;
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition-shadow">
+    <div
+      className="rounded-2xl border p-5 transition-all duration-200 hover:shadow-md hover:border-[var(--brand-500)]/30"
+      style={{
+        background: "var(--surface)",
+        borderColor: "var(--border)",
+        boxShadow: "var(--shadow-sm)",
+      }}
+    >
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100">
-            <Bot className="h-5 w-5 text-slate-600" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--brand-100)] text-[var(--brand-500)]">
+            <Bot className="h-5 w-5" />
           </div>
           <div>
-            <p className="font-medium text-slate-900">{agent.name}</p>
-            <p className="text-xs text-slate-400 font-mono mt-0.5">{agent.retell_agent_id}</p>
+            <p className="font-bold text-[var(--foreground)]">{agent.name}</p>
+            <p className="text-[10px] text-[var(--subtle-text)] font-mono mt-0.5">{agent.retell_agent_id}</p>
           </div>
         </div>
         <span className={cn(
-          "shrink-0 rounded-full px-2 py-0.5 text-xs font-medium",
-          agent.is_active ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"
+          "shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold border",
+          agent.is_active
+            ? "bg-[var(--success-bg)] text-[var(--success-fg)] border-[var(--success-fg)]/20"
+            : "bg-[var(--surface-2)] text-[var(--muted-text)] border-[var(--border)]"
         )}>
           {agent.is_active ? "Active" : "Inactive"}
         </span>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-        <div className="flex items-center gap-1.5 text-slate-500">
-          <Globe className="h-3.5 w-3.5" />
+      <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
+        <div className="flex items-center gap-1.5 text-[var(--muted-text)]">
+          <Globe className="h-3.5 w-3.5 text-[var(--brand-500)]" />
           <span>{agent.language}</span>
         </div>
-        <div className="flex items-center gap-1.5 text-slate-500">
-          <Mic className="h-3.5 w-3.5" />
+        <div className="flex items-center gap-1.5 text-[var(--muted-text)]">
+          <Mic className="h-3.5 w-3.5 text-[var(--brand-500)]" />
           <span className="truncate">{agent.voice_id ?? "Default voice"}</span>
         </div>
       </div>
 
       {agent.begin_message && (
-        <p className="mt-3 truncate text-xs text-slate-400 italic">
+        <p className="mt-3 truncate text-xs text-[var(--subtle-text)] italic">
           &ldquo;{agent.begin_message}&rdquo;
         </p>
       )}
 
-      <div className="mt-4 flex items-center gap-2 border-t border-slate-100 pt-4">
+      <div className="mt-4 flex items-center gap-2 border-t border-[var(--border-light)] pt-4">
         <button
           onClick={() => onManageAccess(agent)}
-          className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50"
+          className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-xs font-semibold text-[var(--muted-text)] transition-all hover:bg-[var(--surface)] hover:text-[var(--foreground)] hover:border-[var(--brand-500)] cursor-pointer"
         >
           <Users className="h-3.5 w-3.5" />
           Manage Access
         </button>
         <button
           onClick={() => onDelete(agent.id, agent.name)}
-          className="ml-auto flex items-center gap-1.5 rounded-lg border border-red-100 px-3 py-1.5 text-xs text-red-600 hover:bg-red-50"
+          className="ml-auto flex items-center gap-1.5 rounded-xl border border-[var(--danger-border)] bg-[var(--danger-bg)] px-3 py-2 text-xs font-semibold text-[var(--danger-fg)] transition-all hover:bg-rose-500 hover:text-white hover:border-rose-500 cursor-pointer"
         >
           <Trash2 className="h-3.5 w-3.5" />
           Delete
@@ -281,32 +290,32 @@ function AccessModal({ agent, onClose }: { agent: RetellAgent; onClose: () => vo
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-md rounded-xl bg-white shadow-xl">
-        <div className="flex items-center justify-between border-b px-6 py-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+      <div className="w-full max-w-md rounded-2xl bg-[var(--surface)] border border-[var(--border)] shadow-xl overflow-hidden">
+        <div className="flex items-center justify-between border-b border-[var(--border)] px-6 py-4 bg-[var(--surface-2)]">
           <div>
-            <h2 className="text-base font-semibold text-slate-900">Manage Access</h2>
-            <p className="text-xs text-slate-400 mt-0.5">{agent.name}</p>
+            <h2 className="text-base font-bold text-[var(--foreground)]">Manage Access</h2>
+            <p className="text-xs text-[var(--muted-text)] mt-0.5">{agent.name}</p>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-xl leading-none">×</button>
+          <button onClick={onClose} className="text-[var(--muted-text)] hover:text-[var(--foreground)] text-xl leading-none cursor-pointer">×</button>
         </div>
-        <div className="max-h-[60vh] overflow-y-auto px-6 py-4">
+        <div className="max-h-[60vh] overflow-y-auto px-6 py-4 bg-[var(--surface)]">
           {isLoading ? (
             <div className="flex justify-center py-8">
-              <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
+              <Loader2 className="h-5 w-5 animate-spin text-[var(--brand-500)]" />
             </div>
           ) : regularUsers.length === 0 ? (
-            <p className="py-8 text-center text-sm text-slate-400">No regular users found.</p>
+            <p className="py-8 text-center text-sm text-[var(--muted-text)]">No regular users found.</p>
           ) : (
             <div className="space-y-2">
               {regularUsers.map((u) => {
                 const hasAccess = grantedIds.has(u.id);
                 const busy = grantMutation.isPending || revokeMutation.isPending;
                 return (
-                  <div key={u.id} className="flex items-center justify-between rounded-lg border border-slate-100 px-4 py-3">
+                  <div key={u.id} className="flex items-center justify-between rounded-xl border border-[var(--border)] px-4 py-3 bg-[var(--surface-2)]">
                     <div>
-                      <p className="text-sm font-medium text-slate-800">{u.fullName}</p>
-                      <p className="text-xs text-slate-400">{u.email} · {u.role}</p>
+                      <p className="text-sm font-bold text-[var(--foreground)]">{u.fullName}</p>
+                      <p className="text-xs text-[var(--muted-text)]">{u.email} · {u.role}</p>
                     </div>
                     <button
                       disabled={busy}
@@ -315,10 +324,10 @@ function AccessModal({ agent, onClose }: { agent: RetellAgent; onClose: () => vo
                         else grantMutation.mutate([u.id]);
                       }}
                       className={cn(
-                        "rounded-lg px-3 py-1.5 text-xs font-medium transition disabled:opacity-50",
+                        "rounded-xl px-3 py-1.5 text-xs font-bold transition disabled:opacity-50 cursor-pointer",
                         hasAccess
-                          ? "bg-red-50 text-red-600 hover:bg-red-100"
-                          : "bg-slate-900 text-white hover:bg-slate-700"
+                          ? "bg-[var(--danger-bg)] text-[var(--danger-fg)] hover:bg-[var(--danger-hover-bg)]"
+                          : "bg-[var(--brand-500)] text-[var(--brand-btn-text)] hover:bg-[var(--brand-600)]"
                       )}
                     >
                       {hasAccess ? "Revoke" : "Grant"}
@@ -329,8 +338,8 @@ function AccessModal({ agent, onClose }: { agent: RetellAgent; onClose: () => vo
             </div>
           )}
         </div>
-        <div className="border-t px-6 py-4">
-          <button onClick={onClose} className="w-full rounded-lg bg-slate-100 py-2 text-sm hover:bg-slate-200">
+        <div className="border-t border-[var(--border)] px-6 py-4 bg-[var(--surface-2)]">
+          <button onClick={onClose} className="w-full rounded-xl bg-[var(--surface)] border border-[var(--border)] py-2 text-xs font-bold text-[var(--foreground)] hover:bg-[var(--surface-2)] hover:text-[var(--brand-500)] transition cursor-pointer">
             Done
           </button>
         </div>
@@ -358,8 +367,8 @@ export function AdminRetellAgentsShell() {
       {/* Header */}
       <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">AI Voice Agents</h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <h1 className="text-xl font-bold text-[var(--foreground)] font-display">AI Voice Agents</h1>
+          <p className="mt-1 text-sm text-[var(--muted-text)]">
             Create and manage Retell AI agents. Changes sync to Retell in real time.
           </p>
         </div>
@@ -367,14 +376,14 @@ export function AdminRetellAgentsShell() {
           <button
             onClick={() => refetch()}
             disabled={isRefetching}
-            className="rounded-lg border border-slate-200 p-2 text-slate-500 hover:bg-slate-50 disabled:opacity-50"
+            className="rounded-xl border border-[var(--border)] p-2 text-[var(--muted-text)] hover:bg-[var(--surface-2)] hover:text-[var(--foreground)] disabled:opacity-50 transition cursor-pointer"
             title="Refresh"
           >
             <RefreshCw className={cn("h-4 w-4", isRefetching && "animate-spin")} />
           </button>
           <button
             onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm text-white hover:bg-slate-700"
+            className="flex items-center gap-2 rounded-xl bg-[var(--brand-500)] px-4 py-2 text-xs font-bold text-[var(--brand-btn-text)] shadow-[var(--brand-btn-shadow)] hover:shadow-[var(--brand-btn-shadow-hover)] hover:bg-[var(--brand-600)] transition cursor-pointer"
           >
             <Plus className="h-4 w-4" />
             New Agent
@@ -385,24 +394,24 @@ export function AdminRetellAgentsShell() {
       {/* Content */}
       {isLoading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+          <Loader2 className="h-6 w-6 animate-spin text-[var(--brand-500)]" />
         </div>
       ) : error ? (
         <div className="flex flex-col items-center gap-3 py-20 text-center">
-          <AlertCircle className="h-8 w-8 text-red-400" />
-          <p className="text-sm text-red-600">{(error as Error).message}</p>
-          <button onClick={() => refetch()} className="text-sm underline text-slate-500">Retry</button>
+          <AlertCircle className="h-8 w-8 text-[var(--danger-fg)]" />
+          <p className="text-sm text-[var(--danger-fg)]">{(error as Error).message}</p>
+          <button onClick={() => refetch()} className="text-sm underline text-[var(--muted-text)] cursor-pointer">Retry</button>
         </div>
       ) : agents.length === 0 ? (
-        <div className="flex flex-col items-center gap-4 rounded-xl border-2 border-dashed border-slate-200 py-20 text-center">
-          <Bot className="h-10 w-10 text-slate-300" />
+        <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed border-[var(--border)] py-20 text-center bg-[var(--surface-2)]/30">
+          <Bot className="h-10 w-10 text-[var(--subtle-text)]" />
           <div>
-            <p className="font-medium text-slate-700">No agents yet</p>
-            <p className="mt-1 text-sm text-slate-400">Create your first Retell AI agent to get started.</p>
+            <p className="font-bold text-[var(--foreground)]">No agents yet</p>
+            <p className="mt-1 text-sm text-[var(--muted-text)]">Create your first Retell AI agent to get started.</p>
           </div>
           <button
             onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm text-white hover:bg-slate-700"
+            className="flex items-center gap-2 rounded-xl bg-[var(--brand-500)] px-4 py-2 text-xs font-bold text-[var(--brand-btn-text)] shadow-[var(--brand-btn-shadow)] hover:shadow-[var(--brand-btn-shadow-hover)] hover:bg-[var(--brand-600)] transition cursor-pointer"
           >
             <Plus className="h-4 w-4" />
             Create Agent
@@ -427,24 +436,24 @@ export function AdminRetellAgentsShell() {
 
       {/* Delete Confirmation */}
       {deleteTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl">
-            <h3 className="font-semibold text-slate-900">Delete Agent</h3>
-            <p className="mt-2 text-sm text-slate-500">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-[var(--surface)] border border-[var(--border)] p-6 shadow-xl">
+            <h3 className="font-bold text-[var(--foreground)] text-base">Delete Agent</h3>
+            <p className="mt-2 text-sm text-[var(--muted-text)]">
               Are you sure you want to delete <strong>{deleteTarget.name}</strong>? This will also
               remove it from Retell and cannot be undone.
             </p>
             <div className="mt-5 flex justify-end gap-3">
               <button
                 onClick={() => setDeleteTarget(null)}
-                className="rounded-lg border border-slate-200 px-4 py-2 text-sm hover:bg-slate-50"
+                className="rounded-xl border border-[var(--border)] px-4 py-2 text-xs font-semibold bg-[var(--surface-2)] text-[var(--muted-text)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] hover:border-[var(--brand-500)] transition cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmDelete}
                 disabled={isDeleting}
-                className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 disabled:opacity-60"
+                className="flex items-center gap-2 rounded-xl bg-[var(--danger-fg)] px-4 py-2 text-xs font-bold text-white hover:bg-red-700 transition disabled:opacity-60 cursor-pointer"
               >
                 {isDeleting && <Loader2 className="h-4 w-4 animate-spin" />}
                 Delete

@@ -36,22 +36,22 @@ function OverageInvoiceRow({ bill }: { bill: PendingBill }) {
     <div
       className="flex items-center gap-4 rounded-xl px-5 py-3.5"
       style={{
-        background: "rgba(239,68,68,0.06)",
-        border: "1px solid rgba(239,68,68,0.3)",
+        background: "var(--danger-bg)",
+        border: "1px solid var(--danger-border)",
       }}
     >
       {/* Red icon */}
-      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-rose-500/10">
-        <Receipt className="h-4 w-4 text-rose-500" />
+      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-[var(--danger-bg)]">
+        <Receipt className="h-4 w-4 text-[var(--danger-fg)]" />
       </div>
 
       {/* Info */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm font-semibold text-white">
+          <span className="text-sm font-semibold text-[var(--foreground)]">
             Overage Invoice
           </span>
-          <span className="rounded-full bg-rose-500/10 border border-rose-500/30 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-rose-400">
+          <span className="rounded-full bg-[var(--danger-bg)] border border-[var(--danger-border)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[var(--danger-fg)]">
             PENDING
           </span>
           <span className="text-xs text-slate-400 font-mono">
@@ -67,7 +67,7 @@ function OverageInvoiceRow({ bill }: { bill: PendingBill }) {
 
       {/* Amount */}
       <div className="text-right flex-shrink-0">
-        <p className="text-lg font-bold text-rose-400">
+        <p className="text-lg font-bold text-[var(--danger-fg)]">
           ${bill.overageAmount.toFixed(2)}
         </p>
         <p className="text-[10px] text-slate-500">Due now</p>
@@ -77,9 +77,7 @@ function OverageInvoiceRow({ bill }: { bill: PendingBill }) {
       <div className="flex items-center gap-2 flex-shrink-0">
         {/* Download */}
         <button
-          onClick={() => downloadInvoicePdf(bill)}
-          title="Download Invoice PDF"
-          className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-xs font-semibold text-slate-300 transition-all hover:bg-white hover:text-black hover:border-white cursor-pointer"
+          className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-xs font-semibold text-slate-300 transition-all hover:bg-[var(--surface)] hover:text-[var(--foreground)] cursor-pointer"
         >
           <Download className="h-3.5 w-3.5" />
           Download
@@ -95,7 +93,7 @@ function OverageInvoiceRow({ bill }: { bill: PendingBill }) {
           <button
             onClick={() => setPayRequested(true)}
             title="Pay Now"
-            className="flex items-center gap-1.5 rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-1.5 text-xs font-semibold text-rose-400 transition-all hover:bg-rose-500 hover:text-white hover:border-rose-500 cursor-pointer"
+            className="flex items-center gap-1.5 rounded-lg border border-[var(--danger-border)] bg-[var(--danger-bg)] px-3 py-1.5 text-xs font-semibold text-[var(--danger-fg)] transition-all hover:opacity-90 cursor-pointer"
           >
             <CreditCard className="h-3.5 w-3.5" />
             Pay Now
