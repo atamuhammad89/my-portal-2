@@ -342,8 +342,7 @@ type ConfirmAction = {
 
 function statusVariant(status: string) {
   if (status === "active") return "success";
-  if (status === "cancelled") return "danger";
-  if (status === "past_due") return "warning";
+  if (status === "paused") return "warning";
   if (status === "expired") return "neutral";
   return "neutral";
 }
@@ -353,7 +352,7 @@ function minutesPercent(used: number, total: number) {
   return Math.min(100, Math.round((used / total) * 100));
 }
 
-const FILTER_TABS = ["all", "active", "cancelled", "expired"] as const;
+const FILTER_TABS = ["all", "active", "paused", "expired"] as const;
 type FilterTab = (typeof FILTER_TABS)[number];
 
 export function AdminSubscriptionsShell() {
@@ -378,16 +377,13 @@ export function AdminSubscriptionsShell() {
 
   function confirmLabel(action: SubscriptionAction) {
     if (action === "renew") return "bg-[var(--brand-500)] hover:opacity-90";
-    if (action === "terminate") return "bg-[var(--danger-fg)] hover:opacity-90";
     if (action === "pause") return "bg-[var(--warning-fg)] hover:opacity-90";
     return "bg-[var(--success-fg)] hover:opacity-90";
   }
 
   function confirmDescription(a: ConfirmAction) {
-    if (a.action === "terminate")
-      return `This will permanently terminate ${a.userName}'s subscription. This cannot be undone.`;
     if (a.action === "pause")
-      return `This will cancel ${a.userName}'s subscription. You can resume it later.`;
+      return `This will pause ${a.userName}'s subscription. You can resume it later.`;
     if (a.action === "renew")
       return `This will renew ${a.userName}'s subscription from today, resetting usage and extending the end date by the plan duration.`;
     return `This will reactivate ${a.userName}'s subscription.`;
@@ -512,38 +508,23 @@ export function AdminSubscriptionsShell() {
                       <td>
                         <div className="flex items-center gap-1">
                           {sub.status === "active" && (
-                            <>
-                              <button
-                                title="Pause (cancel)"
-                                onClick={() =>
-                                  setConfirm({
-                                    id: sub.id,
-                                    action: "pause",
-                                    userName: sub.userFullName,
-                                  })
-                                }
-                                className="p-1.5 rounded-lg text-[var(--warning-fg)] hover:bg-[var(--warning-bg)] transition-colors cursor-pointer"
-                              >
-                                <PauseCircle className="h-4 w-4" />
-                              </button>
-                              <button
-                                title="Terminate"
-                                onClick={() =>
-                                  setConfirm({
-                                    id: sub.id,
-                                    action: "terminate",
-                                    userName: sub.userFullName,
-                                  })
-                                }
-                                className="p-1.5 rounded-lg text-[var(--danger-fg)] hover:bg-[var(--danger-bg)] transition-colors cursor-pointer"
-                              >
-                                <XCircle className="h-4 w-4" />
-                              </button>
-                            </>
-                          )}
-                          {sub.status === "cancelled" && (
                             <button
-                              title="Resume"
+                              title="Pause Subscription"
+                              onClick={() =>
+                                setConfirm({
+                                  id: sub.id,
+                                  action: "pause",
+                                  userName: sub.userFullName,
+                                })
+                              }
+                              className="p-1.5 rounded-lg text-[var(--warning-fg)] hover:bg-[var(--warning-bg)] transition-colors cursor-pointer"
+                            >
+                              <PauseCircle className="h-4 w-4" />
+                            </button>
+                          )}
+                          {sub.status === "paused" && (
+                            <button
+                              title="Resume Subscription"
                               onClick={() =>
                                 setConfirm({
                                   id: sub.id,

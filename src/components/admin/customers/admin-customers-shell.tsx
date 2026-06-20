@@ -11,16 +11,40 @@ import { PageHeader } from "@/components/shared/page-header";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { useAdminCustomersQuery } from "@/hooks/admin/use-admin-customers-query";
 import { AdminCustomerEditModal } from "@/components/admin/customers/admin-customer-edit-modal";
+import { AdminCustomerCreateModal } from "@/components/admin/customers/admin-customer-create-modal";
 import { AdminCustomer } from "@/types/admin/customer";
 import { formatDateTime } from "@/utils/format";
-import { Search, Pencil } from "lucide-react";
+import { Search, Pencil, UserPlus, CheckCircle2 } from "lucide-react";
 
 type StatusFilter = "all" | "active" | "inactive";
+
+function getRoleBadgeStyles(role: string) {
+  if (role === "super_admin") {
+    return {
+      bg: "var(--danger-bg)",
+      color: "var(--danger-fg)",
+      border: "var(--danger-border, rgba(244, 63, 94, 0.25))",
+    };
+  }
+  if (role === "reseller") {
+    return {
+      bg: "var(--warning-bg)",
+      color: "var(--warning-fg)",
+      border: "rgba(245, 158, 11, 0.25)",
+    };
+  }
+  return {
+    bg: "var(--brand-100)",
+    color: "var(--brand-500)",
+    border: "var(--brand-200)",
+  };
+}
 
 export function AdminCustomersShell() {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [editingCustomer, setEditingCustomer] = useState<AdminCustomer | null>(null);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   const {
     data: customers = [],
@@ -88,6 +112,13 @@ export function AdminCustomersShell() {
             <option value="active" className="bg-[var(--surface-2)]">Active</option>
             <option value="inactive" className="bg-[var(--surface-2)]">Inactive</option>
           </select>
+          <button
+            onClick={() => setIsCreateOpen(true)}
+            className="ml-auto inline-flex items-center gap-2 rounded-xl bg-[var(--brand-500)] px-4 py-2 text-sm font-bold text-[var(--brand-btn-text)] hover:bg-[var(--foreground)] hover:text-[var(--background)] transition cursor-pointer"
+          >
+            <UserPlus className="h-4 w-4" />
+            Insert User
+          </button>
         </div>
 
         {isLoading ? (
@@ -112,15 +143,42 @@ export function AdminCustomersShell() {
                   </span>
                 ),
               },
-              { key: "email", label: "Email" },
+              {
+                key: "email",
+                label: "Email",
+                render: (v) => {
+                  const emailStr = String(v);
+                  const isGmail = emailStr.trim().toLowerCase().endsWith("@gmail.com");
+                  return (
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                      <span className="text-sm font-medium text-[var(--muted-text)]">{emailStr}</span>
+                      {isGmail ? (
+                        <span className="inline-flex items-center gap-1 text-[9px] font-bold text-[var(--success-fg)] bg-[var(--success-bg)] px-1.5 py-0.5 rounded-full border border-[var(--success-fg)]/25 w-max">
+                          <CheckCircle2 className="h-2.5 w-2.5" /> Verified
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-[9px] font-bold text-[var(--danger-fg)] bg-[var(--danger-bg)] px-1.5 py-0.5 rounded-full border border-[var(--danger-fg)]/25 w-max">
+                          Unverified
+                        </span>
+                      )}
+                    </div>
+                  );
+                }
+              },
               {
                 key: "role",
                 label: "Role",
-                render: (v) => (
-                  <span className="inline-block rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-brand-cyan/10 text-brand-cyan border border-brand-cyan/25">
-                    {String(v)}
-                  </span>
-                ),
+                render: (v) => {
+                  const s = getRoleBadgeStyles(String(v));
+                  return (
+                    <span
+                      className="inline-block rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border"
+                      style={{ background: s.bg, color: s.color, borderColor: s.border }}
+                    >
+                      {String(v).replace("_", " ")}
+                    </span>
+                  );
+                },
               },
               {
                 key: "isActive",
@@ -161,6 +219,13 @@ export function AdminCustomersShell() {
         <AdminCustomerEditModal
           customer={editingCustomer}
           onClose={() => setEditingCustomer(null)}
+        />
+      )}
+
+      {/* Create Modal */}
+      {isCreateOpen && (
+        <AdminCustomerCreateModal
+          onClose={() => setIsCreateOpen(false)}
         />
       )}
     </AdminPermissionGuard>

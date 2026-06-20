@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
   const { data: customerRows } = await supabase
     .from("users")
     .select("id, full_name, email")
-    .in("role", ["owner", "member"])
+    .in("role", ["owner", "super_admin", "reseller"])
     .order("full_name", { ascending: true });
 
   const customers = (customerRows ?? []).map((u: any) => ({

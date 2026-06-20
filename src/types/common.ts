@@ -1,4 +1,4 @@
-export type Role = "super_admin" |"owner" | "admin" | "manager" | "member" | "viewer";
+export type Role = "super_admin" | "owner" | "reseller" | "admin" | "manager" | "member" | "viewer";
 
 export type PaginatedResponse<T> = {
   data: T[];

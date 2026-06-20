@@ -139,7 +139,7 @@ function getSentimentDisplay(sentiment: string | null) {
 
 // ── AudioPlayer ───────────────────────────────────────────────────────────────
 
-function AudioPlayer({ url }: { url: string }) {
+export function AudioPlayer({ url }: { url: string }) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -252,12 +252,14 @@ function AudioPlayer({ url }: { url: string }) {
 
 // ── CallDetailDrawer ──────────────────────────────────────────────────────────
 
-function CallDetailDrawer({
+export function CallDetailDrawer({
   log,
   onClose,
+  hideMeta = false,
 }: {
   log: CallLog;
   onClose: () => void;
+  hideMeta?: boolean;
 }) {
   const sentiment = getSentimentDisplay(log.customerSentiment ?? null);
 
@@ -283,29 +285,31 @@ function CallDetailDrawer({
   return (
     <ModalDrawerShell title="Call Details" open={true} onClose={onClose}>
       <div className="space-y-6 pb-4 text-sm">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {metaItems.map(({ label, value, badge }) => (
-            <div
-              key={label}
-              className="rounded-lg border p-3"
-              style={{ background: "var(--surface-2)", borderColor: "var(--border)" }}
-            >
-              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-[var(--subtle-text)]">
-                {label}
-              </p>
-              {badge ? (
-                <StatusBadge
-                  text={badge.charAt(0).toUpperCase() + badge.slice(1)}
-                  variant={getStatusVariant(badge)}
-                />
-              ) : (
-                <p className="truncate font-semibold text-[var(--foreground)]">
-                  {value ?? "—"}
+        {!hideMeta && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {metaItems.map(({ label, value, badge }) => (
+              <div
+                key={label}
+                className="rounded-lg border p-3"
+                style={{ background: "var(--surface-2)", borderColor: "var(--border)" }}
+              >
+                <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-[var(--subtle-text)]">
+                  {label}
                 </p>
-              )}
-            </div>
-          ))}
-        </div>
+                {badge ? (
+                  <StatusBadge
+                    text={badge.charAt(0).toUpperCase() + badge.slice(1)}
+                    variant={getStatusVariant(badge)}
+                  />
+                ) : (
+                  <p className="truncate font-semibold text-[var(--foreground)]">
+                    {value ?? "—"}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
 
         <div>
           <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">

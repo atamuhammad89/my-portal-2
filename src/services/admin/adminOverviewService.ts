@@ -15,9 +15,21 @@ export type AdminRecentSignup = {
   plan: string;
 };
 
+export type AdminTrendPoint = {
+  date: string;
+  totalCalls: number;
+  answeredCalls: number;
+  missedCalls: number;
+  totalMinutes: number;
+};
+
 export type AdminOverviewData = {
   metrics: AdminOverviewMetrics;
   recentSignups: AdminRecentSignup[];
+  callsTrend: AdminTrendPoint[];
+  minutesByDay: { date: string; minutes: number }[];
+  callsByStatus: { passed: number; failed: number };
+  subscriptionsByStatus: { active: number; inactive: number };
 };
 
 export const adminOverviewService = {

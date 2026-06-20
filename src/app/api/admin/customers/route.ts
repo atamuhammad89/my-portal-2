@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { verifyRequestJwt, requireRole } from "@/lib/jwt-auth";
+import bcrypt from "bcryptjs";
 
 // GET /api/admin/customers
 export async function GET(req: NextRequest) {
@@ -26,6 +27,8 @@ export async function GET(req: NextRequest) {
         created_at,
         updated_at,
         active_subscription_id,
+        reseller_id,
+        commission_rate,
         subscriptions!users_active_subscription_id_fkey (
           id,
           status,
@@ -37,7 +40,7 @@ export async function GET(req: NextRequest) {
           plans ( display_name )
         )
       `)
-      .in("role", ["owner", "member"])
+      .in("role", ["owner", "super_admin", "reseller"])
       .order("created_at", { ascending: false });
 
     if (status === "active") query = query.eq("is_active", true);
@@ -91,6 +94,8 @@ export async function GET(req: NextRequest) {
         tenantId: u.tenant_id,
         createdAt: u.created_at,
         updatedAt: u.updated_at,
+        resellerId: u.reseller_id,
+        commissionRate: u.commission_rate !== null && u.commission_rate !== undefined ? parseFloat(u.commission_rate) : 0.00,
         usageMinutes: Math.round(usageSeconds / 60),
         subscription: sub
           ? {
@@ -121,5 +126,66 @@ export async function GET(req: NextRequest) {
   } catch (err) {
     console.error("[GET /api/admin/customers]", err);
     return NextResponse.json({ error: "Failed to fetch customers." }, { status: 500 });
+  }
+}
+
+// POST /api/admin/customers — insert new user
+export async function POST(req: NextRequest) {
+  const jwt = await verifyRequestJwt(req);
+  if (!requireRole(jwt, ["super_admin", "operations"])) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
+  try {
+    const supabase = createServerSupabaseClient();
+     const { email, password, fullName, role, isActive, resellerId, commissionRate } = await req.json();
+
+    if (!email || !password || !fullName || !role) {
+      return NextResponse.json({ error: "Missing required fields." }, { status: 400 });
+    }
+
+    const trimmedEmail = email.trim().toLowerCase();
+    
+    // Check if email already in use
+    const { data: existing } = await supabase
+      .from("users")
+      .select("id")
+      .ilike("email", trimmedEmail)
+      .maybeSingle();
+
+    if (existing) {
+      return NextResponse.json({ error: "Email is already in use." }, { status: 409 });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 12);
+
+    const { data: newUser, error } = await supabase
+      .from("users")
+      .insert({
+        email: trimmedEmail,
+        password_hash: passwordHash,
+        full_name: fullName.trim(),
+        role,
+        is_active: isActive !== undefined ? isActive : true,
+        reseller_id: resellerId || null,
+        commission_rate: commissionRate !== undefined ? commissionRate : 0.00,
+      })
+      .select("id, email, full_name, role, is_active, reseller_id, commission_rate, created_at")
+      .single();
+
+    if (error) throw error;
+
+    return NextResponse.json({
+      id: newUser.id,
+      fullName: newUser.full_name,
+      email: newUser.email,
+      role: newUser.role,
+      isActive: newUser.is_active,
+      resellerId: newUser.reseller_id,
+      commissionRate: newUser.commission_rate !== null && newUser.commission_rate !== undefined ? parseFloat(newUser.commission_rate) : 0.00,
+      createdAt: newUser.created_at,
+    });
+  } catch (err: any) {
+    console.error("[POST /api/admin/customers]", err);
+    return NextResponse.json({ error: err?.message || "Failed to create user." }, { status: 500 });
   }
 }

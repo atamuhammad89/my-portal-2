@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
           plans ( display_name )
         )
       `)
-      .in("role", ["owner", "member"])
+      .eq("role", "owner")
       .order("created_at", { ascending: false });
 
     if (error) throw error;

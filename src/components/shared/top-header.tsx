@@ -14,33 +14,34 @@ export function TopHeader({ title }: TopHeaderProps) {
     ? user.fullName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
     : user?.email?.slice(0, 2).toUpperCase() ?? "U";
 
-  return (
-    <header
-      className="sticky top-0 z-10 flex h-16 items-center justify-between px-4 lg:px-6"
-      style={{
-        background: "var(--header-bg)",
-        backdropFilter: "blur(12px)",
-        borderBottom: "1px solid var(--border)",
-        boxShadow: "var(--header-shadow)"
-      }}
-    >
-      {/* Left */}
-      <div className="flex items-center gap-3">
-        <button
-          onClick={() => setSidebarOpen(true)}
-          className="rounded-lg border p-2 text-slate-400 lg:hidden cursor-pointer hover:bg-white/5 transition-colors"
-          style={{ borderColor: "var(--border)" }}
-          aria-label="Open sidebar"
-        >
-          <Menu className="h-4 w-4" />
-        </button>
-        <h1
-          className="text-base font-semibold"
-          style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: "var(--foreground)" }}
-        >
-          {title}
-        </h1>
-      </div>
+    const displayTitle = user?.role === "reseller" && title === "Customer Dashboard" ? "Reseller Dashboard" : title;
+    return (
+      <header
+        className="sticky top-0 z-10 flex h-16 items-center justify-between px-4 lg:px-6"
+        style={{
+          background: "var(--header-bg)",
+          backdropFilter: "blur(12px)",
+          borderBottom: "1px solid var(--border)",
+          boxShadow: "var(--header-shadow)"
+        }}
+      >
+        {/* Left */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="rounded-lg border p-2 text-slate-400 lg:hidden cursor-pointer hover:bg-white/5 transition-colors"
+            style={{ borderColor: "var(--border)" }}
+            aria-label="Open sidebar"
+          >
+            <Menu className="h-4 w-4" />
+          </button>
+          <h1
+            className="text-base font-semibold"
+            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: "var(--foreground)" }}
+          >
+            {displayTitle}
+          </h1>
+        </div>
 
       {/* Right */}
       <div className="flex items-center gap-3">
@@ -57,7 +58,7 @@ export function TopHeader({ title }: TopHeaderProps) {
                 {user.fullName ?? user.email}
               </span>
               <span className="text-[10px] font-semibold text-[var(--muted-text)] uppercase tracking-wider">
-                Customer
+                {user.role === "reseller" ? "Reseller" : user.role === "super_admin" ? "Admin" : "Customer"}
               </span>
             </div>
           </div>

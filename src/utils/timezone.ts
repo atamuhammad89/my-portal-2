@@ -62,8 +62,10 @@ export function parseDateSafe(raw: string | number | null | undefined): string {
   const ts = Number(raw);
 
   if (!isNaN(ts) && ts > 0) {
-    // Timestamp in milliseconds
-    date = new Date(ts);
+    // Detect seconds vs milliseconds:
+    // Unix timestamps in seconds are ~10 digits (< 1e11 until year 5138)
+    // Millisecond timestamps are ~13 digits (> 1e11)
+    date = ts < 1e11 ? new Date(ts * 1000) : new Date(ts);
   } else if (typeof raw === "string" && raw.includes("/")) {
     // Handle DD/MM/YYYY format
     const [datePart, timePart] = raw.split(",").map(s => s.trim());

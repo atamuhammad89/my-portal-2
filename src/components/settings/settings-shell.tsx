@@ -40,15 +40,18 @@ function PasswordInput({
 }
 
 function TextInput({
-  label, value, onChange, placeholder, type = "text"
+  label, value, onChange, placeholder, type = "text", rightLabel
 }: {
-  label: string; value: string; onChange: (v: string) => void; placeholder?: string; type?: string;
+  label: string; value: string; onChange: (v: string) => void; placeholder?: string; type?: string; rightLabel?: React.ReactNode;
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="block text-xs font-semibold text-[var(--subtle-text)] uppercase tracking-wider">
-        {label}
-      </label>
+      <div className="flex items-center justify-between">
+        <label className="block text-xs font-semibold text-[var(--subtle-text)] uppercase tracking-wider">
+          {label}
+        </label>
+        {rightLabel}
+      </div>
       <input
         type={type}
         value={value}
@@ -216,6 +219,19 @@ export function SettingsShell() {
             onChange={setEmail}
             placeholder="you@example.com"
             type="email"
+            rightLabel={
+              email.trim() ? (
+                email.trim().toLowerCase().endsWith("@gmail.com") ? (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[var(--success-fg)] bg-[var(--success-bg)] px-2 py-0.5 rounded-full border border-[var(--success-fg)]/25">
+                    <CheckCircle2 className="h-3 w-3" /> Verified
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[var(--danger-fg)] bg-[var(--danger-bg)] px-2 py-0.5 rounded-full border border-[var(--danger-fg)]/25">
+                    Unverified
+                  </span>
+                )
+              ) : null
+            }
           />
 
           {profileError && (

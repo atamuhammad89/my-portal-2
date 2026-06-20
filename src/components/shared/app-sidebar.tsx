@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, PhoneCall, Settings, Receipt, X } from "lucide-react";
+import { LayoutDashboard, PhoneCall, Settings, Receipt, X, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/store/ui-store";
 import { LogoutButton } from "@/components/shared/logout-button";
+import { useAuthStore } from "@/store/auth-store";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard",  icon: LayoutDashboard },
@@ -18,6 +19,17 @@ export function AppSidebar() {
   const pathname = usePathname();
   const sidebarOpen = useUIStore((s) => s.sidebarOpen);
   const setSidebarOpen = useUIStore((s) => s.setSidebarOpen);
+  const user = useAuthStore((s) => s.user);
+
+  const isReseller = user?.role === "reseller";
+
+  const activeNavItems = isReseller
+    ? [
+        { href: "/reseller", label: "Dashboard", icon: LayoutDashboard },
+        { href: "/reseller/customers", label: "Customers", icon: Building2 },
+        { href: "/reseller/call-logs", label: "Call Logs", icon: PhoneCall },
+      ]
+    : navItems;
 
   return (
     <>
@@ -71,9 +83,23 @@ export function AppSidebar() {
           <p className="px-3 mb-2 text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--sidebar-text)" }}>
             Menu
           </p>
-          {navItems.map((item) => {
+          {activeNavItems.map((item) => {
             const Icon = item.icon;
-            const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+            // Normalize paths to ignore trailing slashes
+            const normalizePath = (p: string) => p.replace(/\/$/, "") || "/";
+            const normPath = normalizePath(pathname);
+            const normHref = normalizePath(item.href);
+
+            // Active if exact match or if it's the most specific (longest matching) parent route
+            const active = normPath === normHref || (
+              normPath.startsWith(normHref + "/") &&
+              !activeNavItems.some((otherItem) => {
+                const otherHref = normalizePath(otherItem.href);
+                return otherHref !== normHref &&
+                  otherHref.length > normHref.length &&
+                  (normPath === otherHref || normPath.startsWith(otherHref + "/"));
+              })
+            );
             return (
               <Link
                 key={item.href}

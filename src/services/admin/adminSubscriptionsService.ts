@@ -2,7 +2,7 @@ import { apiClient } from "@/lib/api-client";
 
 export type AdminSubscription = {
   id: string;
-  status: "active" | "cancelled" | "past_due" | "trialing"|"expired";
+  status: "active" | "paused" | "expired";
   startedAt: string;
   endsAt: string | null;
   cancelledAt: string | null;
@@ -18,7 +18,7 @@ export type AdminSubscription = {
   usageMinutes: number;
 };
 
-export type SubscriptionAction = "pause" | "resume" | "terminate"| "renew";
+export type SubscriptionAction = "pause" | "resume" | "renew";
 
 export const adminSubscriptionsService = {
   async getSubscriptions(): Promise<AdminSubscription[]> {

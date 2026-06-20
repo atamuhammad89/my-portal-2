@@ -37,8 +37,7 @@ type SubscriptionData = {
 
 function statusVariant(status: string) {
   if (status === "active") return "success";
-  if (status === "cancelled") return "danger";
-  if (status === "past_due") return "warning";
+  if (status === "paused") return "warning";
   if (status === "expired") return "neutral";
   return "neutral";
 }

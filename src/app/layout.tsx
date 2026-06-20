@@ -6,7 +6,7 @@ import { QueryProvider } from "@/components/shared/providers/query-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "AI Calling Dashboard",
+  title: "Voice OS",
   description: "Multi-tenant customer dashboard for AI calling operations."
 };
 

@@ -16,7 +16,7 @@ export async function PATCH(
   }
 
   const body = await req.json();
-  const { fullName, email, newPassword, isActive } = body;
+  const { fullName, email, newPassword, isActive, role, resellerId, commissionRate } = body;
 
   const supabase = createServerSupabaseClient();
 
@@ -45,6 +45,19 @@ export async function PATCH(
 
   if (typeof isActive === "boolean") {
     updates.is_active = isActive;
+  }
+
+  if (role !== undefined && ["owner", "super_admin", "reseller"].includes(role)) {
+    updates.role = role;
+  }
+
+  if (resellerId !== undefined) {
+    updates.reseller_id = resellerId || null;
+    updates.commission_rate = null; // Inherit reseller's default rate dynamically
+  }
+
+  if (commissionRate !== undefined) {
+    updates.commission_rate = commissionRate;
   }
 
   if (newPassword) {

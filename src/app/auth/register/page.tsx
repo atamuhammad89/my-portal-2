@@ -166,14 +166,13 @@ function RegisterForm() {
         {/* Brand header */}
         <div className="mb-8 text-center">
           <span
-            className="text-xl font-bold tracking-tight"
+            className="text-xl font-bold tracking-wider uppercase"
             style={{
               fontFamily: "'Plus Jakarta Sans', sans-serif",
-              color: "var(--brand-500)",
-              textShadow: "var(--brand-glow-text)",
+              color: "var(--foreground)",
             }}
           >
-            CallAutomate
+            Voice<span className="text-[var(--brand-500)]" style={{ textShadow: "var(--brand-glow-text)" }}>OS</span>
           </span>
         </div>
 

@@ -49,6 +49,7 @@ export function AdminCustomerEditModal({ customer, onClose }: Props) {
   const [fullName, setFullName] = useState(customer.fullName);
   const [email, setEmail] = useState(customer.email);
   const [isActive, setIsActive] = useState(customer.isActive);
+  const [role, setRole] = useState(customer.role);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [fieldError, setFieldError] = useState("");
@@ -58,11 +59,12 @@ export function AdminCustomerEditModal({ customer, onClose }: Props) {
     setFullName(customer.fullName);
     setEmail(customer.email);
     setIsActive(customer.isActive);
+    setRole(customer.role);
   }, [customer]);
 
   const mutation = useMutation({
     mutationFn: async () => {
-      const body: Record<string, unknown> = { fullName, email, isActive };
+      const body: Record<string, unknown> = { fullName, email, isActive, role };
       if (newPassword) body.newPassword = newPassword;
 
       const res = await apiClient.patch(`/admin/customers/${customer.id}`, body);
@@ -122,7 +124,7 @@ export function AdminCustomerEditModal({ customer, onClose }: Props) {
         </div>
 
         {/* Body */}
-        <div className="px-6 py-5 space-y-4">
+        <div className="px-6 py-5 space-y-4 max-h-[80vh] overflow-y-auto">
           {/* Full Name */}
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold text-[var(--subtle-text)] uppercase tracking-wider">Full Name</label>
@@ -144,6 +146,22 @@ export function AdminCustomerEditModal({ customer, onClose }: Props) {
               className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2.5 text-sm text-[var(--foreground)] placeholder-slate-500 outline-none focus:border-[var(--brand-500)] focus:ring-1 focus:ring-[var(--brand-500)]/30 transition"
             />
           </div>
+
+          {/* User Role */}
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-[var(--subtle-text)] uppercase tracking-wider">User Role</label>
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value as any)}
+              className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2.5 text-sm text-[var(--foreground)] outline-none focus:border-[var(--brand-500)] focus:ring-1 focus:ring-[var(--brand-500)]/30 transition cursor-pointer"
+            >
+              <option value="owner" className="bg-[var(--surface-2)]">Owner (Customer)</option>
+              <option value="super_admin" className="bg-[var(--surface-2)]">Super Admin</option>
+              <option value="reseller" className="bg-[var(--surface-2)]">Reseller</option>
+            </select>
+          </div>
+
+
 
           {/* Account Status */}
           <div className="flex items-center justify-between rounded-xl border border-[var(--border)] px-4 py-3 bg-[var(--surface-2)]">

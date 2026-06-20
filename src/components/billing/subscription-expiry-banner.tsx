@@ -22,9 +22,9 @@ export function SubscriptionExpiryBanner({
 }: SubscriptionExpiryBannerProps) {
   const daysLeft = getDaysUntilExpiry(endsAt);
 
-  // Show "expired" banner when status is cancelled / past_due or days <= 0
+  // Show "expired" banner when status is paused / past_due or days <= 0
   const isExpired =
-    status === "cancelled" ||
+    status === "paused" ||
     status === "past_due" ||
     (daysLeft !== null && daysLeft <= 0);
 

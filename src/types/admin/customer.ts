@@ -2,11 +2,13 @@ export type AdminCustomer = {
   id: string;
   fullName: string;
   email: string;
-  role: "owner" | "member";
+  role: "owner" | "super_admin" | "reseller";
   isActive: boolean;
   tenantId: string | null;
   createdAt: string;
   updatedAt: string;
+  resellerId?: string | null;
+  commissionRate?: number;
   usageMinutes: number;
   subscription: {
     id: string;

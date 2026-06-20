@@ -48,7 +48,7 @@ export async function PATCH(req: NextRequest, context: any) {
     const supabase = createServerSupabaseClient();
     const { action } = await req.json();
 
-    if (!["pause", "resume", "terminate", "renew"].includes(action)) {
+    if (!["pause", "resume", "renew"].includes(action)) {
       return NextResponse.json({ error: "Invalid action." }, { status: 400 });
     }
 
@@ -86,13 +86,11 @@ export async function PATCH(req: NextRequest, context: any) {
         minutes_used: 0,
       };
     } else {
-      const newStatus = action === "resume" ? "active" : "cancelled";
-      updatePayload = { status: newStatus };
-
-      if (action === "terminate") {
-        updatePayload.cancelled_at = new Date().toISOString();
-        updatePayload.ends_at = new Date().toISOString();
-      }
+      const newStatus = action === "resume" ? "active" : "paused";
+      updatePayload = {
+        status: newStatus,
+        ...(action === "resume" ? { cancelled_at: null } : {})
+      };
     }
 
     const { data, error } = await supabase

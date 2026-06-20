@@ -56,7 +56,7 @@ function BillingCard({ user }: { user: AdminUserBilling }) {
 
       {/* CDR Usage — always shown */}
       <div className="flex items-center justify-between rounded-xl px-3 py-2 border border-[var(--border)] bg-[var(--surface-2)]">
-        <span className="text-xs font-semibold text-slate-300">CDR Usage (All-time)</span>
+        <span className="text-xs font-semibold text-[var(--muted-text)]">CDR Usage (All-time)</span>
         <span className="text-sm font-bold text-brand-cyan">{user.usageMinutes} min</span>
       </div>
 
