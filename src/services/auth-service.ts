@@ -10,7 +10,6 @@ export type LoginInput = {
 };
 
 export type LoginResponse = {
-  accessToken: string;
   refreshToken?: string;
   expiresAt?: number;
   user: AuthUser;

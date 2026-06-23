@@ -7,7 +7,6 @@ const USER_KEY = "auth_user";
 const TENANT_KEY = "auth_tenant";
 
 export type PersistedAuthSession = {
-  accessToken: string;
   expiresAt: number;
   user: User;
   tenant?: Tenant;
@@ -84,8 +83,7 @@ export function readPersistedAuthSession(): PersistedAuthSession | null {
     const user = JSON.parse(userRaw) as User;
     const tenant = tenantRaw ? (JSON.parse(tenantRaw) as Tenant) : undefined;
     
-    // Return a dummy placeholder string for accessToken to satisfy frontend components
-    return { accessToken: "present", expiresAt, user, tenant };
+    return { expiresAt, user, tenant };
   } catch {
     return null;
   }

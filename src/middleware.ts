@@ -33,16 +33,19 @@ function matchesPrefix(pathname: string, prefixes: string[]) {
   );
 }
 
-function addSecurityHeaders(response: NextResponse): NextResponse {
+function addSecurityHeaders(response: NextResponse, nonceValue: string): NextResponse {
   response.headers.set("X-DNS-Prefetch-Control", "on");
   response.headers.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
   response.headers.set("X-Frame-Options", "SAMEORIGIN");
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
 
+  const isDev = process.env.NODE_ENV === "development";
+  const scriptCsp = `'self' 'nonce-${nonceValue}' https://js.stripe.com${isDev ? " 'unsafe-eval'" : ""}`;
+
   const cspHeader = `
     default-src 'self';
-    script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com;
+    script-src ${scriptCsp};
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
     img-src 'self' blob: data: https://*.stripe.com;
     font-src 'self' https://fonts.gstatic.com;
@@ -55,6 +58,10 @@ function addSecurityHeaders(response: NextResponse): NextResponse {
 }
 
 export async function middleware(request: NextRequest) {
+  const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-nonce", nonce);
+
   const { pathname } = request.nextUrl;
   
   const token = request.cookies.get("token")?.value;
@@ -79,24 +86,24 @@ export async function middleware(request: NextRequest) {
   if ((isUserRoute || isAdminRoute || isResellerRoute) && !hasSession) {
     const loginUrl = new URL("/auth/login", request.url);
     loginUrl.searchParams.set("next", pathname);
-    return addSecurityHeaders(NextResponse.redirect(loginUrl));
+    return addSecurityHeaders(NextResponse.redirect(loginUrl), nonce);
   }
 
   // 2. Authenticated but not an admin role trying to access admin → redirect
   if (isAdminRoute && !ADMIN_ROLES.has(role)) {
     const dest = role === "reseller" ? "/reseller" : "/dashboard";
-    return addSecurityHeaders(NextResponse.redirect(new URL(dest, request.url)));
+    return addSecurityHeaders(NextResponse.redirect(new URL(dest, request.url)), nonce);
   }
 
   // 3. Reseller trying to access standard client pages → redirect to reseller portal
   if (isUserRoute && role === "reseller") {
-    return addSecurityHeaders(NextResponse.redirect(new URL("/reseller", request.url)));
+    return addSecurityHeaders(NextResponse.redirect(new URL("/reseller", request.url)), nonce);
   }
 
   // 4. Non-reseller trying to access reseller routes → redirect to standard dashboard or admin
   if (isResellerRoute && role !== "reseller") {
     const dest = ADMIN_ROLES.has(role) ? "/admin/overview" : "/dashboard";
-    return addSecurityHeaders(NextResponse.redirect(new URL(dest, request.url)));
+    return addSecurityHeaders(NextResponse.redirect(new URL(dest, request.url)), nonce);
   }
 
   // 5. Already logged-in user hitting /auth/login → send to their home
@@ -106,10 +113,16 @@ export async function middleware(request: NextRequest) {
       : role === "reseller"
       ? "/reseller"
       : "/dashboard";
-    return addSecurityHeaders(NextResponse.redirect(new URL(dest, request.url)));
+    return addSecurityHeaders(NextResponse.redirect(new URL(dest, request.url)), nonce);
   }
 
-  return addSecurityHeaders(NextResponse.next());
+  const response = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
+
+  return addSecurityHeaders(response, nonce);
 }
 
 export const config = {

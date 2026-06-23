@@ -15,7 +15,7 @@ const loginSchema = z.object({
 
 export async function POST(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() || req.headers.get("x-real-ip") || "127.0.0.1";
-  const limitResult = rateLimit(ip, 10, 60000);
+  const limitResult = await rateLimit(ip, 10, 60000);
 
   if (!limitResult.success) {
     const retryAfter = Math.ceil((limitResult.resetTime - Date.now()) / 1000);
@@ -91,7 +91,6 @@ export async function POST(req: NextRequest) {
       .sign(JWT_SECRET);
 
     const response = NextResponse.json({
-      accessToken,
       expiresAt,
       user: {
         id: user.id,

@@ -68,7 +68,7 @@ type TabId = "profile" | "password";
 export function SettingsShell() {
   const user = useAuthStore((s) => s.user);
   const setSession = useAuthStore((s) => s.setSession);
-  const accessToken = useAuthStore((s) => s.accessToken);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const expiresAt = useAuthStore((s) => s.expiresAt);
 
   const [activeTab, setActiveTab] = useState<TabId>("profile");
@@ -100,9 +100,8 @@ export function SettingsShell() {
       setProfileSuccess(true);
       setProfileError("");
       // Update auth store so header/name reflects new info immediately
-      if (user && accessToken && expiresAt) {
+      if (user && isAuthenticated && expiresAt) {
         setSession({
-          accessToken,
           expiresAt,
           user: { ...user, fullName, email },
         });

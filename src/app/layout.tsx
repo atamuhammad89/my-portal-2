@@ -3,20 +3,26 @@ import { TimezoneProvider } from "@/components/shared/providers/timezone-provide
 import { ThemeProvider } from "@/components/shared/providers/theme-provider";
 import type { Metadata } from "next";
 import { QueryProvider } from "@/components/shared/providers/query-provider";
+import { headers } from "next/headers";
 import "./globals.css";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Voice OS",
   description: "Multi-tenant customer dashboard for AI calling operations."
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children
 }: Readonly<{ children: React.ReactNode }>) {
+  const nonce = (await headers()).get("x-nonce") || "";
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
         <script
+          nonce={nonce}
           dangerouslySetInnerHTML={{
             __html: `
               (function() {

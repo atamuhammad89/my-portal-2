@@ -15,7 +15,7 @@ export function AuthSessionProvider({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const hydrateFromStorage = useAuthStore((state) => state.hydrateFromStorage);
   const hydrated = useAuthStore((state) => state.hydrated);
-  const accessToken = useAuthStore((state) => state.accessToken);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const clearSession = useAuthStore((state) => state.clearSession);
   const isSessionExpired = useAuthStore((state) => state.isSessionExpired);
 
@@ -34,16 +34,16 @@ export function AuthSessionProvider({ children }: { children: React.ReactNode })
       return;
     }
 
-    if (accessToken && isSessionExpired()) {
+    if (isAuthenticated && isSessionExpired()) {
       clearSession();
       router.replace("/auth/login?reason=session_expired");
       return;
     }
 
-    if (!accessToken && isProtectedPath(pathname)) {
+    if (!isAuthenticated && isProtectedPath(pathname)) {
       router.replace("/auth/login");
     }
-  }, [accessToken, clearSession, hydrated, isSessionExpired, pathname, router]);
+  }, [isAuthenticated, clearSession, hydrated, isSessionExpired, pathname, router]);
 
   return <>{children}</>;
 }

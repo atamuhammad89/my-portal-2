@@ -4,11 +4,11 @@ import { authService } from "@/services/auth-service";
 import { useAuthStore } from "@/store/auth-store";
 
 export function useCurrentUserQuery() {
-  const accessToken = useAuthStore((state) => state.accessToken);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   return useQuery({
     queryKey: queryKeys.currentUser,
     queryFn: authService.getCurrentUser,
-    enabled: Boolean(accessToken)
+    enabled: isAuthenticated
   });
 }

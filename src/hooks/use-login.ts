@@ -11,7 +11,6 @@ export function useLogin() {
     mutationFn: (payload: LoginInput) => authService.login(payload),
     onSuccess: (response) => {
       setSession({
-        accessToken: response.accessToken,
         user: response.user,
         tenant: response.tenant,
         expiresAt: response.expiresAt

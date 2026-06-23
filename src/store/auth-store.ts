@@ -10,13 +10,12 @@ import {
 } from "@/utils/auth-session";
 
 type AuthState = {
-  accessToken: string | null;
+  isAuthenticated: boolean;
   user: User | null;
   tenant: Tenant | null;
   expiresAt: number | null;
   hydrated: boolean;
   setSession: (session: {
-    accessToken: string;
     user: User;
     tenant?: Tenant;
     expiresAt?: number;
@@ -27,11 +26,10 @@ type AuthState = {
 };
 
 function toPersistedSession(state: AuthState): PersistedAuthSession | null {
-  if (!state.accessToken || !state.user || !state.expiresAt) {
+  if (!state.isAuthenticated || !state.user || !state.expiresAt) {
     return null;
   }
   return {
-    accessToken: state.accessToken,
     user: state.user,
     tenant: state.tenant ?? undefined,
     expiresAt: state.expiresAt
@@ -39,15 +37,15 @@ function toPersistedSession(state: AuthState): PersistedAuthSession | null {
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
-  accessToken: null,
+  isAuthenticated: false,
   user: null,
   tenant: null,
   expiresAt: null,
   hydrated: false,
-  setSession: ({ accessToken, user, tenant, expiresAt }) => {
+  setSession: ({ user, tenant, expiresAt }) => {
     const nextExpiresAt = expiresAt ?? getDefaultSessionExpiry();
     set({
-      accessToken,
+      isAuthenticated: true,
       user,
       tenant: tenant ?? null,
       expiresAt: nextExpiresAt,
@@ -61,11 +59,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   hydrateFromStorage: () => {
     const session = readPersistedAuthSession();
     if (!session) {
-      set({ hydrated: true });
+      set({ hydrated: true, isAuthenticated: false });
       return;
     }
     set({
-      accessToken: session.accessToken,
+      isAuthenticated: true,
       user: session.user,
       tenant: session.tenant ?? null,
       expiresAt: session.expiresAt,
@@ -75,7 +73,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   clearSession: () => {
     clearAuthSession();
     set({
-      accessToken: null,
+      isAuthenticated: false,
       user: null,
       tenant: null,
       expiresAt: null,

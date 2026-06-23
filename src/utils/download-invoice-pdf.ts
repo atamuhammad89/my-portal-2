@@ -4,7 +4,7 @@
 
 import { formatDate } from "@/utils/format";
 
-type InvoiceData = {
+export type InvoiceData = {
   invoiceId: string;
   userName?: string;
   userEmail?: string;
@@ -13,11 +13,13 @@ type InvoiceData = {
   planName: string;
   periodStart: string;
   periodEnd: string | null;
-  allocatedMinutes: number;
-  usedMinutes: number;
-  overageMinutes: number;
-  pricePerMinute: number;
-  overageAmount: number;
+  allocatedMinutes?: number;
+  usedMinutes?: number;
+  overageMinutes?: number;
+  pricePerMinute?: number;
+  amount: number;
+  type: "subscription" | "renewal" | "overage";
+  invoiceNumber: string;
   generatedAt: string;
 };
 
@@ -60,7 +62,7 @@ export async function downloadInvoicePdf(bill: InvoiceData): Promise<void> {
     doc.line(x1, y1, x2, y2);
   };
 
-  const invoiceNum = bill.invoiceId.slice(-8).toUpperCase();
+  const invoiceNum = bill.invoiceNumber ?? bill.invoiceId.slice(-8).toUpperCase();
   const customerId = bill.userId ? bill.userId.slice(0, 8).toUpperCase() : "—";
 
   // ── HEADER ─────────────────────────────────────────────────────────────────
@@ -157,19 +159,30 @@ export async function downloadInvoicePdf(bill: InvoiceData): Promise<void> {
   doc.setLineWidth(0.3);
   doc.rect(margin, y, contentW, 20, "FD");
 
+  let itemTitle = "";
+  let itemDesc = "";
+
+  if (bill.type === "overage") {
+    itemTitle = `Overage Usage Fee — ${bill.planName} Plan`;
+    itemDesc = `${bill.usedMinutes ?? 0} mins used / ${bill.allocatedMinutes ?? 0} mins allocated  |  ` +
+      `${bill.overageMinutes ?? 0} overage mins × $${(bill.pricePerMinute ?? 0).toFixed(4)}/min`;
+  } else if (bill.type === "renewal") {
+    itemTitle = `Subscription Renewal — ${bill.planName} Plan`;
+    itemDesc = `Monthly subscription renewal fee for ${bill.planName} plan.`;
+  } else {
+    itemTitle = `Initial Subscription — ${bill.planName} Plan`;
+    itemDesc = `Initial monthly plan subscription fee for ${bill.planName} plan.`;
+  }
+
   setFont("bold", 9, "#0f172a");
-  doc.text(`Overage Usage Fee — ${bill.planName} Plan`, margin + 3, y + 6);
+  doc.text(itemTitle, margin + 3, y + 6);
 
   setFont("normal", 7.5, "#64748b");
-  const descLines = doc.splitTextToSize(
-    `${bill.usedMinutes} mins used / ${bill.allocatedMinutes} mins allocated  |  ` +
-      `${bill.overageMinutes} overage mins × $${bill.pricePerMinute.toFixed(4)}/min`,
-    contentW - 40
-  );
+  const descLines = doc.splitTextToSize(itemDesc, contentW - 40);
   doc.text(descLines, margin + 3, y + 11);
 
   setFont("bold", 10, "#0f172a");
-  doc.text(`$${bill.overageAmount.toFixed(2)}`, pageW - margin - 3, y + 8, { align: "right" });
+  doc.text(`$${bill.amount.toFixed(2)}`, pageW - margin - 3, y + 8, { align: "right" });
 
   y += 26;
 
@@ -178,10 +191,10 @@ export async function downloadInvoicePdf(bill: InvoiceData): Promise<void> {
   const totW = 70;
 
   const totRows: [string, string, boolean][] = [
-    ["Subtotal", `$${bill.overageAmount.toFixed(2)}`, false],
+    ["Subtotal", `$${bill.amount.toFixed(2)}`, false],
     ["Tax Rate", "0.00%", false],
     ["Tax Due", "$0.00", false],
-    ["TOTAL DUE", `$${bill.overageAmount.toFixed(2)}`, true],
+    ["TOTAL DUE", `$${bill.amount.toFixed(2)}`, true],
   ];
 
   totRows.forEach(([label, value, isTotal]) => {

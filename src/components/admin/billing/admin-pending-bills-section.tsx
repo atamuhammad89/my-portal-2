@@ -63,6 +63,27 @@ function InvoiceCard({ bill }: { bill: PendingBill }) {
     ? Math.min(100, Math.round((bill.usedMinutes / bill.allocatedMinutes) * 100))
     : 100;
 
+  const handleDownload = () => {
+    downloadInvoicePdf({
+      invoiceId: bill.invoiceId,
+      userName: bill.userName,
+      userEmail: bill.userEmail,
+      userRole: bill.userRole,
+      userId: bill.userId,
+      planName: bill.planName,
+      periodStart: bill.periodStart,
+      periodEnd: bill.periodEnd,
+      allocatedMinutes: bill.allocatedMinutes,
+      usedMinutes: bill.usedMinutes,
+      overageMinutes: bill.overageMinutes,
+      pricePerMinute: bill.pricePerMinute,
+      amount: bill.overageAmount,
+      type: "overage",
+      invoiceNumber: `INV-OV-${bill.invoiceId.slice(-8).toUpperCase()}`,
+      generatedAt: bill.generatedAt,
+    });
+  };
+
   return (
     <div
       className="rounded-2xl overflow-hidden transition-all"
@@ -161,7 +182,7 @@ function InvoiceCard({ bill }: { bill: PendingBill }) {
         <div className="flex items-center gap-2 pt-1">
           {/* Download */}
           <button
-            onClick={() => downloadInvoicePdf(bill)}
+            onClick={handleDownload}
             className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-xs font-semibold text-[var(--muted-text)] transition-all hover:bg-[var(--surface)] hover:text-[var(--foreground)] hover:border-[var(--brand-500)] cursor-pointer"
           >
             <Download className="h-3.5 w-3.5" />

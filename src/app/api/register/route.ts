@@ -20,7 +20,7 @@ const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL ?? (
 
 export async function POST(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() || req.headers.get("x-real-ip") || "127.0.0.1";
-  const limitResult = rateLimit(ip, 5, 60000);
+  const limitResult = await rateLimit(ip, 5, 60000);
 
   if (!limitResult.success) {
     const retryAfter = Math.ceil((limitResult.resetTime - Date.now()) / 1000);
