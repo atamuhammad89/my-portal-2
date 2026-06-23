@@ -36,18 +36,10 @@ export function useCallLogsQuery() {
       }
 
       try {
-        // Read JWT from localStorage using the same key as the apiClient interceptor
-        const token =
-          typeof window !== "undefined"
-            ? window.localStorage.getItem(env.authTokenStorageKey)
-            : null;
-
         const headers: Record<string, string> = {
           "Content-Type": "application/json",
         };
-        if (token) {
-          headers["Authorization"] = `Bearer ${token}`;
-        }
+
 
         const res = await fetch("/api/call-logs", { headers });
 

@@ -50,6 +50,7 @@ alter table public.users enable row level security;
 -- Allow the service role full access (used server-side only)
 create policy "service_role_all" on public.users
   for all
+  to service_role
   using (true)
   with check (true);
 

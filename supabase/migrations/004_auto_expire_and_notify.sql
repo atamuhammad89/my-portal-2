@@ -37,6 +37,8 @@ DECLARE
   user_name TEXT;
   plan_name TEXT;
   payload JSONB;
+  webhook_secret TEXT;
+  app_url TEXT;
 BEGIN
   -- 1. Fetch user contact details
   SELECT email, full_name INTO user_email, user_name
@@ -57,12 +59,34 @@ BEGIN
     'endedAt', NEW.ends_at
   );
 
-  -- 4. Make asynchronous HTTP request to Next.js API
-  -- IMPORTANT: Replace 'https://your-domain.com' with your actual production site URL or ngrok tunnel URL for local testing.
-  -- IMPORTANT: Replace 'YOUR_SECRET_WEBHOOK_KEY' with the same secret key value set in Next.js environment (WEBHOOK_SECRET_KEY).
+  -- 4. Load webhook secret and app URL dynamically from Vault (prevent hardcoding secrets in script)
+  BEGIN
+    SELECT decrypted_secret INTO webhook_secret FROM vault.decrypted_secrets WHERE name = 'webhook_secret_key' LIMIT 1;
+  EXCEPTION WHEN OTHERS THEN
+    webhook_secret := NULL;
+  END;
+
+  BEGIN
+    SELECT decrypted_secret INTO app_url FROM vault.decrypted_secrets WHERE name = 'app_url' LIMIT 1;
+  EXCEPTION WHEN OTHERS THEN
+    app_url := NULL;
+  END;
+
+  IF webhook_secret IS NULL THEN
+    webhook_secret := 'YOUR_SECRET_WEBHOOK_KEY';
+  END IF;
+
+  IF app_url IS NULL THEN
+    app_url := 'https://your-domain.com';
+  END IF;
+
+  -- 5. Make asynchronous HTTP request to Next.js API
   PERFORM net.http_post(
-    url := 'https://your-domain.com/api/billing/notify-expiration',
-    headers := '{"Content-Type": "application/json", "Authorization": "Bearer YOUR_SECRET_WEBHOOK_KEY"}'::jsonb,
+    url := app_url || '/api/billing/notify-expiration',
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'Authorization', 'Bearer ' || webhook_secret
+    ),
     body := payload
   );
 

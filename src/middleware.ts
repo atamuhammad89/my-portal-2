@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { jwtVerify } from "jose";
+import { JWT_SECRET } from "@/lib/jwt-auth";
 
 const AUTH_COOKIE_NAME =
   process.env.NEXT_PUBLIC_AUTH_COOKIE_NAME ?? "voiceos_auth_token";
-const ROLE_COOKIE_NAME = "voiceos_user_role";
 
 /**
  * Roles that are allowed inside the /admin section.
@@ -32,10 +33,43 @@ function matchesPrefix(pathname: string, prefixes: string[]) {
   );
 }
 
-export function middleware(request: NextRequest) {
+function addSecurityHeaders(response: NextResponse): NextResponse {
+  response.headers.set("X-DNS-Prefetch-Control", "on");
+  response.headers.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
+  response.headers.set("X-Frame-Options", "SAMEORIGIN");
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+
+  const cspHeader = `
+    default-src 'self';
+    script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    img-src 'self' blob: data: https://*.stripe.com;
+    font-src 'self' https://fonts.gstatic.com;
+    frame-src 'self' https://js.stripe.com;
+    connect-src 'self' https://api.stripe.com https://api.retellai.com https://*.supabase.co;
+  `.replace(/\s{2,}/g, " ").trim();
+  response.headers.set("Content-Security-Policy", cspHeader);
+
+  return response;
+}
+
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const hasSession = Boolean(request.cookies.get(AUTH_COOKIE_NAME)?.value);
-  const role = request.cookies.get(ROLE_COOKIE_NAME)?.value ?? "";
+  
+  const token = request.cookies.get("token")?.value;
+  let role = "";
+  let hasSession = false;
+
+  if (token) {
+    try {
+      const { payload } = await jwtVerify(token, JWT_SECRET);
+      role = (payload.role as string) ?? "";
+      hasSession = true;
+    } catch (err) {
+      console.error("[Middleware] JWT verification failed:", err);
+    }
+  }
 
   const isUserRoute = matchesPrefix(pathname, USER_PROTECTED);
   const isAdminRoute = matchesPrefix(pathname, ADMIN_PROTECTED);
@@ -45,24 +79,24 @@ export function middleware(request: NextRequest) {
   if ((isUserRoute || isAdminRoute || isResellerRoute) && !hasSession) {
     const loginUrl = new URL("/auth/login", request.url);
     loginUrl.searchParams.set("next", pathname);
-    return NextResponse.redirect(loginUrl);
+    return addSecurityHeaders(NextResponse.redirect(loginUrl));
   }
 
   // 2. Authenticated but not an admin role trying to access admin → redirect
   if (isAdminRoute && !ADMIN_ROLES.has(role)) {
     const dest = role === "reseller" ? "/reseller" : "/dashboard";
-    return NextResponse.redirect(new URL(dest, request.url));
+    return addSecurityHeaders(NextResponse.redirect(new URL(dest, request.url)));
   }
 
   // 3. Reseller trying to access standard client pages → redirect to reseller portal
   if (isUserRoute && role === "reseller") {
-    return NextResponse.redirect(new URL("/reseller", request.url));
+    return addSecurityHeaders(NextResponse.redirect(new URL("/reseller", request.url)));
   }
 
   // 4. Non-reseller trying to access reseller routes → redirect to standard dashboard or admin
   if (isResellerRoute && role !== "reseller") {
     const dest = ADMIN_ROLES.has(role) ? "/admin/overview" : "/dashboard";
-    return NextResponse.redirect(new URL(dest, request.url));
+    return addSecurityHeaders(NextResponse.redirect(new URL(dest, request.url)));
   }
 
   // 5. Already logged-in user hitting /auth/login → send to their home
@@ -72,10 +106,10 @@ export function middleware(request: NextRequest) {
       : role === "reseller"
       ? "/reseller"
       : "/dashboard";
-    return NextResponse.redirect(new URL(dest, request.url));
+    return addSecurityHeaders(NextResponse.redirect(new URL(dest, request.url)));
   }
 
-  return NextResponse.next();
+  return addSecurityHeaders(NextResponse.next());
 }
 
 export const config = {

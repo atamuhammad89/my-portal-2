@@ -22,15 +22,10 @@ function RenewSuccessContent() {
       return;
     }
 
-    const token = typeof window !== "undefined"
-      ? window.localStorage.getItem(process.env.NEXT_PUBLIC_AUTH_TOKEN_STORAGE_KEY ?? "auth_token")
-      : null;
-
     fetch("/api/billing/renew/confirm", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify({ sessionId, planId }),
     })

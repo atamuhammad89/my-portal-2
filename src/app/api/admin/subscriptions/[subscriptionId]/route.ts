@@ -38,7 +38,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { verifyRequestJwt, requireRole } from "@/lib/jwt-auth";
 
-export async function PATCH(req: NextRequest, context: any) {
+export async function PATCH(
+  req: NextRequest,
+  context: { params: Promise<{ subscriptionId: string }> }
+) {
   const jwt = await verifyRequestJwt(req);
   if (!requireRole(jwt, ["super_admin", "operations", "finance"])) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });

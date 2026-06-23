@@ -126,7 +126,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(agentRow, { status: 201 });
   } catch (err) {
     console.error("[POST /api/admin/agents] Full error:", err);
-    const message = err instanceof Error ? err.message : "Internal server error.";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: "Failed to create agent. Please try again." }, { status: 500 });
   }
 }

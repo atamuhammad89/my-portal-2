@@ -80,6 +80,6 @@ alter table public.user_agent_access enable row level security;
 alter table public.call_logs        enable row level security;
 
 -- Service role (server-side) gets full access to everything
-create policy "service_role_all_agents"      on public.agents           for all using (true) with check (true);
-create policy "service_role_all_uaa"         on public.user_agent_access for all using (true) with check (true);
-create policy "service_role_all_call_logs"   on public.call_logs        for all using (true) with check (true);
+create policy "service_role_all_agents"      on public.agents           for all to service_role using (true) with check (true);
+create policy "service_role_all_uaa"         on public.user_agent_access for all to service_role using (true) with check (true);
+create policy "service_role_all_call_logs"   on public.call_logs        for all to service_role using (true) with check (true);

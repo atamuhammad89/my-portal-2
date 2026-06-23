@@ -18,7 +18,8 @@ export function persistAuthSession(session: PersistedAuthSession) {
     return;
   }
 
-  window.localStorage.setItem(env.authTokenStorageKey, session.accessToken);
+  // Do NOT store the sensitive JWT in localStorage to prevent XSS theft.
+  // The JWT token is securely stored in an HttpOnly cookie set by the server.
   window.localStorage.setItem(SESSION_EXP_KEY, String(session.expiresAt));
   window.localStorage.setItem(USER_KEY, JSON.stringify(session.user));
 
@@ -29,10 +30,11 @@ export function persistAuthSession(session: PersistedAuthSession) {
   }
 
   const maxAgeSeconds = Math.max(0, Math.floor((session.expiresAt - Date.now()) / 1000));
-  document.cookie = `${env.authCookieName}=1; path=/; max-age=${maxAgeSeconds}; samesite=lax`;
-  if (session.user?.role) {
-  document.cookie = `voiceos_user_role=${session.user.role}; path=/; max-age=${maxAgeSeconds}; samesite=lax`;
-}
+  const isSecure = window.location.protocol === "https:";
+  const secureFlag = isSecure ? "; secure" : "";
+  
+  // Set the thin non-HttpOnly presence cookie for UI state tracking
+  document.cookie = `${env.authCookieName}=1; path=/; max-age=${maxAgeSeconds}; samesite=lax${secureFlag}`;
 }
 
 export function clearAuthSession() {
@@ -40,11 +42,14 @@ export function clearAuthSession() {
     return;
   }
 
-  window.localStorage.removeItem(env.authTokenStorageKey);
   window.localStorage.removeItem(SESSION_EXP_KEY);
   window.localStorage.removeItem(USER_KEY);
   window.localStorage.removeItem(TENANT_KEY);
+
+  // Clear presence cookie
   document.cookie = `${env.authCookieName}=; path=/; max-age=0; samesite=lax`;
+  
+  // Clean up any remaining legacy voiceos_user_role cookie
   document.cookie = `voiceos_user_role=; path=/; max-age=0; samesite=lax`;
 }
 
@@ -53,24 +58,34 @@ export function readPersistedAuthSession(): PersistedAuthSession | null {
     return null;
   }
 
-  const accessToken = window.localStorage.getItem(env.authTokenStorageKey);
+  // Verify that the thin presence cookie is present
+  const hasPresenceCookie = document.cookie
+    .split("; ")
+    .some((row) => row.startsWith(`${env.authCookieName}=`));
+
+  if (!hasPresenceCookie) {
+    return null;
+  }
+
   const expiresAtRaw = window.localStorage.getItem(SESSION_EXP_KEY);
   const userRaw = window.localStorage.getItem(USER_KEY);
   const tenantRaw = window.localStorage.getItem(TENANT_KEY);
 
-  if (!accessToken || !expiresAtRaw || !userRaw) {
+  if (!expiresAtRaw || !userRaw) {
     return null;
   }
 
   const expiresAt = Number(expiresAtRaw);
-  if (!Number.isFinite(expiresAt)) {
+  if (!Number.isFinite(expiresAt) || Date.now() >= expiresAt) {
     return null;
   }
 
   try {
     const user = JSON.parse(userRaw) as User;
     const tenant = tenantRaw ? (JSON.parse(tenantRaw) as Tenant) : undefined;
-    return { accessToken, expiresAt, user, tenant };
+    
+    // Return a dummy placeholder string for accessToken to satisfy frontend components
+    return { accessToken: "present", expiresAt, user, tenant };
   } catch {
     return null;
   }

@@ -57,6 +57,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ url: session.url });
   } catch (err) {
     console.error("[/api/billing/renew]", err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return NextResponse.json({ error: "Renewal checkout failed. Please try again." }, { status: 500 });
   }
+
 }

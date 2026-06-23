@@ -49,6 +49,21 @@ export async function POST(req: NextRequest) {
 
     const supabase = createServerSupabaseClient();
 
+    // Prevent replay / double-subscription attacks
+    const { data: existing } = await supabase
+      .from("subscriptions")
+      .select("id, ends_at")
+      .eq("stripe_session_id", sessionId)
+      .maybeSingle();
+
+    if (existing) {
+      return NextResponse.json({
+        success: true,
+        subscriptionId: existing.id,
+        endsAt: existing.ends_at,
+      });
+    }
+
     // 2. Fetch plan details
     const { data: plan, error: planError } = await supabase
       .from("plans")
@@ -133,6 +148,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (err) {
     console.error("[/api/billing/renew/confirm]", err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return NextResponse.json({ error: "Billing confirmation failed. Please try again." }, { status: 500 });
   }
 }

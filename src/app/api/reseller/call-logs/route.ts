@@ -22,10 +22,20 @@ export async function GET(req: NextRequest) {
   try {
     const supabase = createServerSupabaseClient();
 
-    // 1. Fetch customers assigned to this reseller
+    // 1. Fetch customers assigned to this reseller with active subscription details
     const { data: clients, error: clientError } = await supabase
       .from("users")
-      .select("id, full_name, email")
+      .select(`
+        id,
+        full_name,
+        email,
+        active_subscription_id,
+        subscriptions!users_active_subscription_id_fkey (
+          id,
+          started_at,
+          ends_at
+        )
+      `)
       .eq("reseller_id", resellerId)
       .eq("role", "owner");
 
@@ -42,6 +52,19 @@ export async function GET(req: NextRequest) {
     if (clientIds.length === 0) {
       return NextResponse.json({ data: [], total: 0, page, limit, customers });
     }
+
+    // Map each customer's active subscription start/end timestamps
+    const userSubscriptionMap: Record<string, { start: number | null; end: number | null }> = {};
+    (clients ?? []).forEach((c: any) => {
+      const sub = c.subscriptions;
+      if (sub) {
+        const start = sub.started_at ? new Date(sub.started_at).getTime() : null;
+        const end = sub.ends_at ? new Date(sub.ends_at).getTime() : null;
+        userSubscriptionMap[c.id] = { start, end };
+      } else {
+        userSubscriptionMap[c.id] = { start: null, end: null };
+      }
+    });
 
     // 2. Validate customer_id filter if provided
     let targetClientIds = clientIds;
@@ -84,8 +107,23 @@ export async function GET(req: NextRequest) {
 
     if (cdrError) throw cdrError;
 
-    // Filter by date in memory
-    let filteredRows = rows ?? [];
+    // Filter by customer subscription boundaries
+    let filteredRows = (rows ?? []).filter((row: any) => {
+      const userId = assistantToUser[row.assistant_id];
+      if (!userId) return false;
+
+      const sub = userSubscriptionMap[userId];
+      if (!sub || sub.start === null) return false;
+
+      const callMs = parseCdrDate(row.start_datetime);
+      if (callMs === null) return false;
+
+      if (callMs < sub.start) return false;
+      if (sub.end !== null && callMs > sub.end) return false;
+      return true;
+    });
+
+    // Filter by date (from/to) query parameters if provided
     if (fromDate || toDate) {
       const fromTime = fromDate ? new Date(`${fromDate}T00:00:00`).getTime() : null;
       const toTime   = toDate ? new Date(`${toDate}T23:59:59`).getTime() : null;

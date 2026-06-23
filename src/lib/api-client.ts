@@ -69,14 +69,8 @@ apiClient.interceptors.request.use((config) => {
     [env.tenantHeaderKey]: env.tenantId,
   } as typeof nextConfig.headers;
 
-  if (typeof window !== "undefined") {
-    const token = window.localStorage.getItem(env.authTokenStorageKey);
-    if (token) {
-      nextConfig.headers.Authorization = `Bearer ${token}`;
-    }
-  }
-
   return nextConfig;
+
 });
 
 apiClient.interceptors.response.use(

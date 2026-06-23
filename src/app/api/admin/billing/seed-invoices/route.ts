@@ -5,10 +5,15 @@ import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { verifyRequestJwt, requireRole } from "@/lib/jwt-auth";
 
 export async function POST(req: NextRequest) {
+  if (process.env.NODE_ENV !== "development") {
+    return NextResponse.json({ error: "Not found." }, { status: 404 });
+  }
+
   const jwt = await verifyRequestJwt(req);
   if (!requireRole(jwt, ["super_admin"])) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
+
 
   const supabase = createServerSupabaseClient();
 

@@ -1,10 +1,11 @@
 import { jwtVerify } from "jose";
 import { NextRequest } from "next/server";
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.AUTH_JWT_SECRET ??
-    "change-me-in-production-at-least-32-chars!!"
-);
+if (!process.env.AUTH_JWT_SECRET) {
+  throw new Error("AUTH_JWT_SECRET is required");
+}
+
+export const JWT_SECRET = new TextEncoder().encode(process.env.AUTH_JWT_SECRET);
 
 export type JwtPayload = {
   sub: string;
@@ -26,9 +27,10 @@ export async function verifyRequestJwt(
       token = authHeader.slice(7);
     }
 
-    // Note: the auth cookie only holds a presence flag ("1"), not the JWT.
-    // The real token must come from the Authorization header (set by apiClient).
-    // No cookie fallback.
+    // 2. Fall back to HttpOnly cookie "token" (standard cookie transport)
+    if (!token) {
+      token = req.cookies.get("token")?.value ?? null;
+    }
 
     if (!token) {
       return null;

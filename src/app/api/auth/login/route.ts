@@ -2,25 +2,47 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { SignJWT } from "jose";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
-
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.AUTH_JWT_SECRET ?? "change-me-in-production-at-least-32-chars!!"
-);
+import { JWT_SECRET } from "@/lib/jwt-auth";
+import { rateLimit } from "@/lib/rate-limit";
+import { z } from "zod";
 
 const SESSION_HOURS = Number(process.env.NEXT_PUBLIC_AUTH_SESSION_DURATION_HOURS ?? 8);
 
-export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json();
-    const email: string = (body.email ?? "").toLowerCase().trim();
-    const password: string = body.password ?? "";
+const loginSchema = z.object({
+  email: z.string().email("Invalid email format").max(255, "Email is too long").toLowerCase().trim(),
+  password: z.string().min(1, "Password is required").max(72, "Password is too long"),
+});
 
-    if (!email || !password) {
+export async function POST(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() || req.headers.get("x-real-ip") || "127.0.0.1";
+  const limitResult = rateLimit(ip, 10, 60000);
+
+  if (!limitResult.success) {
+    const retryAfter = Math.ceil((limitResult.resetTime - Date.now()) / 1000);
+    return new NextResponse(
+      JSON.stringify({ error: "Too many login attempts. Please try again later." }),
+      {
+        status: 429,
+        headers: {
+          "Content-Type": "application/json",
+          "Retry-After": String(retryAfter),
+        },
+      }
+    );
+  }
+
+  try {
+    const body = await req.json().catch(() => ({}));
+
+    const validation = loginSchema.safeParse(body);
+    if (!validation.success) {
       return NextResponse.json(
-        { error: "Email and password are required." },
+        { error: validation.error.errors[0]?.message ?? "Invalid request body." },
         { status: 400 }
       );
     }
+
+    const { email, password } = validation.data;
 
     const supabase = createServerSupabaseClient();
 

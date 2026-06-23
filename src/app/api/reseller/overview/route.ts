@@ -28,6 +28,8 @@ export async function GET(req: NextRequest) {
           status,
           monthly_price_snapshot,
           minutes_used,
+          started_at,
+          ends_at,
           plans ( display_name )
         )
       `)
@@ -64,6 +66,19 @@ export async function GET(req: NextRequest) {
       }
     });
 
+    // Construct map of user subscriptions to check dates
+    const userSubscriptionMap: Record<string, { start: number | null; end: number | null }> = {};
+    (clients ?? []).forEach((c: any) => {
+      const sub = c.subscriptions;
+      if (sub) {
+        const start = sub.started_at ? new Date(sub.started_at).getTime() : null;
+        const end = sub.ends_at ? new Date(sub.ends_at).getTime() : null;
+        userSubscriptionMap[c.id] = { start, end };
+      } else {
+        userSubscriptionMap[c.id] = { start: null, end: null };
+      }
+    });
+
     // 4. Resolve assistant_ids for these customers and fetch CDRs
     let totalMinutes = 0;
     let totalCalls = 0;
@@ -75,15 +90,6 @@ export async function GET(req: NextRequest) {
 
     // Build default 7-day structure
     const today = new Date();
-    const buildDayMap = () => {
-      const map: Record<string, number> = {};
-      for (let i = 6; i >= 0; i--) {
-        const d = new Date(today);
-        d.setDate(today.getDate() - i);
-        map[d.toLocaleDateString("en-GB", { day: "2-digit", month: "short" })] = 0;
-      }
-      return map;
-    };
 
     const trendsMap: Record<string, { total: number; answered: number; missed: number; minutes: number }> = {};
     for (let i = 6; i >= 0; i--) {
@@ -123,14 +129,29 @@ export async function GET(req: NextRequest) {
 
         const allCdrs = cdrs ?? [];
 
-        // Aggregate totals
-        totalMinutes = allCdrs.reduce((acc: number, r: any) => acc + (r.total_mins ?? 0), 0);
-        totalCalls = allCdrs.length;
-        passedCount = allCdrs.filter((r: any) => r.is_successful === true).length;
-        failedCount = allCdrs.filter((r: any) => r.is_successful === false).length;
+        // Filter CDRs to only include calls within customer subscription start and end dates
+        const filteredCdrs = allCdrs.filter((r: any) => {
+          const userId = assistantToUser[r.assistant_id];
+          if (!userId) return false;
+          const subDates = userSubscriptionMap[userId];
+          if (!subDates || subDates.start === null) return false;
+
+          const callMs = parseCdrDate(r.start_datetime);
+          if (callMs === null) return false;
+
+          if (callMs < subDates.start) return false;
+          if (subDates.end !== null && callMs > subDates.end) return false;
+          return true;
+        });
+
+        // Aggregate totals based on filtered CDRs
+        totalMinutes = filteredCdrs.reduce((acc: number, r: any) => acc + (r.total_mins ?? 0), 0);
+        totalCalls = filteredCdrs.length;
+        passedCount = filteredCdrs.filter((r: any) => r.is_successful === true).length;
+        failedCount = filteredCdrs.filter((r: any) => r.is_successful === false).length;
 
         // Build trend + minutesByDay maps in one pass
-        allCdrs.forEach((r: any) => {
+        filteredCdrs.forEach((r: any) => {
           const ts = Number(r.start_datetime);
           const d = isNaN(ts) ? new Date(r.start_datetime) : new Date(ts);
           if (isNaN(d.getTime())) return;
@@ -145,7 +166,7 @@ export async function GET(req: NextRequest) {
         });
 
         // Recent call logs (last 5)
-        recentCallLogs = allCdrs.slice(0, 5).map((row: any) => {
+        recentCallLogs = filteredCdrs.slice(0, 5).map((row: any) => {
           const durationSeconds = row.total_seconds ?? Math.round(Number(row.total_mins ?? 0) * 60);
           const userId = assistantToUser[row.assistant_id] ?? null;
           const userInfo = userId ? userMap[userId] : null;
@@ -199,4 +220,28 @@ export async function GET(req: NextRequest) {
     console.error("[GET /api/reseller/overview]", err);
     return NextResponse.json({ error: err?.message || "Failed to fetch overview." }, { status: 500 });
   }
+}
+
+function parseCdrDate(raw: string | number | null | undefined): number | null {
+  if (raw === null || raw === undefined || raw === "") return null;
+
+  const ts = Number(raw);
+  if (!isNaN(ts) && String(raw).trim() !== "") {
+    const ms = ts > 1e12 ? ts : ts * 1000;
+    return isNaN(ms) ? null : ms;
+  }
+
+  if (typeof raw === "string") {
+    const ddmm = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[,\s]+(\d{1,2}:\d{2}(?::\d{2})?))?/);
+    if (ddmm) {
+      const [, dd, mm, yyyy, time] = ddmm;
+      const iso = `${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}T${time ?? "00:00:00"}`;
+      const d = new Date(iso).getTime();
+      return isNaN(d) ? null : d;
+    }
+    const d = new Date(raw).getTime();
+    return isNaN(d) ? null : d;
+  }
+
+  return null;
 }
