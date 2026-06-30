@@ -27,7 +27,8 @@ function RenewSuccessContent() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ sessionId, planId }),
+      // planId is intentionally omitted — server reads it from Stripe session metadata
+      body: JSON.stringify({ sessionId }),
     })
       .then(async (res) => {
         const data = await res.json();

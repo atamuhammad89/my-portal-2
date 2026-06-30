@@ -12,13 +12,8 @@ const registerSchema = z.object({
   stripe_session_id: z.string().optional(),
 });
 
-const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL ?? (
-  process.env.NODE_ENV !== "production"
-    ? "https://n8n-dev.callautomate.ai/webhook/register-user"
-    : ""
-);
-
 export async function POST(req: NextRequest) {
+  const n8nWebhookUrl = process.env.N8N_WEBHOOK_URL;
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() || req.headers.get("x-real-ip") || "127.0.0.1";
   const limitResult = await rateLimit(ip, 5, 60000);
 
@@ -49,7 +44,7 @@ export async function POST(req: NextRequest) {
 
     const { full_name, email, password, plan_id, plan_name, stripe_session_id } = validation.data;
 
-    if (!N8N_WEBHOOK_URL) {
+    if (!n8nWebhookUrl) {
       console.error("Registration failed: N8N_WEBHOOK_URL is not set");
       return NextResponse.json(
         { message: "Registration is currently misconfigured." },
@@ -59,7 +54,7 @@ export async function POST(req: NextRequest) {
 
     const password_hash = await bcrypt.hash(password, 12);
 
-    const n8nRes = await fetch(N8N_WEBHOOK_URL, {
+    const n8nRes = await fetch(n8nWebhookUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

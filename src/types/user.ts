@@ -8,4 +8,6 @@ export type User = {
   role: Role;
   avatarUrl?: string;
   createdAt?: string;
+  isEmailVerified?: boolean;
 };
+

@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { PageHeader } from "@/components/shared/page-header";
-import { KeyRound, Eye, EyeOff, CheckCircle2, User, Mail, Pencil } from "lucide-react";
+import { KeyRound, Eye, EyeOff, CheckCircle2, User, Mail, Pencil, X, Loader2 } from "lucide-react";
 import { useAuthStore } from "@/store/auth-store";
 
 function PasswordInput({
@@ -79,12 +79,45 @@ export function SettingsShell() {
   const [profileSuccess, setProfileSuccess] = useState(false);
   const [profileError, setProfileError] = useState("");
 
+  // Verification state
+  const [showVerifyModal, setShowVerifyModal] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [sendSuccess, setSendSuccess] = useState(false);
+  const [sendError, setSendError] = useState("");
+
   // Password tab state
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
   const [confirm, setConfirm] = useState("");
   const [pwSuccess, setPwSuccess] = useState(false);
   const [pwError, setPwError] = useState("");
+
+  // 1. Sync user profile on mount to get the latest database state (like email verification)
+  useEffect(() => {
+    apiClient.get("/user/profile")
+      .then((res) => {
+        const profile = res.data;
+        if (profile && user) {
+          const hasChanges = 
+            profile.isEmailVerified !== user.isEmailVerified || 
+            profile.fullName !== user.fullName || 
+            profile.email !== user.email;
+
+          if (hasChanges) {
+            setSession({
+              expiresAt: expiresAt || (Date.now() + 8 * 60 * 60 * 1000),
+              user: {
+                ...user,
+                fullName: profile.fullName,
+                email: profile.email,
+                isEmailVerified: profile.isEmailVerified,
+              },
+            });
+          }
+        }
+      })
+      .catch((err) => console.error("Sync profile error:", err));
+  }, []);
 
   useEffect(() => {
     setFullName(user?.fullName ?? "");
@@ -103,7 +136,13 @@ export function SettingsShell() {
       if (user && isAuthenticated && expiresAt) {
         setSession({
           expiresAt,
-          user: { ...user, fullName, email },
+          user: { 
+            ...user, 
+            fullName, 
+            email, 
+            // If email is changed, reset verification in local UI store state
+            isEmailVerified: email === user.email ? user.isEmailVerified : false
+          },
         });
       }
       setTimeout(() => setProfileSuccess(false), 4000);
@@ -165,6 +204,27 @@ export function SettingsShell() {
     passwordMutation.mutate();
   }
 
+  // Trigger dispatch of verification link email
+  const handleSendVerificationEmail = async () => {
+    setSendingEmail(true);
+    setSendError("");
+    setSendSuccess(false);
+    try {
+      const res = await fetch("/api/auth/verify-email/send", {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to send verification link.");
+      }
+      setSendSuccess(true);
+    } catch (err: any) {
+      setSendError(err.message || "Something went wrong.");
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
   const tabs: { id: TabId; label: string; icon: React.ReactNode }[] = [
     { id: "profile", label: "Edit Profile", icon: <User className="h-4 w-4" /> },
     { id: "password", label: "Change Password", icon: <KeyRound className="h-4 w-4" /> },
@@ -220,14 +280,23 @@ export function SettingsShell() {
             type="email"
             rightLabel={
               email.trim() ? (
-                email.trim().toLowerCase().endsWith("@gmail.com") ? (
+                user?.isEmailVerified ? (
                   <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[var(--success-fg)] bg-[var(--success-bg)] px-2 py-0.5 rounded-full border border-[var(--success-fg)]/25">
                     <CheckCircle2 className="h-3 w-3" /> Verified
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[var(--danger-fg)] bg-[var(--danger-bg)] px-2 py-0.5 rounded-full border border-[var(--danger-fg)]/25">
-                    Unverified
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[var(--danger-fg)] bg-[var(--danger-bg)] px-2 py-0.5 rounded-full border border-[var(--danger-fg)]/25">
+                      Unverified
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowVerifyModal(true)}
+                      className="text-xs font-bold text-[var(--brand-500)] hover:underline cursor-pointer"
+                    >
+                      Verify Email
+                    </button>
+                  </div>
                 )
               ) : null
             }
@@ -291,6 +360,87 @@ export function SettingsShell() {
           >
             {passwordMutation.isPending ? "Updating…" : "Update Password"}
           </button>
+        </div>
+      )}
+
+      {/* Verification Modal overlay */}
+      {showVerifyModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(6,9,19,0.75)", backdropFilter: "blur(8px)" }}
+        >
+          <div
+            className="relative w-full max-w-md rounded-2xl p-6 border shadow-2xl space-y-6"
+            style={{ background: "var(--surface)", borderColor: "var(--border)" }}
+          >
+            <div className="flex items-center justify-between">
+              <h3
+                className="text-lg font-bold text-[var(--foreground)]"
+                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              >
+                Verify Your Email Address
+              </h3>
+              <button
+                onClick={() => {
+                  setShowVerifyModal(false);
+                  setSendError("");
+                  setSendSuccess(false);
+                }}
+                className="rounded-lg p-1.5 text-[var(--muted-text)] hover:bg-[var(--surface-2)] hover:text-[var(--foreground)] transition cursor-pointer"
+                aria-label="Close"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <p className="text-sm text-[var(--muted-text)] leading-relaxed">
+                To confirm account ownership and enable notifications, click below to receive a secure validation link on your registered address:
+                <strong className="block text-[var(--foreground)] mt-2 font-mono text-xs">{email}</strong>
+              </p>
+
+              {sendSuccess ? (
+                <div
+                  className="rounded-xl border p-4 space-y-2"
+                  style={{
+                    background: "var(--success-bg)",
+                    borderColor: "rgba(52,211,153,0.2)",
+                  }}
+                >
+                  <div className="flex items-center gap-2 text-sm font-bold text-[var(--success-fg)]">
+                    <CheckCircle2 className="h-4.5 w-4.5" /> Verification Link Sent!
+                  </div>
+                  <p className="text-xs text-[var(--subtle-text)] leading-relaxed">
+                    Check your inbox and spam folders. Click the link within the email to verify your account.
+                  </p>
+                </div>
+              ) : (
+                <button
+                  onClick={handleSendVerificationEmail}
+                  disabled={sendingEmail}
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--brand-500)] px-4 py-3 text-sm font-bold text-[var(--brand-btn-text)] hover:opacity-90 transition disabled:opacity-50 cursor-pointer shadow-sm"
+                >
+                  {sendingEmail ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin text-[var(--brand-btn-text)]" />
+                      Dispatching email…
+                    </>
+                  ) : (
+                    <>
+                      <Mail className="h-4 w-4" />
+                      Send Verification Email
+                    </>
+                  )}
+                </button>
+              )}
+
+              {sendError && (
+                <p className="rounded-lg bg-[var(--danger-bg)] border border-[var(--danger-border)] px-3 py-2.5 text-xs text-[var(--danger-fg)]">
+                  {sendError}
+                </p>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>

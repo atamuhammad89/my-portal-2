@@ -1,9 +1,11 @@
 // src/components/billing/billing-shell.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
+import { useAuthStore } from "@/store/auth-store";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
@@ -111,6 +113,34 @@ export function BillingShell() {
   const renewal = useRenewal();
   const currentPlanName = data?.subscription?.planName?.toLowerCase();
 
+  // Guard: detect wrong-user renewal attempt from expiry email
+  const loggedInUser = useAuthStore((s) => s.user);
+  const [wrongUserWarning, setWrongUserWarning] = useState<string | null>(null);
+
+  // Auto-open renewal modal when arriving from the expiry notification email
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  useEffect(() => {
+    if (searchParams.get("renew") === "true") {
+      const intendedUid = searchParams.get("uid");
+
+      // If a uid is present and doesn't match the logged-in user → block & warn
+      if (intendedUid && loggedInUser && intendedUid !== loggedInUser.id) {
+        setWrongUserWarning(
+          `This renewal link belongs to a different account. Please log in with the correct account to renew, or close this message to continue as ${loggedInUser.email}.`
+        );
+        // Clean the URL but do NOT open the modal
+        router.replace("/billing", { scroll: false });
+        return;
+      }
+
+      renewal.open();
+      // Remove the query param so a refresh won't reopen the modal
+      router.replace("/billing", { scroll: false });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, loggedInUser]);
+
   // History rows that are NOT the current active subscription
   const pastSubscriptions = (data?.history ?? []).filter(
     (h) => h.id !== data?.subscription?.id
@@ -122,6 +152,46 @@ export function BillingShell() {
         title="Billing & Subscription"
         description="View your current plan, usage, and subscription history."
       />
+
+      {/* ── Wrong-user renewal warning ── */}
+      {wrongUserWarning && (
+        <div
+          role="alert"
+          className="flex items-start gap-3 rounded-xl border px-4 py-3.5"
+          style={{
+            background: "rgba(245, 158, 11, 0.08)",
+            borderColor: "rgba(245, 158, 11, 0.3)",
+          }}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="h-5 w-5 shrink-0 mt-0.5 text-amber-400"
+          >
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+            <line x1="12" y1="9" x2="12" y2="13" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-amber-400">Wrong account</p>
+            <p className="text-sm text-amber-300/80 mt-0.5">{wrongUserWarning}</p>
+          </div>
+          <button
+            onClick={() => setWrongUserWarning(null)}
+            aria-label="Dismiss warning"
+            className="shrink-0 text-amber-400 hover:text-amber-200 transition-colors cursor-pointer"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+      )}
 
       {isLoading ? (
         <LoadingSkeleton className="h-64 w-full" />

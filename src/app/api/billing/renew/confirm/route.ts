@@ -23,16 +23,16 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { sessionId, planId } = await req.json();
+    const { sessionId } = await req.json();
 
-    if (!sessionId || !planId) {
+    if (!sessionId) {
       return NextResponse.json(
-        { error: "sessionId and planId are required." },
+        { error: "sessionId is required." },
         { status: 400 }
       );
     }
 
-    // 1. Verify Stripe session
+    // 1. Verify Stripe session — always retrieved server-side, never trust client input
     const session = await stripe.checkout.sessions.retrieve(sessionId);
     if (session.payment_status !== "paid" && session.status !== "complete") {
       return NextResponse.json(
@@ -45,6 +45,17 @@ export async function POST(req: NextRequest) {
     const sessionUserId = session.metadata?.user_id;
     if (sessionUserId && sessionUserId !== payload.sub) {
       return NextResponse.json({ error: "Session mismatch." }, { status: 403 });
+    }
+
+    // ✅ Security fix: derive planId from server-set Stripe metadata, NOT from the
+    // request body. Prevents plan-substitution attack where a user pays for a cheap
+    // plan but submits an expensive planId in the confirm call.
+    const planId = session.metadata?.plan_id ?? null;
+    if (!planId) {
+      return NextResponse.json(
+        { error: "Plan information missing from payment session." },
+        { status: 400 }
+      );
     }
 
     const supabase = createServerSupabaseClient();
@@ -64,7 +75,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 2. Fetch plan details
+    // 2. Fetch plan details from DB using the server-verified planId
     const { data: plan, error: planError } = await supabase
       .from("plans")
       .select("id, monthly_price, price_per_minute, total_minutes")

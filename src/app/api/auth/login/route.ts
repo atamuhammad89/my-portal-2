@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     // Fetch user row (email is stored lower-cased via the index)
     const { data: user, error } = await supabase
       .from("users")
-      .select("id, email, full_name, role, tenant_id, password_hash, is_active")
+      .select("id, email, full_name, role, tenant_id, password_hash, is_active, is_email_verified")
       .ilike("email", email)
       .single();
 
@@ -98,6 +98,7 @@ export async function POST(req: NextRequest) {
         fullName: user.full_name,
         role: user.role,
         tenantId: user.tenant_id ?? null,
+        isEmailVerified: user.is_email_verified ?? false,
       },
     });
 

@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
   const supabase = createServerSupabaseClient();
   const { data: user, error } = await supabase
     .from("users")
-    .select("id, email, full_name, role, tenant_id")
+    .select("id, email, full_name, role, tenant_id, is_email_verified")
     .eq("id", payload.sub)
     .single();
 
@@ -35,6 +35,7 @@ export async function GET(req: NextRequest) {
     fullName: user.full_name,
     role: user.role,
     tenantId: user.tenant_id,
+    isEmailVerified: user.is_email_verified ?? false,
   });
 }
 
@@ -94,6 +95,7 @@ export async function PATCH(req: NextRequest) {
           return NextResponse.json({ error: "Email is already in use." }, { status: 409 });
         }
         updates.email = email;
+        updates.is_email_verified = false; // Reset verification status when email is changed
       }
     }
 

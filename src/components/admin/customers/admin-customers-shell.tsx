@@ -77,6 +77,7 @@ export function AdminCustomersShell() {
     _customer: c, // pass full customer for edit
     fullName: c.fullName,
     email: c.email,
+    isEmailVerified: c.isEmailVerified,
     role: c.role,
     isActive: c.isActive,
     createdAt: c.createdAt,
@@ -146,13 +147,13 @@ export function AdminCustomersShell() {
               {
                 key: "email",
                 label: "Email",
-                render: (v) => {
+                render: (v, row: any) => {
                   const emailStr = String(v);
-                  const isGmail = emailStr.trim().toLowerCase().endsWith("@gmail.com");
+                  const verified = row?.isEmailVerified === true;
                   return (
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                       <span className="text-sm font-medium text-[var(--muted-text)]">{emailStr}</span>
-                      {isGmail ? (
+                      {verified ? (
                         <span className="inline-flex items-center gap-1 text-[9px] font-bold text-[var(--success-fg)] bg-[var(--success-bg)] px-1.5 py-0.5 rounded-full border border-[var(--success-fg)]/25 w-max">
                           <CheckCircle2 className="h-2.5 w-2.5" /> Verified
                         </span>

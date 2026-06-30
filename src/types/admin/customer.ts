@@ -4,6 +4,7 @@ export type AdminCustomer = {
   email: string;
   role: "owner" | "super_admin" | "reseller";
   isActive: boolean;
+  isEmailVerified: boolean;
   tenantId: string | null;
   createdAt: string;
   updatedAt: string;

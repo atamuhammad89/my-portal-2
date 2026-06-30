@@ -2,7 +2,7 @@
 // Generates and directly downloads an invoice as a PDF using jsPDF.
 // No print dialog — file is saved directly to the user's system.
 
-import { formatDate } from "@/utils/format";
+import { formatDate, formatDateTime } from "@/utils/format";
 
 export type InvoiceData = {
   invoiceId: string;
@@ -31,11 +31,11 @@ export async function downloadInvoicePdf(bill: InvoiceData): Promise<void> {
 
   const pageW = 210;
   const margin = 20;
-  const contentW = pageW - margin * 2;
+  const contentW = pageW - margin * 2; // 170mm
   let y = margin;
 
   // ── Helper functions ───────────────────────────────────────────────────────
-  const setFont = (style: "normal" | "bold", size: number, color = "#1e293b") => {
+  const setFont = (style: "normal" | "bold" | "italic", size: number, color = "#1e293b") => {
     doc.setFont("helvetica", style);
     doc.setFontSize(size);
     const r = parseInt(color.slice(1, 3), 16);
@@ -65,107 +65,118 @@ export async function downloadInvoicePdf(bill: InvoiceData): Promise<void> {
   const invoiceNum = bill.invoiceNumber ?? bill.invoiceId.slice(-8).toUpperCase();
   const customerId = bill.userId ? bill.userId.slice(0, 8).toUpperCase() : "—";
 
-  // ── HEADER ─────────────────────────────────────────────────────────────────
-  // Blue accent bar at top
-  setFill("#1e3a8a");
-  doc.rect(0, 0, pageW, 2, "F");
+  // ── LOGO & HEADER ──────────────────────────────────────────────────────────
+  // 1. Draw Voice OS logo icon
+  // A rounded-corner blue rectangle with letter "V" in white
+  setFill("#2563eb"); // Brand Blue
+  doc.roundedRect(margin, y, 9, 9, 2, 2, "F");
 
-  // Company name
-  setFont("bold", 20, "#1e3a8a");
-  doc.text("Call Automate AI", margin, y + 8);
+  setFont("bold", 15, "#ffffff");
+  doc.text("V", margin + 2.5, y + 6.5);
 
-  // Company details
-  setFont("normal", 8, "#64748b");
-  doc.text("123 Tech Way, Suite 400  |  Dublin, D02 F983", margin, y + 14);
-  doc.text("billing@callautomate.ai  |  callautomate.ai", margin, y + 19);
+  // Logo Text
+  setFont("bold", 15, "#0f172a"); // Slate-900
+  doc.text("Voice", margin + 11.5, y + 6.5);
+  setFont("bold", 15, "#2563eb"); // Brand Blue
+  doc.text("OS", margin + 26, y + 6.5);
 
   // INVOICE label (right-aligned)
-  setFont("bold", 28, "#3b82f6");
-  doc.text("INVOICE", pageW - margin, y + 10, { align: "right" });
+  setFont("bold", 24, "#475569"); // Slate-600
+  doc.text("INVOICE", pageW - margin, y + 6.5, { align: "right" });
 
-  y += 30;
+  y += 18;
 
-  // Invoice meta box (right side)
-  const metaX = pageW - margin - 60;
-  const metaW = 60;
-  const metaRows = [
-    ["Date:", formatDate(bill.generatedAt)],
+  // 2. Company Details & Invoice Meta Info (Two-Column Layout)
+  const metaX = 135;
+  const colW = 55;
+
+  // Left Column: Company Info
+  setFont("bold", 10, "#0f172a");
+  doc.text("Call Automate AI", margin, y);
+  setFont("normal", 8.5, "#475569");
+  doc.text("123 Tech Way, Suite 400", margin, y + 5);
+  doc.text("Dublin, D02 F983", margin, y + 9);
+  doc.text("support@callautomate.ai", margin, y + 13);
+  doc.text("callautomate.ai", margin, y + 17);
+
+  // Right Column: Invoice Meta Details (Right Aligned values)
+  const formattedGen = bill.generatedAt ? formatDateTime(bill.generatedAt) : formatDateTime(new Date().toISOString());
+  const formattedDue = bill.periodEnd ? formatDateTime(bill.periodEnd) : "Immediate";
+
+  const metaData = [
+    ["Date:", formattedGen],
     ["Invoice #:", invoiceNum],
-    ...(bill.userId ? [["Customer ID:", customerId]] : []),
-    ["Due Date:", bill.periodEnd ? formatDate(bill.periodEnd) : "Immediate"],
+    ["Customer ID:", customerId],
+    ["Due Date:", formattedDue],
   ];
 
-  setFill("#f8fafc");
-  setDraw("#cbd5e1");
-  doc.setLineWidth(0.3);
-  const metaH = metaRows.length * 7 + 4;
-  doc.roundedRect(metaX, y - 2, metaW, metaH, 2, 2, "FD");
-
-  metaRows.forEach(([label, value], i) => {
-    const rowY = y + i * 7 + 4;
-    setFont("bold", 7.5, "#64748b");
-    doc.text(label, metaX + 3, rowY);
-    setFont("normal", 7.5, "#0f172a");
-    doc.text(value, metaX + metaW - 3, rowY, { align: "right" });
+  metaData.forEach(([label, val], idx) => {
+    const rowY = y + idx * 5.5;
+    setFont("bold", 9, "#475569");
+    doc.text(label, metaX, rowY);
+    setFont("normal", 9, "#0f172a");
+    doc.text(val, pageW - margin, rowY, { align: "right" });
   });
 
-  y += metaH + 8;
+  y += 26;
 
-  // ── DIVIDER ────────────────────────────────────────────────────────────────
-  setDraw("#e2e8f0");
-  doc.setLineWidth(0.4);
+  // Divider Line
+  setDraw("#cbd5e1"); // Slate-300
+  doc.setLineWidth(0.3);
   line(margin, y, pageW - margin, y);
-  y += 8;
+  y += 7;
 
-  // ── BILL TO ────────────────────────────────────────────────────────────────
-  setFill("#1e3a8a");
-  doc.rect(margin, y, contentW, 7, "F");
-  setFont("bold", 8, "#ffffff");
-  doc.text("BILL TO", margin + 3, y + 5);
-  y += 10;
+  // 3. Bill To & Period Info (Two-Column Layout)
+  // Left: Bill To
+  setFont("bold", 8.5, "#475569");
+  doc.text("BILL TO", margin, y);
+  // Underline for BILL TO
+  setDraw("#cbd5e1");
+  doc.setLineWidth(0.2);
+  line(margin, y + 1.5, margin + 70, y + 1.5);
 
   setFont("bold", 10, "#0f172a");
-  doc.text(bill.userName ?? "—", margin, y);
-  y += 5;
+  doc.text(bill.userName ?? "Customer", margin, y + 6);
+  setFont("normal", 9, "#475569");
+  doc.text(`Email: ${bill.userEmail ?? "—"}`, margin, y + 10.5);
 
-  setFont("normal", 8.5, "#334155");
-  if (bill.userEmail) {
-    doc.text(`Email: ${bill.userEmail}`, margin, y);
-    y += 4.5;
-  }
-  if (bill.userRole) {
-    doc.text(`Role: ${bill.userRole}`, margin, y);
-    y += 4.5;
-  }
-  doc.text(
-    `Period: ${formatDate(bill.periodStart)} → ${bill.periodEnd ? formatDate(bill.periodEnd) : "present"}`,
-    margin,
-    y
-  );
-  y += 10;
+  // Right: Period
+  setFont("bold", 8.5, "#475569");
+  doc.text("Period:", metaX, y);
 
-  // ── ITEMS TABLE ────────────────────────────────────────────────────────────
-  // Header
-  setFill("#1e3a8a");
-  doc.rect(margin, y, contentW, 8, "F");
-  setFont("bold", 8, "#ffffff");
-  doc.text("DESCRIPTION", margin + 3, y + 5.5);
-  doc.text("AMOUNT", pageW - margin - 3, y + 5.5, { align: "right" });
-  y += 8;
+  const formattedStart = bill.periodStart ? formatDateTime(bill.periodStart) : "—";
+  const formattedEnd = bill.periodEnd ? formatDateTime(bill.periodEnd) : "present";
+  setFont("normal", 9, "#0f172a");
+  const periodText = `${formattedStart} –\n${formattedEnd}`;
+  const periodLines = doc.splitTextToSize(periodText, colW);
+  doc.text(periodLines, metaX, y + 5.5);
 
-  // Row
-  setFill("#f8fafc");
-  setDraw("#e2e8f0");
+  y += 22;
+
+  // 4. Description / Table Details
+  // Table Header
+  setFill("#78716c"); // Stone-500 grey
+  doc.rect(margin, y, contentW, 7, "F");
+
+  setFont("bold", 8.5, "#ffffff");
+  doc.text("DESCRIPTION", margin + 3, y + 5);
+  doc.text("AMOUNT", pageW - margin - 3, y + 5, { align: "right" });
+
+  y += 7;
+
+  // Table Row
+  setFill("#ffffff");
+  setDraw("#d1d5db"); // Grey-300
   doc.setLineWidth(0.3);
-  doc.rect(margin, y, contentW, 20, "FD");
+  doc.rect(margin, y, contentW, 16, "FD");
 
   let itemTitle = "";
   let itemDesc = "";
 
   if (bill.type === "overage") {
-    itemTitle = `Overage Usage Fee — ${bill.planName} Plan`;
+    itemTitle = `Overage Usage Fee — ${bill.planName}`;
     itemDesc = `${bill.usedMinutes ?? 0} mins used / ${bill.allocatedMinutes ?? 0} mins allocated  |  ` +
-      `${bill.overageMinutes ?? 0} overage mins × $${(bill.pricePerMinute ?? 0).toFixed(4)}/min`;
+      `${bill.overageMinutes ?? 0} overage mins x $${(bill.pricePerMinute ?? 0).toFixed(4)}/min`;
   } else if (bill.type === "renewal") {
     itemTitle = `Subscription Renewal — ${bill.planName} Plan`;
     itemDesc = `Monthly subscription renewal fee for ${bill.planName} plan.`;
@@ -174,81 +185,72 @@ export async function downloadInvoicePdf(bill: InvoiceData): Promise<void> {
     itemDesc = `Initial monthly plan subscription fee for ${bill.planName} plan.`;
   }
 
-  setFont("bold", 9, "#0f172a");
+  setFont("bold", 9.5, "#0f172a");
   doc.text(itemTitle, margin + 3, y + 6);
-
-  setFont("normal", 7.5, "#64748b");
-  const descLines = doc.splitTextToSize(itemDesc, contentW - 40);
-  doc.text(descLines, margin + 3, y + 11);
+  setFont("normal", 8, "#6b7280"); // Grey-500
+  doc.text(itemDesc, margin + 3, y + 11.5);
 
   setFont("bold", 10, "#0f172a");
-  doc.text(`$${bill.amount.toFixed(2)}`, pageW - margin - 3, y + 8, { align: "right" });
+  doc.text(`$${bill.amount.toFixed(2)}`, pageW - margin - 3, y + 9.5, { align: "right" });
 
-  y += 26;
+  y += 24;
 
-  // ── TOTALS ─────────────────────────────────────────────────────────────────
-  const totX = pageW - margin - 70;
-  const totW = 70;
+  // 5. Payment Terms & Totals Row (Two Columns)
+  // Left Column: Payment Terms Box
+  const termsW = 95;
+  const termsH = 26;
+  setFill("#ffffff");
+  setDraw("#38bdf8"); // Sky-400 (light blue)
+  doc.setLineWidth(0.4);
+  doc.roundedRect(margin, y, termsW, termsH, 2, 2, "FD");
 
-  const totRows: [string, string, boolean][] = [
+  setFont("bold", 9, "#0f172a");
+  doc.text("Payment Terms", margin + 4, y + 6);
+  setFont("normal", 7.5, "#334155");
+  doc.text("1. Total payment is due within 30 days of invoice date.", margin + 4, y + 11);
+  doc.text("2. Please reference the invoice number on all payments.", margin + 4, y + 15.5);
+  doc.text("Make all payments payable to: ", margin + 4, y + 21);
+  setFont("bold", 7.5, "#0f172a");
+  doc.text("Call Automate AI", margin + 41, y + 21);
+
+  // Right Column: Totals Details
+  const totalsX = 135;
+  const totalsW = 55;
+
+  const totalsData: [string, string, boolean][] = [
     ["Subtotal", `$${bill.amount.toFixed(2)}`, false],
     ["Tax Rate", "0.00%", false],
     ["Tax Due", "$0.00", false],
     ["TOTAL DUE", `$${bill.amount.toFixed(2)}`, true],
   ];
 
-  totRows.forEach(([label, value, isTotal]) => {
+  totalsData.forEach(([label, val, isTotal], idx) => {
+    const rowY = y + idx * 6.5;
+
     if (isTotal) {
-      setFill("#eff6ff");
-      setDraw("#3b82f6");
-      doc.setLineWidth(0.5);
-      doc.rect(totX, y, totW, 8, "FD");
-      setFont("bold", 9, "#1e3a8a");
+      // Light grey box for total
+      setFill("#e2e8f0"); // Slate-200
+      doc.rect(totalsX, rowY - 1.5, totalsW, 6.5, "F");
+      setFont("bold", 9, "#0f172a");
     } else {
-      setFill("#f8fafc");
-      setDraw("#e2e8f0");
-      doc.setLineWidth(0.3);
-      doc.rect(totX, y, totW, 7, "FD");
-      setFont("normal", 8, "#334155");
+      setFont("normal", 8.5, "#475569");
     }
-    doc.text(label, totX + 3, y + (isTotal ? 5.5 : 5));
-    if (isTotal) setFont("bold", 9, "#1e3a8a");
-    doc.text(value, totX + totW - 3, y + (isTotal ? 5.5 : 5), { align: "right" });
-    y += isTotal ? 8 : 7;
+
+    doc.text(label, totalsX + 2, rowY + 3);
+    doc.text(val, pageW - margin - 2, rowY + 3, { align: "right" });
   });
 
-  y += 14;
+  y += termsH + 18;
 
-  // ── FOOTER ─────────────────────────────────────────────────────────────────
-  setDraw("#e2e8f0");
-  doc.setLineWidth(0.4);
-  line(margin, y, pageW - margin, y);
-  y += 6;
-
-  setFont("bold", 8, "#1e3a8a");
-  doc.text("Payment Terms", margin, y);
-  y += 5;
-
-  setFont("normal", 7.5, "#475569");
-  doc.text("1. Total payment is due within 30 days of invoice date.", margin, y);
-  y += 4.5;
-  doc.text("2. Please reference the invoice number on all payments.", margin, y);
-  y += 4.5;
-  doc.text("Make all payments payable to: Call Automate AI", margin, y);
-
-  // Right side contact
-  setFont("normal", 7.5, "#64748b");
-  doc.text("Questions? Contact us at:", pageW - margin, y - 9, { align: "right" });
-  doc.text("billing@callautomate.ai", pageW - margin, y - 4.5, { align: "right" });
-
-  // Thank you line
-  y += 14;
-  setFont("bold", 10, "#1e3a8a");
+  // 6. Footer Thank You & Contact Link
+  setFont("italic", 10, "#475569");
   doc.text("Thank You For Your Business!", pageW / 2, y, { align: "center" });
 
-  // Bottom blue bar
-  setFill("#1e3a8a");
-  doc.rect(0, 295, pageW, 2, "F");
+  y += 5.5;
+  setFont("normal", 8.5, "#6b7280");
+  doc.text("Questions? Contact us at ", (pageW / 2) - 15, y, { align: "center" });
+  setFont("bold", 8.5, "#2563eb"); // Blue link
+  doc.text("support@callautomate.ai", (pageW / 2) + 22, y, { align: "center" });
 
   // ── SAVE FILE ──────────────────────────────────────────────────────────────
   doc.save(`invoice-${invoiceNum}.pdf`);

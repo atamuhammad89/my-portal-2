@@ -2,6 +2,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 
+// ── In-memory rate limiter: max 20 calls/minute per caller IP ──────────────
+const RATE_LIMIT = 20;
+const RATE_WINDOW_MS = 60_000;
+const callerHits = new Map<string, { count: number; resetAt: number }>();
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const entry = callerHits.get(ip);
+  if (!entry || now > entry.resetAt) {
+    callerHits.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS });
+    return false;
+  }
+  entry.count += 1;
+  return entry.count > RATE_LIMIT;
+}
+// ────────────────────────────────────────────────────────────────────────────
+
 export async function POST(req: NextRequest) {
   try {
     console.log("[notify-expiration] Webhook request received.");
@@ -20,8 +37,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { email, name, planName, endedAt } = await req.json();
-    console.log(`[notify-expiration] Authorized webhook call. Payload: email=${email}, name=${name}, planName=${planName}, endedAt=${endedAt}`);
+    // Rate limit by caller IP
+    const callerIp =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+      req.headers.get("x-real-ip") ??
+      "unknown";
+    if (isRateLimited(callerIp)) {
+      console.warn(`[notify-expiration] Rate limit exceeded for IP: ${callerIp}`);
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+    }
+
+    const { email, name, planName, endedAt, userId } = await req.json();
+    console.log(`[notify-expiration] Authorized webhook call. Payload: email=${email}, name=${name}, planName=${planName}, endedAt=${endedAt}, userId=${userId}`);
 
     if (!email) {
       console.warn("[notify-expiration] Missing email address in webhook payload.");
@@ -63,11 +90,23 @@ export async function POST(req: NextRequest) {
         })
       : "recently";
 
+    // App URL is mandatory — must be set in .env.local (http://localhost:3000 for dev,
+    // https://yourdomain.com for production). No hardcoded fallback.
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "");
+    if (!appUrl) {
+      console.error("[notify-expiration] NEXT_PUBLIC_APP_URL is not set in environment variables.");
+      return NextResponse.json({ error: "Server misconfiguration: NEXT_PUBLIC_APP_URL not set" }, { status: 500 });
+    }
+    // Include the intended user's ID so the app can verify the correct account is renewing
+    const renewUrl = userId
+      ? `${appUrl}/billing?renew=true&uid=${encodeURIComponent(userId)}`
+      : `${appUrl}/billing?renew=true`;
+
     const mailOptions = {
       from: `"CallAutomate Support" <${smtpUser}>`,
       to: email,
       subject: "Action Required: Your CallAutomate Subscription Has Expired",
-      text: `Hi ${name || "Customer"},\n\nYour subscription to the ${planName || "Active Plan"} expired on ${formattedDate}.\n\nTo restore full capabilities, please renew your plan at: https://callautomate.ai/billing\n\nBest regards,\nThe CallAutomate Support Team`,
+      text: `Hi ${name || "Customer"},\n\nYour subscription to the ${planName || "Active Plan"} expired on ${formattedDate}.\n\nTo restore full capabilities, please renew your plan at: ${renewUrl}\n\nBest regards,\nThe CallAutomate Support Team`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -203,7 +242,7 @@ export async function POST(req: NextRequest) {
                 </div>
               </div>
               
-              <a href="https://callautomate.ai/billing" class="cta-button">Renew Subscription</a>
+              <a href="${renewUrl}" class="cta-button">Renew Subscription</a>
               
               <p style="margin-bottom: 0;">If you have any questions or require assistance, please reply directly to this email or reach out to us at <a href="mailto:${smtpUser}" style="color: #06b6d4; text-decoration: none;">${smtpUser}</a>.</p>
               
