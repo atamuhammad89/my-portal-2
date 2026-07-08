@@ -158,8 +158,9 @@ export function PendingBillsSection() {
       const res = await apiClient.get<PendingBillsResponse>("/billing/pending-bills");
       return res.data;
     },
-    refetchInterval: 60_000,
+    refetchInterval: 300_000, // auto-refresh every 5 minutes
   });
+
 
   const bills = data?.pendingBills ?? [];
 

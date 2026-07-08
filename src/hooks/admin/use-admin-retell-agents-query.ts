@@ -110,6 +110,7 @@ export function useAdminAgentsAnalyticsQuery() {
   return useQuery({
     queryKey: keys.analytics,
     queryFn: () => adminRetellAgentsService.getAnalytics(),
-    refetchInterval: 30_000, // auto-refresh every 30s
+    refetchInterval: 120_000, // auto-refresh every 2 minutes
   });
 }
+
