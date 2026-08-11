@@ -80,14 +80,31 @@ export function BillingShell() {
   });
 
   const [activeTab, setActiveTab] = useState<"history" | "invoices">("invoices");
+  const [payingInvoiceId, setPayingInvoiceId] = useState<string | null>(null);
 
-  const { data: invoicesData, isLoading: invoicesLoading } = useQuery<{ invoices: any[] }>({
+  const { data: invoicesData, isLoading: invoicesLoading, refetch: refetchInvoices } = useQuery<{ invoices: any[] }>({
     queryKey: ["billing", "invoices"],
     queryFn: async () => {
       const res = await apiClient.get<{ invoices: any[] }>("/billing/invoices");
       return res.data;
     },
   });
+
+  const handlePayInvoice = async (invoiceId: string) => {
+    setPayingInvoiceId(invoiceId);
+    try {
+      const res = await apiClient.post<{ url: string }>("/billing/checkout-invoice", { invoiceId });
+      if (res.data?.url) {
+        window.location.href = res.data.url;
+      } else {
+        alert("Could not generate Stripe Checkout session.");
+      }
+    } catch (err: any) {
+      alert(`Payment error: ${err.message || "Failed to start Stripe checkout."}`);
+    } finally {
+      setPayingInvoiceId(null);
+    }
+  };
 
   const handleDownloadInvoice = async (inv: any) => {
     try {
@@ -117,29 +134,62 @@ export function BillingShell() {
   const loggedInUser = useAuthStore((s) => s.user);
   const [wrongUserWarning, setWrongUserWarning] = useState<string | null>(null);
 
-  // Auto-open renewal modal when arriving from the expiry notification email
   const searchParams = useSearchParams();
   const router = useRouter();
+
+  // Handle Stripe payment success callback
+  useEffect(() => {
+    const payment = searchParams.get("payment");
+    const invId = searchParams.get("invoice_id");
+    const sessId = searchParams.get("session_id");
+
+    if (payment === "success" && invId && sessId) {
+      apiClient
+        .post("/billing/confirm-invoice", { invoiceId: invId, sessionId: sessId })
+        .then(() => {
+          refetchInvoices();
+          router.replace("/billing", { scroll: false });
+        })
+        .catch((e) => console.warn("Confirm invoice error", e));
+    }
+  }, [searchParams, router, refetchInvoices]);
+
+  // Auto-open renewal modal when arriving from the expiry notification email
   useEffect(() => {
     if (searchParams.get("renew") === "true") {
       const intendedUid = searchParams.get("uid");
 
-      // If a uid is present and doesn't match the logged-in user → block & warn
       if (intendedUid && loggedInUser && intendedUid !== loggedInUser.id) {
         setWrongUserWarning(
           `This renewal link belongs to a different account. Please log in with the correct account to renew, or close this message to continue as ${loggedInUser.email}.`
         );
-        // Clean the URL but do NOT open the modal
         router.replace("/billing", { scroll: false });
         return;
       }
 
       renewal.open();
-      // Remove the query param so a refresh won't reopen the modal
       router.replace("/billing", { scroll: false });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, loggedInUser]);
+
+  const unpaidInvoices = (invoicesData?.invoices ?? []).filter((inv: any) => inv.status !== "paid");
+  const totalUnpaidAmount = unpaidInvoices.reduce((sum: number, inv: any) => sum + parseFloat(inv.amount || 0), 0);
+
+  const [sendingEmailAlert, setSendingEmailAlert] = useState(false);
+  const [emailAlertSent, setEmailAlertSent] = useState(false);
+
+  const handleSendEmailAlert = async () => {
+    setSendingEmailAlert(true);
+    try {
+      await apiClient.post("/billing/send-unpaid-alert", {});
+      setEmailAlertSent(true);
+    } catch (err: any) {
+      alert("Could not send email alert: " + (err.message || "Failed"));
+    } finally {
+      setSendingEmailAlert(false);
+    }
+  };
 
   // History rows that are NOT the current active subscription
   const pastSubscriptions = (data?.history ?? []).filter(
@@ -152,6 +202,40 @@ export function BillingShell() {
         title="Billing & Subscription"
         description="View your current plan, usage, and subscription history."
       />
+
+      {/* ── Red Unpaid Bills Warning Banner ── */}
+      {unpaidInvoices.length > 0 && (
+        <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border-2 border-red-500/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl transition-all">
+          <div className="flex items-start gap-3.5">
+            <div className="p-3 rounded-xl bg-red-600 text-white shrink-0 shadow-md shadow-red-600/30 mt-0.5">
+              <CreditCard className="h-5 w-5 animate-pulse" />
+            </div>
+            <div>
+              <h3 className="text-sm font-black text-red-600 dark:text-red-400 uppercase tracking-wider flex items-center gap-2">
+                Action Required: Unpaid Invoice ({unpaidInvoices.length})
+              </h3>
+              <p className="text-xs font-semibold text-slate-700 dark:text-slate-200 mt-1 max-w-xl leading-relaxed">
+                You have {unpaidInvoices.length} outstanding bill(s) totaling <span className="font-bold text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-950/80 px-2 py-0.5 rounded-md border border-red-300 dark:border-red-800">${totalUnpaidAmount.toFixed(2)}</span>. Complete payment to keep your numbers and voice agents active.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+            <button
+              onClick={() => handlePayInvoice(unpaidInvoices[0].id)}
+              disabled={!!payingInvoiceId}
+              className="flex-1 sm:flex-initial px-6 py-3 rounded-xl bg-red-600 hover:bg-red-700 active:bg-red-800 text-white text-xs font-extrabold transition-all cursor-pointer shadow-lg shadow-red-600/30 flex items-center justify-center gap-2 disabled:opacity-50 hover:scale-[1.02]"
+            >
+              {payingInvoiceId === unpaidInvoices[0].id ? (
+                <RefreshCw className="h-4 w-4 animate-spin" />
+              ) : (
+                <CreditCard className="h-4 w-4" />
+              )}
+              <span>Pay ${totalUnpaidAmount.toFixed(2)} with Stripe</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ── Wrong-user renewal warning ── */}
       {wrongUserWarning && (
@@ -396,16 +480,34 @@ export function BillingShell() {
                               </td>
                               <td className="font-semibold text-[var(--foreground)]">${parseFloat(inv.amount).toFixed(2)}</td>
                               <td>
-                                <StatusBadge text={inv.status} variant="success" />
+                                <StatusBadge
+                                  text={inv.status === "paid" ? "Paid" : inv.status === "pending" ? "Unpaid" : inv.status}
+                                  variant={inv.status === "paid" ? "success" : inv.status === "pending" ? "warning" : "neutral"}
+                                />
                               </td>
                               <td>
-                                <button
-                                  onClick={() => handleDownloadInvoice(inv)}
-                                  className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] text-[var(--brand-500)] px-2.5 py-1 text-xs font-bold transition-all hover:bg-[var(--surface)] hover:text-[var(--foreground)] cursor-pointer"
-                                >
-                                  <Download className="h-3.5 w-3.5" />
-                                  Download PDF
-                                </button>
+                                {inv.status === "paid" ? (
+                                  <button
+                                    onClick={() => handleDownloadInvoice(inv)}
+                                    className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] text-[var(--brand-500)] px-2.5 py-1 text-xs font-bold transition-all hover:bg-[var(--surface)] hover:text-[var(--foreground)] cursor-pointer"
+                                  >
+                                    <Download className="h-3.5 w-3.5" />
+                                    Download PDF
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => handlePayInvoice(inv.id)}
+                                    disabled={payingInvoiceId === inv.id}
+                                    className="flex items-center gap-1.5 rounded-lg bg-[var(--brand-500)] text-[var(--brand-btn-text)] px-3 py-1 text-xs font-bold transition-all hover:opacity-90 disabled:opacity-50 cursor-pointer shadow-xs"
+                                  >
+                                    {payingInvoiceId === inv.id ? (
+                                      <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                                    ) : (
+                                      <CreditCard className="h-3.5 w-3.5" />
+                                    )}
+                                    <span>{payingInvoiceId === inv.id ? "Redirecting..." : "Pay Now (Stripe)"}</span>
+                                  </button>
+                                )}
                               </td>
                             </tr>
                           ))}
@@ -419,20 +521,38 @@ export function BillingShell() {
                         <div key={inv.id} className="py-3 space-y-2">
                           <div className="flex items-center justify-between">
                             <span className="font-mono text-xs font-semibold text-[var(--foreground)]">{inv.invoice_number}</span>
-                            <StatusBadge text={inv.status} variant="success" />
+                            <StatusBadge
+                              text={inv.status === "paid" ? "Paid" : inv.status === "pending" ? "Unpaid" : inv.status}
+                              variant={inv.status === "paid" ? "success" : inv.status === "pending" ? "warning" : "neutral"}
+                            />
                           </div>
                           <div className="text-xs text-[var(--subtle-text)]">
                             <p className="font-semibold text-[var(--foreground)]">{inv.plan_name} ({inv.type})</p>
                             <p>{formatDate(inv.period_start)} → {formatDate(inv.period_end)}</p>
                             <p className="font-bold mt-1 text-[var(--foreground)]">${parseFloat(inv.amount).toFixed(2)}</p>
                           </div>
-                          <button
-                            onClick={() => handleDownloadInvoice(inv)}
-                            className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] text-[var(--brand-500)] px-3 py-1.5 text-xs font-bold transition-all hover:bg-[var(--surface)] cursor-pointer"
-                          >
-                            <Download className="h-3.5 w-3.5" />
-                            Download PDF
-                          </button>
+                          {inv.status === "paid" ? (
+                            <button
+                              onClick={() => handleDownloadInvoice(inv)}
+                              className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] text-[var(--brand-500)] px-3 py-1.5 text-xs font-bold transition-all hover:bg-[var(--surface)] cursor-pointer"
+                            >
+                              <Download className="h-3.5 w-3.5" />
+                              Download PDF
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handlePayInvoice(inv.id)}
+                              disabled={payingInvoiceId === inv.id}
+                              className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-[var(--brand-500)] text-[var(--brand-btn-text)] px-3 py-1.5 text-xs font-bold transition-all hover:opacity-90 disabled:opacity-50 cursor-pointer shadow-xs"
+                            >
+                              {payingInvoiceId === inv.id ? (
+                                <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <CreditCard className="h-3.5 w-3.5" />
+                              )}
+                              <span>{payingInvoiceId === inv.id ? "Redirecting..." : "Pay Now (Stripe)"}</span>
+                            </button>
+                          )}
                         </div>
                       ))}
                     </div>

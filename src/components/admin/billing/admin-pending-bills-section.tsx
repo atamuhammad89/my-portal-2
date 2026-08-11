@@ -5,11 +5,12 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertTriangle, CheckCircle2, Clock, Download,
-  FileText, Search, TrendingUp, XCircle, AlertCircle,
+  FileText, Search, TrendingUp, XCircle, AlertCircle, Mail, Loader2,
 } from "lucide-react";
 import { formatDate } from "@/utils/format";
 import { apiClient } from "@/lib/api-client";
 import { downloadInvoicePdf } from "@/utils/download-invoice-pdf";
+import { ToastNotification, ToastMessage } from "@/components/shared/toast-notification";
 
 function useInvoiceAction(invoiceId: string) {
   const queryClient = useQueryClient();
@@ -52,12 +53,32 @@ type PendingBillsResponse = {
 
 // ── Invoice Card ──────────────────────────────────────────────────────────────
 
-
-// ── Invoice Card ──────────────────────────────────────────────────────────────
-
-
-function InvoiceCard({ bill }: { bill: PendingBill }) {
+function InvoiceCard({ bill, onShowToast }: { bill: PendingBill; onShowToast: (toast: ToastMessage) => void }) {
   const { mutate: doAction, isPending } = useInvoiceAction(bill.invoiceId);
+  const [sendingEmail, setSendingEmail] = useState(false);
+
+  const handleSendAlert = async () => {
+    setSendingEmail(true);
+    try {
+      await apiClient.post("/billing/send-unpaid-alert", { userId: bill.userId });
+      onShowToast({
+        id: Date.now().toString(),
+        type: "success",
+        title: "Email Alert Sent",
+        message: `Urgent unpaid bill notification sent to ${bill.userEmail}`,
+      });
+    } catch (err: any) {
+      onShowToast({
+        id: Date.now().toString(),
+        type: "error",
+        title: "Email Alert Failed",
+        message: err.message || "Failed to send email alert.",
+      });
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
   const isActive = bill.subscriptionStatus === "active";
   const usagePct = bill.allocatedMinutes > 0
     ? Math.min(100, Math.round((bill.usedMinutes / bill.allocatedMinutes) * 100))
@@ -186,7 +207,17 @@ function InvoiceCard({ bill }: { bill: PendingBill }) {
             className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-xs font-semibold text-[var(--muted-text)] transition-all hover:bg-[var(--surface)] hover:text-[var(--foreground)] hover:border-[var(--brand-500)] cursor-pointer"
           >
             <Download className="h-3.5 w-3.5" />
-            Download PDF
+            PDF
+          </button>
+
+          {/* Send Alert */}
+          <button
+            disabled={sendingEmail}
+            onClick={handleSendAlert}
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs font-semibold text-rose-500 transition-all hover:bg-rose-500 hover:text-white disabled:opacity-40 cursor-pointer"
+          >
+            {sendingEmail ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Mail className="h-3.5 w-3.5" />}
+            Alert
           </button>
 
           {/* Mark Paid */}
@@ -206,7 +237,7 @@ function InvoiceCard({ bill }: { bill: PendingBill }) {
             className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-xs font-semibold text-[var(--muted-text)] transition-all hover:bg-rose-500/10 hover:text-rose-500 hover:border-rose-500/30 disabled:opacity-40 cursor-pointer"
           >
             <XCircle className="h-3.5 w-3.5" />
-            Waive Off
+            Waive
           </button>
         </div>
       </div>
@@ -218,6 +249,7 @@ function InvoiceCard({ bill }: { bill: PendingBill }) {
 
 export function AdminPendingBillsSection() {
   const [search, setSearch] = useState("");
+  const [toast, setToast] = useState<ToastMessage | null>(null);
 
   const { data, isLoading, error } = useQuery<PendingBillsResponse>({
     queryKey: ["admin", "billing", "pending-bills"],
@@ -338,7 +370,7 @@ export function AdminPendingBillsSection() {
         <>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {bills.map((bill) => (
-              <InvoiceCard key={bill.invoiceId} bill={bill} />
+              <InvoiceCard key={bill.invoiceId} bill={bill} onShowToast={(t) => setToast(t)} />
             ))}
           </div>
 
@@ -358,6 +390,8 @@ export function AdminPendingBillsSection() {
           </div>
         </>
       )}
+
+      <ToastNotification toast={toast} onClose={() => setToast(null)} />
     </div>
   );
 }

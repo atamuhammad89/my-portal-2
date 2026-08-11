@@ -111,27 +111,46 @@ CREATE TABLE IF NOT EXISTS public.agents (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   retell_agent_id TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL,
-  voice_id TEXT,
+  voice_id TEXT NOT NULL DEFAULT 'retell-Cimo',
   language TEXT NOT NULL DEFAULT 'en-US',
   response_engine TEXT NOT NULL DEFAULT 'retell-llm',
   llm_websocket_url TEXT,
   begin_message TEXT,
   general_prompt TEXT,
   config JSONB NOT NULL DEFAULT '{}'::jsonb,
-  created_by UUID NOT NULL REFERENCES public.users(id) ON DELETE RESTRICT,
+  created_by UUID REFERENCES public.users(id) ON DELETE SET NULL,
   tenant_id TEXT,
   is_active BOOLEAN NOT NULL DEFAULT true,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS public.user_agent_access (
+CREATE TABLE IF NOT EXISTS public.phone_orders (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
-  agent_id UUID NOT NULL REFERENCES public.agents(id) ON DELETE CASCADE,
-  granted_by UUID REFERENCES public.users(id) ON DELETE SET NULL,
-  granted_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-  CONSTRAINT user_agent_access_user_agent_key UNIQUE(user_id, agent_id)
+  order_id TEXT NOT NULL UNIQUE,
+  status TEXT NOT NULL DEFAULT 'pending',
+  phone_number TEXT NOT NULL,
+  customer_reference TEXT,
+  requirements_met BOOLEAN NOT NULL DEFAULT true,
+  sub_order_ids JSONB NOT NULL DEFAULT '[]'::jsonb,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS public.phone_numbers (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES public.users(id) ON DELETE SET NULL,
+  phone_number TEXT NOT NULL UNIQUE,
+  country_code TEXT NOT NULL DEFAULT 'US',
+  area_code TEXT,
+  type TEXT NOT NULL DEFAULT 'local',
+  capabilities JSONB NOT NULL DEFAULT '{"voice": true, "sms": true}'::jsonb,
+  status TEXT NOT NULL DEFAULT 'active',
+  telnyx_id TEXT,
+  retell_agent_id TEXT,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS public.call_logs (
@@ -239,9 +258,6 @@ CREATE INDEX IF NOT EXISTS agents_created_by_idx ON public.agents(created_by);
 CREATE INDEX IF NOT EXISTS agents_tenant_idx ON public.agents(tenant_id);
 CREATE INDEX IF NOT EXISTS agents_retell_id_idx ON public.agents(retell_agent_id);
 
-CREATE INDEX IF NOT EXISTS user_agent_access_user_idx ON public.user_agent_access(user_id);
-CREATE INDEX IF NOT EXISTS user_agent_access_agent_idx ON public.user_agent_access(agent_id);
-
 CREATE INDEX IF NOT EXISTS call_logs_agent_id_idx ON public.call_logs(agent_id);
 CREATE INDEX IF NOT EXISTS call_logs_retell_agent_idx ON public.call_logs(retell_agent_id);
 CREATE INDEX IF NOT EXISTS call_logs_call_status_idx ON public.call_logs(call_status);
@@ -254,6 +270,13 @@ CREATE INDEX IF NOT EXISTS user_assistant_assignments_user_idx ON public.user_as
 
 CREATE INDEX IF NOT EXISTS idx_invoices_user_id ON public.invoices USING btree (user_id);
 CREATE INDEX IF NOT EXISTS idx_invoices_created_at ON public.invoices USING btree (created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_phone_orders_user_id ON public.phone_orders(user_id);
+CREATE INDEX IF NOT EXISTS idx_phone_orders_status ON public.phone_orders(status);
+
+CREATE INDEX IF NOT EXISTS idx_phone_numbers_user_id ON public.phone_numbers(user_id);
+CREATE INDEX IF NOT EXISTS idx_phone_numbers_phone ON public.phone_numbers(phone_number);
+CREATE INDEX IF NOT EXISTS idx_phone_numbers_retell_agent ON public.phone_numbers(retell_agent_id);
 
 -- 6. Trigger Functions & Triggers
 
@@ -272,6 +295,14 @@ CREATE OR REPLACE TRIGGER plans_updated_at
 
 CREATE OR REPLACE TRIGGER subscriptions_updated_at 
   BEFORE UPDATE ON public.subscriptions 
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+CREATE OR REPLACE TRIGGER phone_orders_updated_at 
+  BEFORE UPDATE ON public.phone_orders 
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+CREATE OR REPLACE TRIGGER phone_numbers_updated_at 
+  BEFORE UPDATE ON public.phone_numbers 
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
 -- Overage Sync Trigger
@@ -573,7 +604,6 @@ CREATE OR REPLACE TRIGGER trigger_on_overage_invoice_update
 
 -- 7. Row Level Security Policies
 ALTER TABLE public.agents ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.user_agent_access ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.call_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.cdrs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.plans ENABLE ROW LEVEL SECURITY;
@@ -582,21 +612,94 @@ ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_assistant_assignments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.invoices ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.phone_orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.phone_numbers ENABLE ROW LEVEL SECURITY;
 
--- Service Role Policies (all access)
+-- Service Role Policies (full access bypass)
 CREATE POLICY "service_role_all_agents" ON public.agents FOR ALL TO service_role USING (true) WITH CHECK (true);
-CREATE POLICY "service_role_all_uaa" ON public.user_agent_access FOR ALL TO service_role USING (true) WITH CHECK (true);
 CREATE POLICY "service_role_all_call_logs" ON public.call_logs FOR ALL TO service_role USING (true) WITH CHECK (true);
-CREATE POLICY "service_role_all" ON public.users FOR ALL TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY "service_role_all_users" ON public.users FOR ALL TO service_role USING (true) WITH CHECK (true);
 CREATE POLICY "service_role_all_plans" ON public.plans FOR ALL TO service_role USING (true) WITH CHECK (true);
 CREATE POLICY "service_role_all_subscriptions" ON public.subscriptions FOR ALL TO service_role USING (true) WITH CHECK (true);
 CREATE POLICY "service_role_all_poi" ON public.pending_overage_invoices FOR ALL TO service_role USING (true) WITH CHECK (true);
 CREATE POLICY "service_role_all_user_assignments" ON public.user_assistant_assignments FOR ALL TO service_role USING (true) WITH CHECK (true);
 CREATE POLICY "service_role_all_cdrs" ON public.cdrs FOR ALL TO service_role USING (true) WITH CHECK (true);
 CREATE POLICY "service_role_all_invoices" ON public.invoices FOR ALL TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY "service_role_all_phone_orders" ON public.phone_orders FOR ALL TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY "service_role_all_phone_numbers" ON public.phone_numbers FOR ALL TO service_role USING (true) WITH CHECK (true);
 
--- Authenticated User policies
-CREATE POLICY "users_view_own_invoices" ON public.invoices FOR SELECT TO authenticated USING (user_id = auth.uid());
+-- Authenticated Users Policies (own data access)
+CREATE POLICY "users_select_own_profile" ON public.users FOR SELECT TO authenticated USING (id = auth.uid());
+CREATE POLICY "users_update_own_profile" ON public.users FOR UPDATE TO authenticated USING (id = auth.uid()) WITH CHECK (id = auth.uid());
+
+CREATE POLICY "anyone_select_active_plans" ON public.plans FOR SELECT USING (is_active = true);
+
+CREATE POLICY "users_select_own_subscriptions" ON public.subscriptions FOR SELECT TO authenticated USING (user_id = auth.uid());
+
+CREATE POLICY "users_select_own_invoices" ON public.invoices FOR SELECT TO authenticated USING (user_id = auth.uid());
+
+CREATE POLICY "users_select_own_poi" ON public.pending_overage_invoices FOR SELECT TO authenticated USING (user_id = auth.uid());
+
+CREATE POLICY "users_select_own_uaa" ON public.user_assistant_assignments FOR SELECT TO authenticated USING (user_id = auth.uid());
+
+CREATE POLICY "users_select_own_cdrs" ON public.cdrs FOR SELECT TO authenticated USING (
+  EXISTS (
+    SELECT 1 FROM public.user_assistant_assignments uaa
+    WHERE uaa.user_id = auth.uid() AND uaa.assistant_id = cdrs.assistant_id
+  )
+);
+
+CREATE POLICY "users_select_own_agents" ON public.agents FOR SELECT TO authenticated USING (created_by = auth.uid());
+CREATE POLICY "users_insert_own_agents" ON public.agents FOR INSERT TO authenticated WITH CHECK (created_by = auth.uid());
+CREATE POLICY "users_update_own_agents" ON public.agents FOR UPDATE TO authenticated USING (created_by = auth.uid()) WITH CHECK (created_by = auth.uid());
+CREATE POLICY "users_delete_own_agents" ON public.agents FOR DELETE TO authenticated USING (created_by = auth.uid());
+
+CREATE POLICY "users_select_own_phone_orders" ON public.phone_orders FOR SELECT TO authenticated USING (user_id = auth.uid());
+CREATE POLICY "users_insert_own_phone_orders" ON public.phone_orders FOR INSERT TO authenticated WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY "users_select_own_phone_numbers" ON public.phone_numbers FOR SELECT TO authenticated USING (user_id = auth.uid());
+CREATE POLICY "users_manage_own_phone_numbers" ON public.phone_numbers FOR ALL TO authenticated USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
+
+-- Admin/Operations Full Management Policies
+CREATE POLICY "admin_all_users" ON public.users FOR ALL TO authenticated USING (
+  EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role IN ('super_admin', 'admin', 'operations'))
+);
+
+CREATE POLICY "admin_all_plans" ON public.plans FOR ALL TO authenticated USING (
+  EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role IN ('super_admin', 'admin', 'operations'))
+);
+
+CREATE POLICY "admin_all_subscriptions" ON public.subscriptions FOR ALL TO authenticated USING (
+  EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role IN ('super_admin', 'admin', 'operations'))
+);
+
+CREATE POLICY "admin_all_poi" ON public.pending_overage_invoices FOR ALL TO authenticated USING (
+  EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role IN ('super_admin', 'admin', 'operations'))
+);
+
+CREATE POLICY "admin_all_invoices" ON public.invoices FOR ALL TO authenticated USING (
+  EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role IN ('super_admin', 'admin', 'operations'))
+);
+
+CREATE POLICY "admin_all_uaa" ON public.user_assistant_assignments FOR ALL TO authenticated USING (
+  EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role IN ('super_admin', 'admin', 'operations'))
+);
+
+CREATE POLICY "admin_all_cdrs" ON public.cdrs FOR ALL TO authenticated USING (
+  EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role IN ('super_admin', 'admin', 'operations', 'support'))
+);
+
+CREATE POLICY "admin_all_agents" ON public.agents FOR ALL TO authenticated USING (
+  EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role IN ('super_admin', 'admin', 'operations'))
+);
+
+CREATE POLICY "admin_all_phone_orders" ON public.phone_orders FOR ALL TO authenticated USING (
+  EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role IN ('super_admin', 'admin', 'operations'))
+);
+
+CREATE POLICY "admin_all_phone_numbers" ON public.phone_numbers FOR ALL TO authenticated USING (
+  EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role IN ('super_admin', 'admin', 'operations'))
+);
 
 -- 8. Cron Schedule (Hourly)
 -- Removes duplicates first

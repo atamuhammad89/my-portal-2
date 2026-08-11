@@ -137,11 +137,11 @@
   --accent-500: #059669;
 
   /* Surface colors */
-  --background: #e7e7e7;
-  /* Slightly darker cool blue-grey background */
+  --background: #ffffff;
+  /* Pure white background */
   --surface: #ffffff;
   /* Pure white */
-  --surface-2: #e6edf4;
+  --surface-2: #f1f5f9;
 
   /* Text colors */
   --foreground: #0f172a;
@@ -402,4 +402,74 @@ aside {
   background-color: var(--warning-bg);
   border-color: rgba(245, 158, 11, 0.2);
   color: var(--warning-fg);
+}
+
+/* Premium Dark Enterprise Hero Utilities */
+.bg-hero-grid {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+@keyframes spin-cw {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes spin-ccw {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-360deg); }
+}
+
+@keyframes breathe-glow {
+  0%, 100% { transform: scale(1); opacity: 0.7; filter: drop-shadow(0 0 15px rgba(0, 212, 255, 0.4)); }
+  50% { transform: scale(1.08); opacity: 1; filter: drop-shadow(0 0 30px rgba(123, 92, 255, 0.8)); }
+}
+
+@keyframes float-sine-1 {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes float-sine-2 {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(8px); }
+}
+
+@keyframes float-sine-3 {
+  0%, 100% { transform: translateY(-4px); }
+  50% { transform: translateY(4px); }
+}
+
+@keyframes svg-pulse-flow {
+  from { stroke-dashoffset: 40; }
+  to { stroke-dashoffset: 0; }
+}
+
+.animate-spin-cw {
+  animation: spin-cw 18s linear infinite;
+}
+
+.animate-spin-ccw {
+  animation: spin-ccw 14s linear infinite;
+}
+
+.animate-breathe-glow {
+  animation: breathe-glow 4s ease-in-out infinite;
+}
+
+.animate-float-1 {
+  animation: float-sine-1 4.5s ease-in-out infinite;
+}
+
+.animate-float-2 {
+  animation: float-sine-2 5.2s ease-in-out infinite;
+}
+
+.animate-float-3 {
+  animation: float-sine-3 4s ease-in-out infinite;
+}
+
+.animate-svg-flow {
+  stroke-dasharray: 8, 8;
+  animation: svg-pulse-flow 1.5s linear infinite;
 }

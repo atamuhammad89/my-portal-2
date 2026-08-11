@@ -85,7 +85,7 @@ function AudioPlayer({ url }: { url: string }) {
   function toggle() {
     const el = audioRef.current;
     if (!el) return;
-    playing ? el.pause() : el.play();
+    playing ? el.pause() : el.play().catch(() => {});
     setPlaying(!playing);
   }
 
@@ -107,7 +107,6 @@ function AudioPlayer({ url }: { url: string }) {
         }}
         onLoadedMetadata={() => setDuration(audioRef.current?.duration ?? 0)}
         onEnded={() => { setPlaying(false); setProgress(0); setCurrentTime(0); }}
-        crossOrigin="anonymous"
         preload="metadata"
       />
       <div className="flex items-center gap-3">
@@ -134,10 +133,14 @@ function AudioPlayer({ url }: { url: string }) {
             onChange={(e) => {
               const el = audioRef.current;
               if (!el) return;
-              const t = (Number(e.target.value) / 100) * el.duration;
-              el.currentTime = t;
-              setCurrentTime(t);
-              setProgress(Number(e.target.value));
+              const val = Number(e.target.value);
+              const duration = el.duration;
+              if (typeof duration === "number" && isFinite(duration) && !isNaN(duration)) {
+                const t = (val / 100) * duration;
+                el.currentTime = t;
+                setCurrentTime(t);
+                setProgress(val);
+              }
             }}
             className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-[var(--border)] accent-[var(--brand-500)]"
           />

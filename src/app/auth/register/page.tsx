@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle, Eye, EyeOff, Loader2 } from "lucide-react";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
+import { GoogleSignInButton } from "@/components/shared/GoogleSignInButton";
 
 function capitalize(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1);
@@ -201,10 +202,21 @@ function RegisterForm() {
           Create your account
         </h1>
         <p className="mt-1 text-sm" style={{ color: "var(--muted-text)" }}>
-          Set up your credentials to access your dashboard.
+          Sign up with Google or set up your credentials to get started.
         </p>
 
-        <div className="mt-6 space-y-4" onKeyDown={handleKeyDown}>
+        <div className="mt-6 space-y-4">
+          <GoogleSignInButton label="Sign up with Google" onError={(err) => setErrorMsg(err)} />
+
+          <div className="relative flex items-center justify-center my-4">
+            <div className="w-full border-t border-[var(--border)]" />
+            <span className="absolute px-3 text-xs uppercase bg-[var(--surface)] text-[var(--subtle-text)] tracking-wider">
+              Or sign up with email
+            </span>
+          </div>
+        </div>
+
+        <div className="mt-4 space-y-4" onKeyDown={handleKeyDown}>
           {/* Full name */}
           <div className="space-y-1.5">
             <label className="text-sm font-medium" style={{ color: "var(--muted-text)" }}>
@@ -317,11 +329,11 @@ function RegisterForm() {
 
         <div className="mt-6 pt-4" style={{ borderTop: "1px solid var(--border-light)" }}>
           <Link
-            href="/pricing"
+            href="/"
             className="block text-center text-sm transition-colors"
             style={{ color: "var(--subtle-text)" }}
           >
-            ← Back to pricing
+            ← Back to CallAutomate
           </Link>
         </div>
       </section>

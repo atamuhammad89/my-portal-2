@@ -32,6 +32,13 @@ export const adminRetellAgentsService = {
     await apiClient.delete(`/admin/agents/${agentId}`);
   },
 
+  async publishAgent(agentId: string): Promise<{ agent_id: string; version: number; published_at: number }> {
+    const res = await apiClient.post<{ agent_id: string; version: number; published_at: number }>(
+      `/admin/agents/${agentId}/publish`
+    );
+    return res.data;
+  },
+
   // ── Access Management ────────────────────────────────────────────────────────
   async getAgentAccess(agentId: string) {
     const res = await apiClient.get(`/admin/agents/${agentId}/access`);

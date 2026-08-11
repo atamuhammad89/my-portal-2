@@ -9,8 +9,11 @@ import "./globals.css";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Voice OS",
-  description: "Multi-tenant customer dashboard for AI calling operations."
+  title: "CallAutomate - AI Voice Automation Platform",
+  description: "Enterprise multi-tenant customer dashboard and AI calling operations platform.",
+  icons: {
+    icon: "/icon.svg",
+  },
 };
 
 export default async function RootLayout({

@@ -24,7 +24,7 @@ export function LogoutButton() {
       // non-critical — proceed regardless
     }
 
-    router.replace("/pricing");
+    router.replace("/");
   };
 
   return (

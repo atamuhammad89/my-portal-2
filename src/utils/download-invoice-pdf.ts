@@ -18,7 +18,7 @@ export type InvoiceData = {
   overageMinutes?: number;
   pricePerMinute?: number;
   amount: number;
-  type: "subscription" | "renewal" | "overage";
+  type: "subscription" | "renewal" | "overage" | "phone_number";
   invoiceNumber: string;
   generatedAt: string;
 };
@@ -66,19 +66,19 @@ export async function downloadInvoicePdf(bill: InvoiceData): Promise<void> {
   const customerId = bill.userId ? bill.userId.slice(0, 8).toUpperCase() : "—";
 
   // ── LOGO & HEADER ──────────────────────────────────────────────────────────
-  // 1. Draw Voice OS logo icon
-  // A rounded-corner blue rectangle with letter "V" in white
+  // 1. Draw CallAutomate logo icon
+  // A rounded-corner blue rectangle with letter "C" in white
   setFill("#2563eb"); // Brand Blue
   doc.roundedRect(margin, y, 9, 9, 2, 2, "F");
 
   setFont("bold", 15, "#ffffff");
-  doc.text("V", margin + 2.5, y + 6.5);
+  doc.text("C", margin + 2.5, y + 6.5);
 
   // Logo Text
   setFont("bold", 15, "#0f172a"); // Slate-900
-  doc.text("Voice", margin + 11.5, y + 6.5);
+  doc.text("Call", margin + 11.5, y + 6.5);
   setFont("bold", 15, "#2563eb"); // Brand Blue
-  doc.text("OS", margin + 26, y + 6.5);
+  doc.text("Automate", margin + 23.5, y + 6.5);
 
   // INVOICE label (right-aligned)
   setFont("bold", 24, "#475569"); // Slate-600
@@ -180,6 +180,9 @@ export async function downloadInvoicePdf(bill: InvoiceData): Promise<void> {
   } else if (bill.type === "renewal") {
     itemTitle = `Subscription Renewal — ${bill.planName} Plan`;
     itemDesc = `Monthly subscription renewal fee for ${bill.planName} plan.`;
+  } else if (bill.type === "phone_number") {
+    itemTitle = `Phone Number Purchase — ${bill.planName}`;
+    itemDesc = `Monthly service and setup fee for ${bill.planName}.`;
   } else {
     itemTitle = `Initial Subscription — ${bill.planName} Plan`;
     itemDesc = `Initial monthly plan subscription fee for ${bill.planName} plan.`;

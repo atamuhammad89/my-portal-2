@@ -2,17 +2,23 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, PhoneCall, Settings, Receipt, X, Building2 } from "lucide-react";
+import { LayoutDashboard, PhoneCall, Settings, Receipt, X, Building2, Phone, Bot } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/store/ui-store";
 import { LogoutButton } from "@/components/shared/logout-button";
 import { useAuthStore } from "@/store/auth-store";
+import { CallAutomateLogoIcon } from "@/components/shared/call-automate-logo";
+
+import { useQuery } from "@tanstack/react-query";
+import { apiClient } from "@/lib/api-client";
 
 const navItems = [
-  { href: "/dashboard", label: "Dashboard",  icon: LayoutDashboard },
-  { href: "/call-logs", label: "Call Logs",   icon: PhoneCall },
-  { href: "/billing",   label: "Billing",     icon: Receipt },
-  { href: "/settings",  label: "Settings",    icon: Settings },
+  { href: "/dashboard",     label: "Dashboard",     icon: LayoutDashboard },
+  { href: "/phone-numbers", label: "Phone Numbers", icon: Phone },
+  { href: "/agents",        label: "Voice Agents",  icon: Bot },
+  { href: "/call-logs",     label: "Call Logs",      icon: PhoneCall },
+  { href: "/billing",       label: "Billing",        icon: Receipt },
+  { href: "/settings",      label: "Settings",       icon: Settings },
 ];
 
 export function AppSidebar() {
@@ -20,6 +26,17 @@ export function AppSidebar() {
   const sidebarOpen = useUIStore((s) => s.sidebarOpen);
   const setSidebarOpen = useUIStore((s) => s.setSidebarOpen);
   const user = useAuthStore((s) => s.user);
+
+  const { data: invoiceData } = useQuery<{ invoices: any[] }>({
+    queryKey: ["sidebar", "unpaid-invoices"],
+    queryFn: async () => {
+      const res = await apiClient.get<{ invoices: any[] }>("/billing/invoices");
+      return res.data;
+    },
+    staleTime: 30000,
+  });
+
+  const unpaidCount = (invoiceData?.invoices ?? []).filter((inv: any) => inv.status !== "paid").length;
 
   const isReseller = user?.role === "reseller";
 
@@ -51,20 +68,12 @@ export function AppSidebar() {
         {/* Logo and Mobile Close */}
         <div className="flex h-16 items-center justify-between gap-2.5 px-6 border-b border-sidebar-border" style={{ borderColor: "var(--sidebar-border)" }}>
           <div className="flex items-center gap-2.5">
-            <div
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold text-white flex-shrink-0"
-              style={{
-                background: "linear-gradient(135deg, var(--brand-500) 0%, var(--brand-600) 100%)",
-                boxShadow: "0 2px 6px rgba(37, 99, 235, 0.2)"
-              }}
-            >
-              V
-            </div>
+            <CallAutomateLogoIcon className="w-7 h-7 shrink-0" size={28} />
             <span
-              className="text-base font-bold text-[var(--sidebar-text-hover)] tracking-wider uppercase"
+              className="text-base font-extrabold text-[var(--sidebar-text-hover)] tracking-tight"
               style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
             >
-              Voice<span className="text-[var(--brand-500)]">OS</span>
+              Call<span className="text-[var(--brand-500)]">Automate</span>
             </span>
           </div>
 
@@ -118,9 +127,13 @@ export function AppSidebar() {
               >
                 <Icon className={cn("h-4 w-4 shrink-0 transition-transform group-hover:scale-110", active ? "text-sidebar-active" : "text-sidebar-text group-hover:text-sidebar-text-hover")} />
                 <span>{item.label}</span>
-                {active && (
+                {item.href === "/billing" && unpaidCount > 0 ? (
+                  <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-extrabold text-white shadow-xs animate-pulse">
+                    {unpaidCount}
+                  </span>
+                ) : active ? (
                   <span className="ml-auto h-1.5 w-1.5 rounded-full bg-[var(--brand-500)]" style={{ boxShadow: "0 0 6px var(--brand-500)" }} />
-                )}
+                ) : null}
               </Link>
             );
           })}
@@ -141,9 +154,7 @@ export function AppSidebar() {
           </div>
 
           <div className="flex items-center gap-2.5 relative z-10">
-            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--brand-500)] text-white text-xs font-bold shadow-sm">
-              N
-            </div>
+            <CallAutomateLogoIcon className="w-6 h-6 shrink-0" size={24} />
             <div className="flex-1 min-w-0">
               <p className="text-[10px] uppercase font-bold tracking-wider text-[var(--sidebar-text)] font-sans">Powered by</p>
               <p className="text-xs font-bold text-[var(--sidebar-text-hover)] truncate font-sans">CallAutomate</p>

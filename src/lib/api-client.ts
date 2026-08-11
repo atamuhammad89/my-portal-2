@@ -54,6 +54,7 @@ import { clearAuthSession } from "@/utils/auth-session";
 
 export const apiClient = axios.create({
   timeout: 30000,
+  withCredentials: true,
 });
 
 apiClient.interceptors.request.use((config) => {
@@ -70,7 +71,6 @@ apiClient.interceptors.request.use((config) => {
   } as typeof nextConfig.headers;
 
   return nextConfig;
-
 });
 
 apiClient.interceptors.response.use(
@@ -79,9 +79,6 @@ apiClient.interceptors.response.use(
     const status = error.response?.status;
     const payload = error.response?.data;
     const message = payload?.message ?? error.message ?? "Unexpected API error";
-    if (status === 401 && typeof window !== "undefined") {
-      clearAuthSession();
-    }
     return Promise.reject(
       new ApiError(message, { status, code: payload?.code })
     );

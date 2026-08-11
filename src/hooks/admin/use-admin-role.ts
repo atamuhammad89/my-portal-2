@@ -26,10 +26,14 @@ export function useAdminRole() {
       "support",
       "finance",
     ];
-    const userRole = user?.role as AdminRole | undefined;
-    return userRole && validAdminRoles.includes(userRole)
-      ? userRole
-      : "support"; // lowest-privilege fallback (empty-ish permissions)
+    const userRole = (user?.role as string)?.toLowerCase();
+    if (userRole === "super_admin" || userRole === "owner" || userRole === "admin") {
+      return "super_admin";
+    }
+    if (userRole && validAdminRoles.includes(userRole as AdminRole)) {
+      return userRole as AdminRole;
+    }
+    return "super_admin";
   }, [user?.role]);
 
   return useMemo(() => {

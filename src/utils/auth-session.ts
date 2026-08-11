@@ -57,14 +57,7 @@ export function readPersistedAuthSession(): PersistedAuthSession | null {
     return null;
   }
 
-  // Verify that the thin presence cookie is present
-  const hasPresenceCookie = document.cookie
-    .split("; ")
-    .some((row) => row.startsWith(`${env.authCookieName}=`));
-
-  if (!hasPresenceCookie) {
-    return null;
-  }
+  // Check local storage session items
 
   const expiresAtRaw = window.localStorage.getItem(SESSION_EXP_KEY);
   const userRaw = window.localStorage.getItem(USER_KEY);
