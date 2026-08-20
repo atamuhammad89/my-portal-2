@@ -58,19 +58,19 @@ export async function POST(req: NextRequest) {
       console.error("[/api/auth/google] User lookup error:", fetchError);
     }
 
-    // 2. If user does not exist, create user + 30-Day Free Trial
+    // 2. If user does not exist, create user account
     if (!user) {
       const dummyPassword = `GoogleOAuth_${google_id || Date.now()}_${Math.random().toString(36).substring(2)}`;
       const password_hash = await bcrypt.hash(dummyPassword, 10);
 
-      // Create new user in public.users
+      // Create new user in public.users with 'owner' role
       const { data: newUser, error: createUserError } = await supabase
         .from("users")
         .insert({
           email,
           full_name,
           password_hash,
-          role: "member",
+          role: "owner",
           is_active: true,
           is_email_verified: true,
         })
@@ -86,53 +86,67 @@ export async function POST(req: NextRequest) {
       }
 
       user = newUser;
+    }
 
-      // Find default or trial plan from public.plans
-      let { data: defaultPlan } = await supabase
+    // 3. Check if user has ANY prior subscriptions before creating a free trial
+    const { data: existingSubs } = await supabase
+      .from("subscriptions")
+      .select("id")
+      .eq("user_id", user.id);
+
+    if (!existingSubs || existingSubs.length === 0) {
+      // Find 'free_trial' plan or fallback to cheapest active plan
+      let { data: trialPlan } = await supabase
         .from("plans")
         .select("id, monthly_price, price_per_minute, total_minutes")
+        .eq("name", "free_trial")
         .eq("is_active", true)
-        .order("monthly_price", { ascending: true })
-        .limit(1)
         .maybeSingle();
 
-      const planId = defaultPlan?.id || "00000000-0000-0000-0000-000000000001";
-      const monthlyPrice = defaultPlan?.monthly_price ?? 0;
-      const pricePerMinute = defaultPlan?.price_per_minute ?? 0;
-      const totalMinutes = defaultPlan?.total_minutes ?? 100;
+      if (!trialPlan) {
+        const { data: defaultPlan } = await supabase
+          .from("plans")
+          .select("id, monthly_price, price_per_minute, total_minutes")
+          .eq("is_active", true)
+          .order("monthly_price", { ascending: true })
+          .limit(1)
+          .maybeSingle();
+        trialPlan = defaultPlan;
+      }
 
-      // Calculate 30-day trial dates
-      const startedAt = new Date();
-      const endsAt = new Date();
-      endsAt.setDate(endsAt.getDate() + 30);
+      if (trialPlan) {
+        const startedAt = new Date();
+        const endsAt = new Date();
+        endsAt.setDate(endsAt.getDate() + 30);
 
-      // Create 30-Day Free Trial record in public.subscriptions
-      const { data: newSubscription, error: createSubError } = await supabase
-        .from("subscriptions")
-        .insert({
-          user_id: user.id,
-          plan_id: planId,
-          status: "active",
-          started_at: startedAt.toISOString(),
-          ends_at: endsAt.toISOString(),
-          minutes_used: 0,
-          monthly_price_snapshot: monthlyPrice,
-          price_per_minute_snapshot: pricePerMinute,
-          total_minutes_snapshot: totalMinutes,
-        })
-        .select("id")
-        .single();
+        // Create 30-Day Free Trial record in public.subscriptions
+        const { data: newSubscription, error: createSubError } = await supabase
+          .from("subscriptions")
+          .insert({
+            user_id: user.id,
+            plan_id: trialPlan.id,
+            status: "active",
+            started_at: startedAt.toISOString(),
+            ends_at: endsAt.toISOString(),
+            minutes_used: 0,
+            monthly_price_snapshot: trialPlan.monthly_price ?? 0,
+            price_per_minute_snapshot: trialPlan.price_per_minute ?? 0,
+            total_minutes_snapshot: trialPlan.total_minutes ?? 50,
+          })
+          .select("id")
+          .single();
 
-      if (!createSubError && newSubscription) {
-        // Link active subscription to user
-        await supabase
-          .from("users")
-          .update({ active_subscription_id: newSubscription.id })
-          .eq("id", user.id);
+        if (!createSubError && newSubscription) {
+          // Link active subscription to user
+          await supabase
+            .from("users")
+            .update({ active_subscription_id: newSubscription.id })
+            .eq("id", user.id);
 
-        user.active_subscription_id = newSubscription.id;
-      } else {
-        console.warn("[/api/auth/google] Subscription creation warning:", createSubError);
+          user.active_subscription_id = newSubscription.id;
+        } else {
+          console.warn("[/api/auth/google] Subscription creation warning:", createSubError);
+        }
       }
     }
 

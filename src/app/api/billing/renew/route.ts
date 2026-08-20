@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import { NextRequest, NextResponse } from "next/server";
 import { verifyRequestJwt } from "@/lib/jwt-auth";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { getAppBaseUrl } from "@/utils/url-helper";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -39,6 +40,8 @@ export async function POST(req: NextRequest) {
       .eq("id", payload.sub)
       .single();
 
+    const baseUrl = getAppBaseUrl(req);
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       mode: "subscription",
@@ -50,8 +53,8 @@ export async function POST(req: NextRequest) {
         user_id: payload.sub,
         is_renewal: "true",
       },
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing/renew/success?session_id={CHECKOUT_SESSION_ID}&plan_id=${planId}&plan_name=${encodeURIComponent(planName)}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing`,
+      success_url: `${baseUrl}/billing/renew/success?session_id={CHECKOUT_SESSION_ID}&plan_id=${planId}&plan_name=${encodeURIComponent(planName)}`,
+      cancel_url: `${baseUrl}/billing`,
     });
 
     return NextResponse.json({ url: session.url });

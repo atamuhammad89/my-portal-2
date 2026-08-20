@@ -1,6 +1,7 @@
 // src/app/api/billing/notify-expiration/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+import { getAppBaseUrl } from "@/utils/url-helper";
 
 // ── In-memory rate limiter: max 20 calls/minute per caller IP ──────────────
 const RATE_LIMIT = 20;
@@ -90,13 +91,7 @@ export async function POST(req: NextRequest) {
         })
       : "recently";
 
-    // App URL is mandatory — must be set in .env.local (http://localhost:3000 for dev,
-    // https://yourdomain.com for production). No hardcoded fallback.
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "");
-    if (!appUrl) {
-      console.error("[notify-expiration] NEXT_PUBLIC_APP_URL is not set in environment variables.");
-      return NextResponse.json({ error: "Server misconfiguration: NEXT_PUBLIC_APP_URL not set" }, { status: 500 });
-    }
+    const appUrl = getAppBaseUrl(req);
     // Include the intended user's ID so the app can verify the correct account is renewing
     const renewUrl = userId
       ? `${appUrl}/billing?renew=true&uid=${encodeURIComponent(userId)}`

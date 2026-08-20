@@ -2,6 +2,7 @@ import Stripe from "stripe";
 import { NextRequest, NextResponse } from "next/server";
 import { verifyRequestJwt } from "@/lib/jwt-auth";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { getAppBaseUrl } from "@/utils/url-helper";
 
 const stripeKey = process.env.STRIPE_SECRET_KEY || "sk_test_mock_key";
 const stripe = new Stripe(stripeKey);
@@ -38,7 +39,7 @@ export async function POST(req: NextRequest) {
     }
 
     const amountInCents = Math.max(100, Math.round(parseFloat(invoice.amount) * 100));
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const baseUrl = getAppBaseUrl(req);
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],

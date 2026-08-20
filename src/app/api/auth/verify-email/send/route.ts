@@ -4,6 +4,7 @@ import crypto from "crypto";
 import nodemailer from "nodemailer";
 import { verifyRequestJwt } from "@/lib/jwt-auth";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { getAppBaseUrl } from "@/utils/url-helper";
 
 export async function POST(req: NextRequest) {
   const payload = await verifyRequestJwt(req);
@@ -71,7 +72,8 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const verificationLink = `${process.env.NEXT_PUBLIC_APP_URL}/auth/verify-email?token=${token}`;
+    const baseUrl = getAppBaseUrl(req);
+    const verificationLink = `${baseUrl}/auth/verify-email?token=${token}`;
 
     const mailOptions = {
       from: `"CallAutomate Support" <${smtpUser}>`,

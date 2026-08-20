@@ -2,7 +2,21 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Menu, X, ChevronDown, LogIn, LayoutDashboard, ArrowRight } from "lucide-react";
+import {
+  Menu,
+  X,
+  ChevronDown,
+  ChevronRight,
+  LogIn,
+  LayoutDashboard,
+  ArrowRight,
+  Utensils,
+  Scissors,
+  Building2,
+  Truck,
+  Stethoscope,
+  ShoppingBag,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuthStore } from "@/store/auth-store";
 import { TrialBanner } from "./TrialBanner";
@@ -49,9 +63,19 @@ interface LandingHeaderProps {
   onUpgradeClick?: () => void;
 }
 
+const industriesList = [
+  { id: "industry-restaurant", label: "Restaurants & Takeaways", icon: Utensils },
+  { id: "industry-salon", label: "Salons & Spas", icon: Scissors },
+  { id: "industry-real-estate", label: "Real Estate", icon: Building2 },
+  { id: "industry-logistics", label: "Logistics", icon: Truck },
+  { id: "industry-healthcare", label: "Healthcare", icon: Stethoscope },
+  { id: "industry-retail", label: "Retail", icon: ShoppingBag },
+];
+
 export function LandingHeader({ onNavigate, onUpgradeClick }: LandingHeaderProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileIndustriesOpen, setMobileIndustriesOpen] = useState(true);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const user = useAuthStore((s) => s.user);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -72,6 +96,7 @@ export function LandingHeader({ onNavigate, onUpgradeClick }: LandingHeaderProps
 
   return (
     <header className="fixed top-0 w-full z-50 pt-3 px-4 sm:px-6 transition-all duration-300 pointer-events-none">
+      {/* Top Navbar Pill */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -79,44 +104,52 @@ export function LandingHeader({ onNavigate, onUpgradeClick }: LandingHeaderProps
         className="max-w-[1360px] mx-auto pointer-events-auto"
       >
         <div
-          className={`flex items-center justify-between h-16 px-6 rounded-full transition-all duration-300 ${
+          className={`flex items-center justify-between h-16 px-4 sm:px-6 rounded-full transition-all duration-300 ${
             scrolled
               ? "bg-white/85 backdrop-blur-xl border border-white/90 shadow-[0_10px_35px_rgba(0,0,0,0.08),0_0_20px_rgba(255,255,255,0.9)_inset]"
               : "bg-white/70 backdrop-blur-lg border border-white/80 shadow-[0_8px_30px_rgba(0,0,0,0.05)]"
           }`}
         >
           {/* Logo */}
-          <div onClick={() => handleNavClick("home")} className="flex items-center gap-2.5 cursor-pointer group">
+          <div onClick={() => handleNavClick("home")} className="flex items-center gap-2 sm:gap-2.5 cursor-pointer group shrink-0">
             <Logo />
-            <span className="font-extrabold text-xl tracking-tight text-slate-900 font-sans">
+            <span className="font-extrabold text-lg sm:text-xl tracking-tight text-slate-900 font-sans">
               CallAutomate
             </span>
           </div>
 
-          {/* Nav Links */}
+          {/* Desktop Nav Links */}
           <div className="hidden md:flex items-center gap-7">
-            {/* Features Dropdown / Button */}
             <button onClick={() => handleNavClick("features")} className="text-slate-700 hover:text-indigo-600 text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer">
               Features <ChevronDown className="w-3 h-3 opacity-60" />
             </button>
 
-            {/* Industries Dropdown */}
+            {/* Industries Dropdown with seamless hover bridge */}
             <div
               className="relative group"
               onMouseEnter={() => setDropdownOpen(true)}
               onMouseLeave={() => setDropdownOpen(false)}
             >
-              <button className="text-slate-700 hover:text-indigo-600 text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer">
+              <button className="text-slate-700 hover:text-indigo-600 text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer py-2">
                 Industries <ChevronDown className="w-3 h-3 opacity-60" />
               </button>
 
-              <div className={`absolute top-full left-0 mt-2 w-56 bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-100 py-2 transition-all duration-200 origin-top-left ${dropdownOpen ? "opacity-100 scale-100 visible" : "opacity-0 scale-95 invisible"}`}>
-                <button onClick={() => handleNavClick("industry-restaurant")} className="block w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors font-semibold cursor-pointer">Restaurants & Takeaways</button>
-                <button onClick={() => handleNavClick("industry-salon")} className="block w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors font-semibold cursor-pointer">Salons & Spas</button>
-                <button onClick={() => handleNavClick("industry-real-estate")} className="block w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors font-semibold cursor-pointer">Real Estate</button>
-                <button onClick={() => handleNavClick("industry-logistics")} className="block w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors font-semibold cursor-pointer">Logistics</button>
-                <button onClick={() => handleNavClick("industry-healthcare")} className="block w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors font-semibold cursor-pointer">Healthcare</button>
-                <button onClick={() => handleNavClick("industry-retail")} className="block w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors font-semibold cursor-pointer">Retail</button>
+              <div className={`absolute top-full left-0 pt-2 w-60 transition-all duration-200 origin-top-left ${dropdownOpen ? "opacity-100 scale-100 visible" : "opacity-0 scale-95 invisible pointer-events-none"}`}>
+                <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-100/90 py-2">
+                  {industriesList.map((ind) => {
+                    const Icon = ind.icon;
+                    return (
+                      <button
+                        key={ind.id}
+                        onClick={() => handleNavClick(ind.id)}
+                        className="w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors font-semibold flex items-center gap-2.5 cursor-pointer"
+                      >
+                        <Icon className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                        <span>{ind.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
@@ -131,11 +164,10 @@ export function LandingHeader({ onNavigate, onUpgradeClick }: LandingHeaderProps
             </button>
           </div>
 
-          {/* Right Controls */}
+          {/* Right Controls (Desktop) */}
           <div className="hidden md:flex items-center gap-3">
             <TrialBanner onUpgradeClick={onUpgradeClick} />
 
-            {/* Glowing Dark Book a Demo Pill Button */}
             <button
               onClick={() => handleNavClick("booking")}
               className="group relative bg-[#0B0E1A] hover:bg-[#1B2036] text-white pl-5 pr-2 py-1.5 rounded-full text-xs font-bold transition-all shadow-[0_0_20px_rgba(124,92,252,0.4),0_0_10px_rgba(34,211,238,0.3)] hover:scale-[1.02] flex items-center gap-3 cursor-pointer"
@@ -165,11 +197,12 @@ export function LandingHeader({ onNavigate, onUpgradeClick }: LandingHeaderProps
             )}
           </div>
 
-          {/* Mobile Button */}
+          {/* Mobile Hamburger Toggle */}
           <div className="flex md:hidden items-center gap-2">
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="p-1.5 text-slate-600 hover:text-slate-900 rounded-lg"
+              aria-label="Toggle Navigation Menu"
+              className="p-2 text-slate-700 hover:text-slate-900 bg-slate-100/80 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
             >
               {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -177,33 +210,132 @@ export function LandingHeader({ onNavigate, onUpgradeClick }: LandingHeaderProps
         </div>
       </motion.div>
 
-      {/* Mobile Drawer */}
+      {/* Mobile Drawer & Backdrop */}
       <AnimatePresence>
         {mobileOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="md:hidden bg-white border-b border-slate-200 px-4 pt-3 pb-6 space-y-3 overflow-hidden"
-          >
-            <button onClick={() => handleNavClick("features")} className="block w-full text-left text-slate-700 font-medium py-2 px-3 hover:bg-slate-50 rounded-lg">Features</button>
-            <div className="pl-4 space-y-1">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block px-3 py-1">Industries</span>
-              <button onClick={() => handleNavClick("industry-restaurant")} className="block w-full text-left text-slate-600 py-1.5 px-3 text-sm">Restaurants & Takeaways</button>
-              <button onClick={() => handleNavClick("industry-salon")} className="block w-full text-left text-slate-600 py-1.5 px-3 text-sm">Salons & Spas</button>
-              <button onClick={() => handleNavClick("industry-real-estate")} className="block w-full text-left text-slate-600 py-1.5 px-3 text-sm">Real Estate</button>
-              <button onClick={() => handleNavClick("industry-logistics")} className="block w-full text-left text-slate-600 py-1.5 px-3 text-sm">Logistics</button>
-              <button onClick={() => handleNavClick("industry-healthcare")} className="block w-full text-left text-slate-600 py-1.5 px-3 text-sm">Healthcare</button>
-              <button onClick={() => handleNavClick("industry-retail")} className="block w-full text-left text-slate-600 py-1.5 px-3 text-sm">Retail</button>
-            </div>
-            <button onClick={() => handleNavClick("how-it-works")} className="block w-full text-left text-slate-700 font-medium py-2 px-3 hover:bg-slate-50 rounded-lg">How it Works</button>
-            <button onClick={() => handleNavClick("pricing")} className="block w-full text-left text-slate-700 font-medium py-2 px-3 hover:bg-slate-50 rounded-lg">Pricing</button>
-            <button onClick={() => handleNavClick("contact")} className="block w-full text-left text-slate-700 font-medium py-2 px-3 hover:bg-slate-50 rounded-lg">Contact Us</button>
-            <button onClick={() => handleNavClick("booking")} className="w-full bg-slate-900 text-white font-bold py-3 rounded-xl">Book a Demo</button>
-          </motion.div>
+          <>
+            {/* Backdrop Dimmer */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setMobileOpen(false)}
+              className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-40 md:hidden pointer-events-auto"
+            />
+
+            {/* Mobile Glass Card Container */}
+            <motion.div
+              initial={{ opacity: 0, y: -10, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.98 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              className="relative z-50 md:hidden mt-2 pointer-events-auto max-w-[1360px] mx-auto"
+            >
+              <div className="bg-white/95 backdrop-blur-2xl rounded-3xl border border-slate-200/90 shadow-2xl p-5 max-h-[calc(100vh-6rem)] overflow-y-auto space-y-3">
+                <button
+                  onClick={() => handleNavClick("features")}
+                  className="w-full text-left text-slate-800 font-bold py-2.5 px-4 hover:bg-slate-100/80 rounded-xl transition-colors text-sm cursor-pointer"
+                >
+                  Features
+                </button>
+
+                {/* Industries Accordion */}
+                <div className="space-y-1">
+                  <button
+                    onClick={() => setMobileIndustriesOpen(!mobileIndustriesOpen)}
+                    className="w-full flex items-center justify-between text-slate-800 font-bold py-2.5 px-4 hover:bg-slate-100/80 rounded-xl transition-colors text-sm cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">Industries</span>
+                    <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${mobileIndustriesOpen ? "rotate-180 text-indigo-600" : "text-slate-400"}`} />
+                  </button>
+
+                  <AnimatePresence initial={false}>
+                    {mobileIndustriesOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden pl-3 pr-1 space-y-1"
+                      >
+                        {industriesList.map((ind) => {
+                          const Icon = ind.icon;
+                          return (
+                            <button
+                              key={ind.id}
+                              onClick={() => handleNavClick(ind.id)}
+                              className="w-full flex items-center justify-between text-left py-2 px-3.5 text-xs text-slate-700 hover:text-indigo-600 hover:bg-indigo-50/60 rounded-xl font-semibold transition-colors cursor-pointer"
+                            >
+                              <span className="flex items-center gap-2.5">
+                                <Icon className="w-4 h-4 text-indigo-500 shrink-0" />
+                                {ind.label}
+                              </span>
+                              <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
+                            </button>
+                          );
+                        })}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                <button
+                  onClick={() => handleNavClick("how-it-works")}
+                  className="w-full text-left text-slate-800 font-bold py-2.5 px-4 hover:bg-slate-100/80 rounded-xl transition-colors text-sm cursor-pointer"
+                >
+                  How it Works
+                </button>
+
+                <button
+                  onClick={() => handleNavClick("pricing")}
+                  className="w-full text-left text-slate-800 font-bold py-2.5 px-4 hover:bg-slate-100/80 rounded-xl transition-colors text-sm cursor-pointer"
+                >
+                  Pricing
+                </button>
+
+                <button
+                  onClick={() => handleNavClick("contact")}
+                  className="w-full text-left text-slate-800 font-bold py-2.5 px-4 hover:bg-slate-100/80 rounded-xl transition-colors text-sm cursor-pointer"
+                >
+                  Contact Us
+                </button>
+
+                <div className="pt-2 border-t border-slate-100 space-y-2">
+                  <button
+                    onClick={() => handleNavClick("booking")}
+                    className="w-full bg-[#0B0E1A] hover:bg-[#1B2036] text-white font-bold py-3 px-4 rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm cursor-pointer"
+                  >
+                    <span>Book a Demo</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+
+                  {isAuthenticated && user ? (
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setMobileOpen(false)}
+                      className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-2xl shadow-sm transition-all flex items-center justify-center gap-2 text-sm"
+                    >
+                      <LayoutDashboard className="w-4 h-4 text-white" />
+                      <span>Go to Dashboard</span>
+                    </Link>
+                  ) : (
+                    <Link
+                      href="/auth/login"
+                      onClick={() => setMobileOpen(false)}
+                      className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-3 px-4 rounded-2xl transition-all flex items-center justify-center gap-2 text-sm"
+                    >
+                      <LogIn className="w-4 h-4 text-slate-600" />
+                      <span>Sign In</span>
+                    </Link>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </header>
   );
 }
+

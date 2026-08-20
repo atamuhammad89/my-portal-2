@@ -122,7 +122,7 @@ export function RenewalModal({
 
           {!plansLoading && plans.length > 0 && (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {plans.map((plan) => {
+              {plans.filter((p) => p.name !== "free_trial" && p.monthly_price > 0).map((plan) => {
                 const isFeatured = plan.is_featured;
                 const isCurrent = plan.name === currentPlanName;
                 const isLoading = loadingPlanId === plan.id;

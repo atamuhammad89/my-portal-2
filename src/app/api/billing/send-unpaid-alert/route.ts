@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { verifyRequestJwt } from "@/lib/jwt-auth";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { getAppBaseUrl } from "@/utils/url-helper";
 
 export async function POST(req: NextRequest) {
   const payload = await verifyRequestJwt(req);
@@ -73,8 +74,8 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://callautomate.ai";
-    const billingUrl = `${appUrl.replace(/\/$/, "")}/billing`;
+    const appUrl = getAppBaseUrl(req);
+    const billingUrl = `${appUrl}/billing`;
 
     const invoiceRowsHtml = unpaidInvoices.map((inv) => `
       <tr style="border-bottom: 1px solid #334155;">

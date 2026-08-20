@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyRequestJwt } from "@/lib/jwt-auth";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { formatDate } from "@/utils/format";
+import { getAppBaseUrl } from "@/utils/url-helper";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -65,6 +66,8 @@ export async function POST(req: NextRequest) {
     const periodStr = formattedStart ? ` (${formattedStart} to ${formattedEnd})` : "";
     const description = `Overage charges of ${invoice.overage_minutes} minutes for ${invoice.plan_name || "Standard Plan"}${periodStr}`;
 
+    const baseUrl = getAppBaseUrl(req);
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       mode: "payment",
@@ -86,8 +89,8 @@ export async function POST(req: NextRequest) {
         invoice_id: invoice.id,
         user_id: payload.sub,
       },
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing/overage/success?session_id={CHECKOUT_SESSION_ID}&invoice_id=${invoice.id}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing`,
+      success_url: `${baseUrl}/billing/overage/success?session_id={CHECKOUT_SESSION_ID}&invoice_id=${invoice.id}`,
+      cancel_url: `${baseUrl}/billing`,
     });
 
     return NextResponse.json({ url: session.url });
