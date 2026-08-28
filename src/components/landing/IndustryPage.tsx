@@ -5,6 +5,7 @@ import { ArrowRight, Zap, CheckCircle2, Cpu } from "lucide-react";
 import { motion } from "framer-motion";
 import { IndustryData } from "@/data/industries";
 import { AnimatedIndustryDemo } from "./AnimatedIndustryDemo";
+import { SoftwareIntegrationsSection } from "./SoftwareIntegrationsSection";
 
 interface IndustryPageProps {
   data: IndustryData;
@@ -23,7 +24,7 @@ export function IndustryPage({ data, onDemoClick }: IndustryPageProps) {
   const theme = themeColors[data.colorTheme as keyof typeof themeColors] || themeColors.purple;
 
   return (
-    <div className="pt-24">
+    <div className="pt-24 w-full max-w-full overflow-x-hidden">
       {/* ── Hero Section ── */}
       <section className="relative py-24 px-4 overflow-hidden">
         <div className={`absolute inset-0 bg-gradient-to-b ${theme.light} to-white -z-10 opacity-50`} />
@@ -44,7 +45,7 @@ export function IndustryPage({ data, onDemoClick }: IndustryPageProps) {
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.15, type: "spring", stiffness: 80, damping: 18 }}
-            className="text-5xl md:text-7xl font-extrabold text-slate-900 mb-6 leading-tight"
+            className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-slate-900 mb-6 leading-tight tracking-tight break-words max-w-full px-2"
           >
             {data.hero.title} <br />
             <span className={`text-transparent bg-clip-text bg-gradient-to-r ${theme.gradient}`}>
@@ -57,7 +58,7 @@ export function IndustryPage({ data, onDemoClick }: IndustryPageProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.35, ease: "easeOut" }}
-            className="text-xl text-slate-600 max-w-2xl mx-auto mb-10"
+            className="text-base sm:text-lg md:text-xl text-slate-600 max-w-2xl mx-auto mb-8 sm:mb-10 px-4"
           >
             {data.hero.subtitle}
           </motion.p>
@@ -67,13 +68,13 @@ export function IndustryPage({ data, onDemoClick }: IndustryPageProps) {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.55, ease: "easeOut" }}
-            className="flex justify-center gap-4"
+            className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4 w-full px-4 sm:px-0 max-w-sm sm:max-w-none mx-auto"
           >
             <motion.button
               whileHover={{ scale: 1.04, y: -2 }}
               whileTap={{ scale: 0.97 }}
               onClick={onDemoClick}
-              className="px-8 py-4 bg-slate-900 text-white rounded-full font-bold hover:bg-slate-800 transition-all shadow-lg cursor-pointer"
+              className="w-full sm:w-auto px-8 py-4 bg-slate-900 text-white rounded-full font-bold hover:bg-slate-800 transition-all shadow-lg cursor-pointer text-center"
             >
               Try Live Demo
             </motion.button>
@@ -81,11 +82,11 @@ export function IndustryPage({ data, onDemoClick }: IndustryPageProps) {
               whileHover={{ scale: 1.04, y: -2 }}
               whileTap={{ scale: 0.97 }}
               href="#booking"
-              className="px-8 py-4 bg-white border border-slate-200 text-slate-900 rounded-full font-bold hover:bg-slate-50 transition-all shadow-sm"
+              className="w-full sm:w-auto px-8 py-4 bg-white border border-slate-200 text-slate-900 rounded-full font-bold hover:bg-slate-50 transition-all shadow-sm text-center"
             >
               Book Strategy Call
             </motion.a>
-            </motion.div>
+          </motion.div>
         </div>
       </section>
 
@@ -93,7 +94,7 @@ export function IndustryPage({ data, onDemoClick }: IndustryPageProps) {
       <AnimatedIndustryDemo data={data} />
 
       {/* ── How It Works Flow ── */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-white overflow-hidden">
         <div className="max-w-6xl mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -179,97 +180,13 @@ export function IndustryPage({ data, onDemoClick }: IndustryPageProps) {
         </div>
       </section>
 
-      {/* ── POS & Systems Integration Section ── */}
+      {/* ── POS & Systems Integration Section with Auto-Sliding Marquee ── */}
       {data.posIntegrations && (
-        <section className="py-24 bg-slate-900 text-white relative overflow-hidden">
-          {/* Subtle background glow */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
-
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.3 }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
-              className="text-center max-w-3xl mx-auto mb-16"
-            >
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-white/10 border border-white/15 rounded-full text-xs font-bold text-slate-300 uppercase tracking-wider mb-4 backdrop-blur">
-                <Zap className="w-3.5 h-3.5 text-amber-400" />
-                <span>Seamless POS & Software Sync</span>
-              </div>
-              <h2 className="text-3xl md:text-5xl font-black tracking-tight mb-4">
-                {data.posIntegrations.title || "POS & Systems Integration"}
-              </h2>
-              <p className="text-slate-400 text-base md:text-lg">
-                {data.posIntegrations.subtitle || "Direct 2-way sync with your existing software stack."}
-              </p>
-            </motion.div>
-
-            {/* Featured Integration Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-              {data.posIntegrations.featured.map((item, idx) => (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: idx * 0.1 }}
-                  whileHover={{ y: -4 }}
-                  className="bg-slate-950/80 border border-slate-800 hover:border-slate-700 p-8 rounded-3xl backdrop-blur-xl transition-all duration-300 flex flex-col justify-between group"
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-xl font-extrabold text-white group-hover:text-amber-400 transition-colors">
-                        {item.name}
-                      </h3>
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-full">
-                        {item.tag}
-                      </span>
-                    </div>
-                    <p className="text-sm text-slate-400 leading-relaxed">
-                      {item.description}
-                    </p>
-                  </div>
-                  <div className="pt-6 mt-6 border-t border-slate-800/80 flex items-center gap-2 text-xs font-semibold text-emerald-400">
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>Ready out of the box</span>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Direct Custom POS Banner */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.96 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="bg-gradient-to-r from-indigo-950/90 via-slate-900 to-purple-950/90 border border-indigo-500/30 rounded-3xl p-8 text-center md:text-left flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl backdrop-blur"
-            >
-              <div className="flex items-center gap-5">
-                <div className="w-14 h-14 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center shrink-0">
-                  <Cpu className="w-7 h-7 text-indigo-400" />
-                </div>
-                <div>
-                  <h4 className="text-lg font-bold text-white mb-1">Have a Custom POS or Proprietary System?</h4>
-                  <p className="text-sm text-slate-300 max-w-2xl leading-relaxed">
-                    {data.posIntegrations.customNotice}
-                  </p>
-                </div>
-              </div>
-              <a
-                href="#booking"
-                className="px-6 py-3.5 bg-white text-slate-950 font-extrabold text-xs rounded-full hover:bg-slate-100 transition-all shrink-0 shadow-lg"
-              >
-                Request Custom POS Setup
-              </a>
-            </motion.div>
-          </div>
-        </section>
+        <SoftwareIntegrationsSection data={data} />
       )}
 
       {/* ── Use Cases ── */}
-      <section className="py-24 bg-slate-50">
+      <section className="py-24 bg-slate-50 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4">
           <motion.h2
             initial={{ opacity: 0, y: 30 }}

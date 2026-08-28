@@ -15,6 +15,7 @@ import {
   PhoneCall,
   Users,
   Phone,
+  Flame,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAdminRole } from "@/hooks/admin/use-admin-role";
@@ -32,6 +33,7 @@ type AdminNavItem = {
 
 const adminNavItems: AdminNavItem[] = [
   { href: "/admin/overview",      label: "Overview",      icon: LayoutDashboard, permission: "overview" },
+  { href: "/admin/hot-leads",     label: "Hot Leads",     icon: Flame,           permission: "hot_leads" },
   { href: "/admin/phone-numbers", label: "Phone Numbers", icon: Phone,           permission: "overview" },
   { href: "/admin/agents",        label: "Voice Agents",  icon: Bot,             permission: "agents" },
   { href: "/admin/customers",     label: "Customers",     icon: Building2,       permission: "customers" },

@@ -288,7 +288,7 @@ export function LandingHero({ onDemoClick }: LandingHeroProps) {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.1, type: "spring", stiffness: 90, damping: 18 }}
-              className="text-4xl sm:text-5xl xl:text-6xl font-extrabold tracking-tight text-[#0B0E1A] mb-4 leading-[1.1]"
+              className="text-3xl sm:text-5xl xl:text-6xl font-extrabold tracking-tight text-[#0B0E1A] mb-4 leading-[1.1] break-words"
             >
               Automate calls with <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2F6FED] via-[#22D3EE] to-[#7C5CFC]">
@@ -361,63 +361,63 @@ export function LandingHero({ onDemoClick }: LandingHeroProps) {
                 <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </motion.a>
             </motion.div>
-
+              
             {/* ── Category Switcher Container Bar ── */}
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.55 }}
-              className="w-full max-w-full lg:max-w-[620px] bg-white border border-slate-200/90 rounded-2xl p-1.5 shadow-sm overflow-hidden flex flex-wrap sm:flex-nowrap items-center justify-between gap-1"
+              className="w-full bg-white border border-slate-200/90 rounded-2xl p-1.5 shadow-sm grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-1.5 max-w-full lg:max-w-[850px]"
             >
               {/* Option 1: Appointment Booking */}
               <button
                 onClick={() => setActiveScenarioIdx(0)}
-                className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-xl text-[11px] xl:text-xs font-bold transition-all cursor-pointer ${
+                className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   activeScenarioIdx === 0
                     ? "bg-[#0B0E1A] text-white shadow-md"
                     : "text-slate-700 hover:bg-slate-50"
                 }`}
               >
-                <Calendar className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${activeScenarioIdx === 0 ? "text-[#22D3EE]" : "text-[#2F6FED]"}`} />
+                <Calendar className={`w-4 h-4 shrink-0 ${activeScenarioIdx === 0 ? "text-[#22D3EE]" : "text-[#2F6FED]"}`} />
                 <span className="whitespace-nowrap">Appointment Booking</span>
               </button>
 
               {/* Option 2: Customer Support */}
               <button
                 onClick={() => setActiveScenarioIdx(1)}
-                className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-xl text-[11px] xl:text-xs font-bold transition-all cursor-pointer ${
+                className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   activeScenarioIdx === 1
                     ? "bg-[#0B0E1A] text-white shadow-md"
                     : "text-slate-700 hover:bg-slate-50"
                 }`}
               >
-                <Headset className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${activeScenarioIdx === 1 ? "text-[#22D3EE]" : "text-[#7C5CFC]"}`} />
+                <Headset className={`w-4 h-4 shrink-0 ${activeScenarioIdx === 1 ? "text-[#22D3EE]" : "text-[#7C5CFC]"}`} />
                 <span className="whitespace-nowrap">Customer Support</span>
               </button>
 
               {/* Option 3: Outbound Sales */}
               <button
                 onClick={() => setActiveScenarioIdx(2)}
-                className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-xl text-[11px] xl:text-xs font-bold transition-all cursor-pointer ${
+                className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   activeScenarioIdx === 2
                     ? "bg-[#0B0E1A] text-white shadow-md"
                     : "text-slate-700 hover:bg-slate-50"
                 }`}
               >
-                <Send className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${activeScenarioIdx === 2 ? "text-[#22D3EE]" : "text-[#2F6FED]"}`} />
+                <Send className={`w-4 h-4 shrink-0 ${activeScenarioIdx === 2 ? "text-[#22D3EE]" : "text-[#2F6FED]"}`} />
                 <span className="whitespace-nowrap">Outbound Sales</span>
               </button>
 
               {/* Option 4: After-Hours Call */}
               <button
                 onClick={() => setActiveScenarioIdx(3)}
-                className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-xl text-[11px] xl:text-xs font-bold transition-all cursor-pointer ${
+                className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   activeScenarioIdx === 3
                     ? "bg-[#0B0E1A] text-white shadow-md"
                     : "text-slate-700 hover:bg-slate-50"
                 }`}
               >
-                <Clock className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${activeScenarioIdx === 3 ? "text-[#22D3EE]" : "text-[#22D3EE]"}`} />
+                <Clock className={`w-4 h-4 shrink-0 ${activeScenarioIdx === 3 ? "text-[#22D3EE]" : "text-[#22D3EE]"}`} />
                 <span className="whitespace-nowrap">After-Hours Call</span>
               </button>
             </motion.div>
@@ -451,10 +451,10 @@ export function LandingHero({ onDemoClick }: LandingHeroProps) {
                 initial={{ opacity: 0, scale: 0.8, y: -10 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.5, type: "spring" }}
-                className="absolute -top-5 -left-4 sm:-left-8 z-30 px-3.5 py-2 rounded-xl bg-white border border-slate-200/90 shadow-xl flex items-center gap-2 text-xs font-bold font-mono text-[#0B0E1A] whitespace-nowrap"
+                className="absolute -top-5 left-0 sm:-left-8 z-30 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-white border border-slate-200/90 shadow-xl flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-bold font-mono text-[#0B0E1A] whitespace-nowrap max-w-[85vw] sm:max-w-none truncate"
               >
-                <Calendar className="w-4 h-4 text-[#2F6FED] shrink-0" />
-                <span>{currentScenario.float}</span>
+                <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#2F6FED] shrink-0" />
+                <span className="truncate">{currentScenario.float}</span>
               </motion.div>
 
               {/* Floating Pill 2 (Lower Right Side of Phone) */}
@@ -462,12 +462,12 @@ export function LandingHero({ onDemoClick }: LandingHeroProps) {
                 initial={{ opacity: 0, scale: 0.8, x: 10 }}
                 animate={{ opacity: 1, scale: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: 0.7, type: "spring" }}
-                className="absolute top-1/2 -translate-y-1/2 -right-8 sm:-right-12 z-30 px-3.5 py-2.5 rounded-xl bg-white border border-slate-200/90 shadow-xl flex items-center gap-2 text-xs font-bold font-sans text-[#0B0E1A] whitespace-nowrap"
+                className="absolute top-1/2 -translate-y-1/2 right-0 sm:-right-12 z-30 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl bg-white border border-slate-200/90 shadow-xl flex items-center gap-2 text-xs font-bold font-sans text-[#0B0E1A] whitespace-nowrap"
               >
-                <TrendingUp className="w-4.5 h-4.5 text-[#7C5CFC] shrink-0" />
+                <TrendingUp className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-[#7C5CFC] shrink-0" />
                 <div>
-                  <div className="font-extrabold text-[12px] leading-none">Synced to CRM</div>
-                  <div className="text-[10px] text-slate-400 font-normal mt-0.5">Salesforce</div>
+                  <div className="font-extrabold text-[11px] sm:text-[12px] leading-none">Synced to CRM</div>
+                  <div className="text-[9px] sm:text-[10px] text-slate-400 font-normal mt-0.5">Salesforce</div>
                 </div>
               </motion.div>
 

@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 
 export function BookingCalendar() {
   return (
-    <section id="booking" className="py-24 relative bg-slate-50/60 border-t border-slate-200/60">
+    <section id="booking" className="py-24 relative bg-slate-50/60 border-t border-slate-200/60 w-full max-w-full overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 30 }}

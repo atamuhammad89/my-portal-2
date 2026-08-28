@@ -22,7 +22,7 @@ import { useAuthStore } from "@/store/auth-store";
 import { TrialBanner } from "./TrialBanner";
 
 const Logo = () => (
-  <svg width="40" height="40" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-lg hover:scale-105 transition-transform duration-300">
+  <svg viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 sm:w-10 sm:h-10 shrink-0 drop-shadow-lg hover:scale-105 transition-transform duration-300">
     <defs>
       <linearGradient id="c-gradient-final" x1="256" y1="50" x2="256" y2="462" gradientUnits="userSpaceOnUse">
         <stop offset="0" stopColor="#A855F7" />
@@ -95,7 +95,7 @@ export function LandingHeader({ onNavigate, onUpgradeClick }: LandingHeaderProps
   };
 
   return (
-    <header className="fixed top-0 w-full z-50 pt-3 px-4 sm:px-6 transition-all duration-300 pointer-events-none">
+    <header className="fixed top-0 w-full z-50 pt-2 sm:pt-3 px-2 sm:px-4 md:px-6 transition-all duration-300 pointer-events-none">
       {/* Top Navbar Pill */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -104,22 +104,22 @@ export function LandingHeader({ onNavigate, onUpgradeClick }: LandingHeaderProps
         className="max-w-[1360px] mx-auto pointer-events-auto"
       >
         <div
-          className={`flex items-center justify-between h-16 px-4 sm:px-6 rounded-full transition-all duration-300 ${
+          className={`flex items-center justify-between h-14 sm:h-16 px-3 sm:px-6 rounded-full transition-all duration-300 max-w-full ${
             scrolled
               ? "bg-white/85 backdrop-blur-xl border border-white/90 shadow-[0_10px_35px_rgba(0,0,0,0.08),0_0_20px_rgba(255,255,255,0.9)_inset]"
               : "bg-white/70 backdrop-blur-lg border border-white/80 shadow-[0_8px_30px_rgba(0,0,0,0.05)]"
           }`}
         >
           {/* Logo */}
-          <div onClick={() => handleNavClick("home")} className="flex items-center gap-2 sm:gap-2.5 cursor-pointer group shrink-0">
+          <div onClick={() => handleNavClick("home")} className="flex items-center gap-1.5 sm:gap-2.5 cursor-pointer group shrink-0">
             <Logo />
-            <span className="font-extrabold text-lg sm:text-xl tracking-tight text-slate-900 font-sans">
+            <span className="font-extrabold text-base sm:text-xl tracking-tight text-slate-900 font-sans shrink-0">
               CallAutomate
             </span>
           </div>
 
           {/* Desktop Nav Links */}
-          <div className="hidden md:flex items-center gap-7">
+          <div className="hidden lg:flex items-center gap-6 xl:gap-8">
             <button onClick={() => handleNavClick("features")} className="text-slate-700 hover:text-indigo-600 text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer">
               Features <ChevronDown className="w-3 h-3 opacity-60" />
             </button>
@@ -165,7 +165,7 @@ export function LandingHeader({ onNavigate, onUpgradeClick }: LandingHeaderProps
           </div>
 
           {/* Right Controls (Desktop) */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden lg:flex items-center gap-3">
             <TrialBanner onUpgradeClick={onUpgradeClick} />
 
             <button
@@ -197,8 +197,8 @@ export function LandingHeader({ onNavigate, onUpgradeClick }: LandingHeaderProps
             )}
           </div>
 
-          {/* Mobile Hamburger Toggle */}
-          <div className="flex md:hidden items-center gap-2">
+          {/* Mobile/Tablet Hamburger Toggle */}
+          <div className="flex lg:hidden items-center gap-2">
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
               aria-label="Toggle Navigation Menu"
@@ -210,7 +210,7 @@ export function LandingHeader({ onNavigate, onUpgradeClick }: LandingHeaderProps
         </div>
       </motion.div>
 
-      {/* Mobile Drawer & Backdrop */}
+      {/* Mobile/Tablet Drawer & Backdrop */}
       <AnimatePresence>
         {mobileOpen && (
           <>
@@ -221,7 +221,7 @@ export function LandingHeader({ onNavigate, onUpgradeClick }: LandingHeaderProps
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
               onClick={() => setMobileOpen(false)}
-              className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-40 md:hidden pointer-events-auto"
+              className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-40 lg:hidden pointer-events-auto"
             />
 
             {/* Mobile Glass Card Container */}
@@ -230,7 +230,7 @@ export function LandingHeader({ onNavigate, onUpgradeClick }: LandingHeaderProps
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.98 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className="relative z-50 md:hidden mt-2 pointer-events-auto max-w-[1360px] mx-auto"
+              className="relative z-50 lg:hidden mt-2 pointer-events-auto max-w-[1360px] mx-auto"
             >
               <div className="bg-white/95 backdrop-blur-2xl rounded-3xl border border-slate-200/90 shadow-2xl p-5 max-h-[calc(100vh-6rem)] overflow-y-auto space-y-3">
                 <button

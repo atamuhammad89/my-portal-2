@@ -13,6 +13,12 @@ const loginSchema = z.object({
   password: z.string().min(1, "Password is required").max(72, "Password is too long"),
 });
 
+export const dynamic = "force-dynamic";
+
+export async function GET() {
+  return NextResponse.json({ status: "ok", message: "Login API endpoint is active." });
+}
+
 export async function POST(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() || req.headers.get("x-real-ip") || "127.0.0.1";
   const limitResult = await rateLimit(ip, 10, 60000);

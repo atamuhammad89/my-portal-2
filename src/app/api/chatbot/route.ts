@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const { message, sessionId } = await req.json();
+    const { message, chatId, sessionId } = await req.json();
 
     if (!message || typeof message !== "string" || !message.trim()) {
       return NextResponse.json(
@@ -11,74 +11,122 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const n8nWebhookUrl =
-      process.env.N8N_CHATBOT_URL ||
-      process.env.NEXT_PUBLIC_CHATBOT_URL ||
-      "https://n8n-dev.callautomate.ai/webhook/0fad2dd7-61ba-400a-ae5d-e1b97f8e1145/chat";
+    const apiKey =
+      process.env.RETELL_API_KEY || "key_d51ed714f1a6bb8b97da838edcd2";
+    const agentId =
+      process.env.RETELL_CHAT_AGENT_ID || "agent_a8a99142d7f97a2ce123c0a0b4";
+    const baseUrl =
+      process.env.RETELL_BASE_URL || "https://api.retellai.com";
 
-    const activeSessionId = sessionId || `session_${Math.random().toString(36).substring(2, 11)}`;
+    let activeChatId = chatId;
 
-    console.log(`[/api/chatbot] Sending message to n8n (session: ${activeSessionId})`);
+    // Retell chat IDs typically start with "chat_". If missing or invalid session ID, create a new chat session.
+    if (!activeChatId || !activeChatId.startsWith("chat_")) {
+      console.log(`[/api/chatbot] Creating new Retell AI chat session with agent ${agentId}...`);
+
+      const createChatRes = await fetch(`${baseUrl}/create-chat`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          agent_id: agentId,
+        }),
+      });
+
+      if (!createChatRes.ok) {
+        const errText = await createChatRes.text().catch(() => "Unknown Retell create-chat error");
+        console.error(`[/api/chatbot] Retell create-chat error ${createChatRes.status}:`, errText);
+        return NextResponse.json(
+          {
+            error: "Failed to initialize Retell chat session",
+            output: "I'm having trouble starting our chat session right now. Please try again or book a live demo at https://yumnahhasan.youcanbook.me/",
+          },
+          { status: 500 }
+        );
+      }
+
+      const createChatData = await createChatRes.json();
+      activeChatId = createChatData.chat_id || createChatData.id;
+
+      if (!activeChatId) {
+        console.error("[/api/chatbot] No chat_id returned from Retell create-chat API:", createChatData);
+        return NextResponse.json(
+          {
+            error: "No chat ID returned",
+            output: "Chat session creation failed. Please try again shortly.",
+          },
+          { status: 500 }
+        );
+      }
+
+      console.log(`[/api/chatbot] Retell AI chat created successfully: ${activeChatId}`);
+    }
+
+    console.log(`[/api/chatbot] Generating completion for chat_id: ${activeChatId}`);
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s timeout
+    const timeoutId = setTimeout(() => controller.abort(), 25000);
 
-    const n8nRes = await fetch(n8nWebhookUrl, {
+    const completionRes = await fetch(`${baseUrl}/create-chat-completion`, {
       method: "POST",
       headers: {
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
-        "Accept": "application/json, text/plain, */*",
       },
       body: JSON.stringify({
-        action: "sendMessage",
-        sessionId: activeSessionId,
-        chatInput: message.trim(),
+        chat_id: activeChatId,
+        content: message.trim(),
       }),
       signal: controller.signal,
     });
 
     clearTimeout(timeoutId);
 
-    if (!n8nRes.ok) {
-      const errText = await n8nRes.text().catch(() => "Unknown n8n error");
-      console.error(`[/api/chatbot] n8n returned error status ${n8nRes.status}:`, errText);
+    if (!completionRes.ok) {
+      const errText = await completionRes.text().catch(() => "Unknown Retell completion error");
+      console.error(`[/api/chatbot] Retell create-chat-completion error status ${completionRes.status}:`, errText);
       return NextResponse.json(
         {
-          error: "n8n chatbot workflow error",
-          output: "I'm having trouble connecting right now. Please try again or book a live demo at https://yumnahhasan.youcanbook.me/",
+          error: "Retell chat completion error",
+          output: "I'm having trouble retrieving a response right now. Please try again or reach out to us at support@callautomate.ai",
+          chatId: activeChatId,
         },
         { status: 500 }
       );
     }
 
-    const resData = await n8nRes.json();
-    console.log("[/api/chatbot] n8n response received:", resData);
+    const completionData = await completionRes.json();
+    console.log("[/api/chatbot] Retell completion response received:", JSON.stringify(completionData));
 
     let outputText = "";
-    if (typeof resData === "string") {
-      outputText = resData;
-    } else if (resData?.output) {
-      if (typeof resData.output === "string") {
-        outputText = resData.output;
-      } else if (Array.isArray(resData.output)) {
-        outputText = resData.output
-          .map((item: any) => (typeof item === "string" ? item : item?.text || item?.message || JSON.stringify(item)))
-          .join("\n");
-      } else if (typeof resData.output === "object") {
-        outputText = resData.output?.text || resData.output?.message || JSON.stringify(resData.output);
+
+    if (Array.isArray(completionData.messages) && completionData.messages.length > 0) {
+      // Find the latest agent message
+      const agentMsgs = completionData.messages.filter((m: any) => m.role === "agent");
+      if (agentMsgs.length > 0) {
+        outputText = agentMsgs[agentMsgs.length - 1].content || "";
+      } else {
+        outputText = completionData.messages[0].content || "";
       }
-    } else if (resData?.text) {
-      outputText = resData.text;
-    } else if (resData?.message) {
-      outputText = resData.message;
-    } else {
-      outputText = JSON.stringify(resData);
+    } else if (typeof completionData === "string") {
+      outputText = completionData;
+    } else if (completionData?.output) {
+      outputText = typeof completionData.output === "string" ? completionData.output : JSON.stringify(completionData.output);
+    } else if (completionData?.content) {
+      outputText = completionData.content;
+    }
+
+    if (!outputText) {
+      outputText = "Thank you for reaching out! How else can I assist you with CallAutomate?";
     }
 
     return NextResponse.json({
       success: true,
-      output: outputText || "Thank you for reaching out! How else can I assist you?",
-      sessionId: activeSessionId,
+      output: outputText,
+      chatId: activeChatId,
+      sessionId: activeChatId, // Maintain backwards compatibility if frontend expects sessionId
     });
   } catch (err: any) {
     console.error("[/api/chatbot] Unexpected error:", err);

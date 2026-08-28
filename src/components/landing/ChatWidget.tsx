@@ -20,7 +20,7 @@ const QUICK_PROMPTS = [
 export function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
-  const [sessionId, setSessionId] = useState<string>("");
+  const [chatId, setChatId] = useState<string>("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -28,14 +28,10 @@ export function ChatWidget() {
 
   // Initialize session and greeting on mount
   useEffect(() => {
-    let savedSession = typeof window !== "undefined" ? sessionStorage.getItem("callautomate_chat_session") : null;
-    if (!savedSession) {
-      savedSession = `session_${Math.random().toString(36).substring(2, 11)}`;
-      if (typeof window !== "undefined") {
-        sessionStorage.setItem("callautomate_chat_session", savedSession);
-      }
+    const savedChatId = typeof window !== "undefined" ? sessionStorage.getItem("callautomate_retell_chat_id") : null;
+    if (savedChatId) {
+      setChatId(savedChatId);
     }
-    setSessionId(savedSession);
 
     setMessages([
       {
@@ -55,11 +51,10 @@ export function ChatWidget() {
   }, [messages, isLoading, isOpen]);
 
   const handleResetChat = () => {
-    const newSession = `session_${Math.random().toString(36).substring(2, 11)}`;
     if (typeof window !== "undefined") {
-      sessionStorage.setItem("callautomate_chat_session", newSession);
+      sessionStorage.removeItem("callautomate_retell_chat_id");
     }
-    setSessionId(newSession);
+    setChatId("");
     setMessages([
       {
         id: "msg_welcome_reset",
@@ -91,12 +86,20 @@ export function ChatWidget() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: userMessageText,
-          sessionId: sessionId || undefined,
+          chatId: chatId || undefined,
         }),
       });
 
       const data = await res.json();
       const botResponseText = data?.output || "Thank you for reaching out! How else can I help?";
+
+      const returnedChatId = data?.chatId || data?.sessionId;
+      if (returnedChatId && returnedChatId !== chatId) {
+        setChatId(returnedChatId);
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem("callautomate_retell_chat_id", returnedChatId);
+        }
+      }
 
       setMessages((prev) => [
         ...prev,
@@ -199,7 +202,7 @@ export function ChatWidget() {
 
   return (
     <div 
-      className="fixed bottom-6 right-4 sm:bottom-6 sm:right-6 z-50 flex items-center group"
+      className="fixed bottom-4 right-3 sm:bottom-6 sm:right-6 z-50 flex items-center group shrink-0 max-w-[calc(100vw-1rem)]"
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
     >
@@ -346,7 +349,7 @@ export function ChatWidget() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Talk to our AI Assistant"
-        className="relative h-12 w-12 sm:h-14 sm:w-14 bg-slate-900 hover:bg-slate-800 text-white rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 cursor-pointer border border-slate-700/60 group"
+        className="relative h-12 w-12 sm:h-14 sm:w-14 bg-slate-900 hover:bg-slate-800 text-white rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 cursor-pointer border border-slate-700/60 group shrink-0"
       >
         {isOpen ? (
           <X className="w-6 h-6 text-white" />

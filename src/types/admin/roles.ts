@@ -15,11 +15,12 @@ export type AdminNavPermission =
   | "agents"
   | "billing"
   | "call_logs"
-  | "resellers";
+  | "resellers"
+  | "hot_leads";
 
 export const rolePermissions: Record<AdminRole, AdminNavPermission[]> = {
-  super_admin: ["overview", "customers", "plans", "subscriptions", "billing", "agents", "call_logs", "resellers"],
-  operations:  ["overview", "customers", "subscriptions", "agents", "call_logs", "resellers"],
-  support:     ["overview", "customers", "call_logs"],
-  finance:     ["overview", "customers", "billing", "plans", "subscriptions", "resellers"],
+  super_admin: ["overview", "customers", "plans", "subscriptions", "billing", "agents", "call_logs", "resellers", "hot_leads"],
+  operations:  ["overview", "customers", "subscriptions", "agents", "call_logs", "resellers", "hot_leads"],
+  support:     ["overview", "customers", "call_logs", "hot_leads"],
+  finance:     ["overview", "customers", "billing", "plans", "subscriptions", "resellers", "hot_leads"],
 };

@@ -86,8 +86,13 @@ export function LandingPricing() {
     }
 
     if (!plan.stripe_price_id) {
-      alert(`Stripe price for "${plan.display_name}" is not configured. Redirecting to registration.`);
-      window.location.href = "/auth/register";
+      setTrialMessage({
+        type: "error",
+        text: `Stripe checkout for "${plan.display_name}" is not configured yet. Redirecting to registration...`,
+      });
+      setTimeout(() => {
+        window.location.href = "/auth/register";
+      }, 1500);
       return;
     }
 
@@ -125,7 +130,7 @@ export function LandingPricing() {
             <Zap className="w-3.5 h-3.5" />
             <span>Simple Transparent Pricing</span>
           </div>
-          <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight mb-4">
+          <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight mb-4 break-words">
             Flexible plans for every business
           </h2>
           <p className="text-slate-400 text-lg">

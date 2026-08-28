@@ -41,7 +41,7 @@ export function ContactPage() {
   };
 
   return (
-    <div className="pt-24 pb-20 animate-in fade-in duration-500">
+    <div className="pt-24 pb-20 animate-in fade-in duration-500 w-full max-w-full overflow-x-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-indigo-50 border border-indigo-100 text-indigo-700 rounded-full text-xs font-bold uppercase tracking-wider mb-4">

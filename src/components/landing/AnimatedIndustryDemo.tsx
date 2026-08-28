@@ -125,23 +125,23 @@ const scenarioConfig: Record<string, ScenarioData> = {
   healthcare: {
     agentName: "Maya · AI Care Receptionist",
     orderTag: "#MED-3301",
-    panelTitle: "Live Patient Triage Intake",
-    confirmLabel: "✓ Appointment & Refill Synced to EMR",
+    panelTitle: "Live Patient Scheduling & Intake",
+    confirmLabel: "✓ Appointment & Insurance Verification Synced to EMR",
     taxRate: 0,
     currencySymbol: "",
     isPriceBased: false,
     lines: [
-      { who: "caller", text: "Hello, I need an urgent consultation with Dr. Smith for flu symptoms." },
-      { who: "agent", text: "I can help with that. Doctor Smith has an emergency slot today at 4:15 PM." },
-      { who: "caller", text: "Please book it! Also, can I request a refill on my daily blood pressure meds?" },
-      { who: "agent", text: "Identity verified. Refill request sent to CVS Pharmacy & appointment set for 4:15 PM." },
+      { who: "caller", text: "Hello, I need to book a routine consultation with Dr. Smith." },
+      { who: "agent", text: "I can help with that. Doctor Smith has an opening today at 4:15 PM." },
+      { who: "caller", text: "Please book it! Also, do you accept BlueCross BlueShield insurance?" },
+      { who: "agent", text: "Insurance verified: BlueCross BlueShield accepted. Appointment locked for 4:15 PM!" },
       { who: "caller", text: "Thank you so much!" },
-      { who: "agent", text: "You're welcome! Check-in link sent via SMS." },
+      { who: "agent", text: "You're welcome! Pre-visit check-in link sent via SMS." },
     ],
     items: [
-      { icon: "🩺", name: "Urgent Consult - Dr. Smith", qty: "Today 4:15 PM", price: 0 },
-      { icon: "💊", name: "Rx Refill Request", qty: "CVS Pharmacy", price: 0 },
-      { icon: "📋", name: "HIPAA Pre-Visit Intake", qty: "Completed", price: 0 },
+      { icon: "🩺", name: "Consultation - Dr. Smith", qty: "Today 4:15 PM", price: 0 },
+      { icon: "🛡️", name: "Insurance Coverage Query", qty: "Verified (BCBS)", price: 0 },
+      { icon: "📋", name: "HIPAA Pre-Visit Registration", qty: "Completed", price: 0 },
     ],
   },
   retail: {
@@ -263,6 +263,7 @@ export function AnimatedIndustryDemo({ data }: AnimatedIndustryDemoProps) {
   const [visibleItemsCount, setVisibleItemsCount] = useState(0);
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [seconds, setSeconds] = useState(0);
+  const [loopKey, setLoopKey] = useState(0);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // Audio Waveform Canvas Animation
@@ -329,7 +330,7 @@ export function AnimatedIndustryDemo({ data }: AnimatedIndustryDemoProps) {
     return () => clearInterval(interval);
   }, []);
 
-  // Scenario playback loop
+  // Scenario playback loop - repeats indefinitely
   useEffect(() => {
     setVisibleLinesCount(0);
     setVisibleItemsCount(0);
@@ -342,7 +343,7 @@ export function AnimatedIndustryDemo({ data }: AnimatedIndustryDemoProps) {
     scenario.lines.forEach((_, idx) => {
       const timer = setTimeout(() => {
         setVisibleLinesCount(idx + 1);
-      }, (idx + 1) * 1100);
+      }, (idx + 1) * 1200);
       lineTimers.push(timer);
     });
 
@@ -357,18 +358,15 @@ export function AnimatedIndustryDemo({ data }: AnimatedIndustryDemoProps) {
     });
 
     // Confirm order at the end
-    const totalLinesDelay = (scenario.lines.length + 1) * 1100 + 400;
+    const totalLinesDelay = (scenario.lines.length + 1) * 1200 + 400;
     const confirmTimer = setTimeout(() => {
       setIsConfirmed(true);
     }, totalLinesDelay);
 
-    // Loop scenario after short hold
+    // Re-trigger loop key after short hold to restart animation repeatedly
     const resetTimer = setTimeout(() => {
-      setVisibleLinesCount(0);
-      setVisibleItemsCount(0);
-      setIsConfirmed(false);
-      setSeconds(0);
-    }, totalLinesDelay + 4500);
+      setLoopKey((prev) => prev + 1);
+    }, totalLinesDelay + 4000);
 
     return () => {
       lineTimers.forEach(clearTimeout);
@@ -376,7 +374,7 @@ export function AnimatedIndustryDemo({ data }: AnimatedIndustryDemoProps) {
       clearTimeout(confirmTimer);
       clearTimeout(resetTimer);
     };
-  }, [scenarioKey, scenario]);
+  }, [scenarioKey, scenario, loopKey]);
 
   const currentItems = useMemo(() => {
     return scenario.items.slice(0, visibleItemsCount);
@@ -416,7 +414,7 @@ export function AnimatedIndustryDemo({ data }: AnimatedIndustryDemoProps) {
             <Sparkles className="w-3.5 h-3.5" />
             <span>Interactive Voice Flow Simulation</span>
           </div>
-          <h2 className="text-3xl md:text-5xl font-black tracking-tight mb-3">
+          <h2 className="text-2xl sm:text-3xl md:text-5xl font-black tracking-tight mb-3 break-words">
             Real-Time {data.name} Voice Automation
           </h2>
           <p className="text-slate-400 text-sm md:text-base">

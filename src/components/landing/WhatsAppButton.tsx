@@ -28,7 +28,7 @@ export function WhatsAppButton({
 
   return (
     <div 
-      className="fixed bottom-22 right-5 sm:bottom-24 sm:right-6 z-40 flex items-center group"
+      className="fixed bottom-20 right-3 sm:bottom-24 sm:right-6 z-40 flex items-center group shrink-0 max-w-[calc(100vw-1rem)]"
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
     >
@@ -52,7 +52,7 @@ export function WhatsAppButton({
         rel="noopener noreferrer"
         aria-label="Chat with CallAutomate on WhatsApp"
         title="Chat on WhatsApp"
-        className="relative h-12 w-12 sm:h-14 sm:w-14 bg-[#25D366] hover:bg-[#20ba5a] text-white rounded-full shadow-xl shadow-emerald-900/20 hover:shadow-emerald-500/40 flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 cursor-pointer group"
+        className="relative h-12 w-12 sm:h-14 sm:w-14 bg-[#25D366] hover:bg-[#20ba5a] text-white rounded-full shadow-xl shadow-emerald-900/20 hover:shadow-emerald-500/40 flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 cursor-pointer group shrink-0"
       >
         {/* Pulsing Backlight Effect */}
         <span className="absolute inset-0 rounded-full bg-[#25D366] opacity-30 group-hover:animate-ping -z-10" />

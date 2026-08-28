@@ -83,7 +83,7 @@ export default function Home() {
 
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-indigo-500/20 selection:text-indigo-900 relative flex flex-col">
+    <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-indigo-500/20 selection:text-indigo-900 relative flex flex-col w-full max-w-full overflow-x-hidden">
       {/* Header */}
       <LandingHeader
         onNavigate={handleNavigate}
@@ -91,7 +91,7 @@ export default function Home() {
       />
 
       {/* Main Content View Switcher */}
-      <main className="flex-grow">
+      <main className="flex-grow w-full max-w-full overflow-x-hidden">
         {currentView === "home" ? (
           <>
             <LandingHero onDemoClick={() => handleNavigate("live-demo")} />

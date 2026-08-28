@@ -198,27 +198,27 @@ export const industriesData: Record<string, IndustryData> = {
     hero: {
       title: "Compassionate Care.",
       highlight: "Zero Hold Times.",
-      subtitle: "Triaging patients, refilling prescriptions, and booking appointments with HIPAA-compliant AI voice agents."
+      subtitle: "Answering clinic FAQs, verifying insurance eligibility, and booking appointments with HIPAA-compliant AI voice agents."
     },
     flow: {
-      step1: { title: "Patient Calls", desc: "\"I have a fever and need to see Dr. Smith.\"", icon: Phone },
-      step2: { title: "AI Triages", desc: "Assess urgency and checks doctor availability.", icon: Activity },
-      step3: { title: "Appointment Set", desc: "Synced to EMR, pre-visit instructions sent.", icon: HeartPulse }
+      step1: { title: "Patient Calls", desc: "\"I need to schedule a consultation with Dr. Smith.\"", icon: Phone },
+      step2: { title: "AI Checks Schedule", desc: "Verifies insurance eligibility & provider calendar availability.", icon: Activity },
+      step3: { title: "Appointment Set", desc: "Synced to EMR, pre-visit paperwork link sent via SMS.", icon: HeartPulse }
     },
     posIntegrations: {
       title: "EMR & EHR Software Sync",
       subtitle: "HIPAA-compliant integration with major healthcare practice management systems.",
       featured: [
-        { name: "Epic Systems", tag: "HIPAA Compliant", description: "Secure appointment scheduling, patient triage logging, and provider schedule sync." },
-        { name: "Cerner / Oracle Health", tag: "EHR Sync", description: "Automated prescription refill requests and pre-op procedure instruction delivery." },
-        { name: "AthenaHealth", tag: "Live Triage", description: "Real-time doctor calendar queries and automated patient reminder calling." }
+        { name: "Epic Systems", tag: "HIPAA Compliant", description: "Secure appointment scheduling, patient intake logging, and provider schedule sync." },
+        { name: "Cerner / Oracle Health", tag: "EHR Sync", description: "Automated appointment scheduling, pre-visit paperwork reminders, and clinic location routing." },
+        { name: "AthenaHealth", tag: "Live Sync", description: "Real-time doctor calendar queries and automated patient reminder calling." }
       ],
       customNotice: "Need integration with a custom EMR or specialized clinic software? We offer custom HIPAA-compliant API integrations."
     },
     useCases: [
-      { title: "Prescription Refill", trigger: "Patient calls:", query: "I need a refill on my blood pressure meds.", response: "AI verifies identity, pharmacy, and sends request to doctor.", icon: Stethoscope },
+      { title: "Clinic Hours & Location", trigger: "Caller asks:", query: "Where are you located and what are your office hours?", response: "AI provides exact address, parking instructions, and operating hours.", icon: HelpCircle },
       { title: "Appointment Reminder", trigger: "System calls:", query: "Confirming your visit tomorrow.", response: "AI handles confirmation or offers rescheduling if patient is busy.", icon: Calendar },
-      { title: "Pre-Op Instructions", trigger: "Patient asks:", query: "Can I eat before surgery?", response: "AI checks procedure type and reads specific fasting guidelines.", icon: ShieldCheck }
+      { title: "Insurance & Coverage", trigger: "Patient asks:", query: "Do you accept BlueCross BlueShield insurance?", response: "AI checks accepted provider database and confirms coverage guidelines.", icon: ShieldCheck }
     ],
     stats: [
       { val: "30%", label: "Lower No-Show Rate", suffix: "" },

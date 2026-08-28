@@ -41,15 +41,31 @@ export async function POST(request: Request) {
         );
       }
 
+      const insertedLead = data && data.length > 0 ? data[0] : null;
+      const leadId = insertedLead?.id || null;
+
       return NextResponse.json(
-        { success: true, message: "Lead saved successfully.", data },
+        {
+          success: true,
+          message: "Lead saved successfully.",
+          id: leadId,
+          customer_id: leadId,
+          data: insertedLead,
+        },
         { status: 201 }
       );
     } catch (dbError: any) {
       console.warn("Supabase connection warning:", dbError?.message);
       // Return success with warning if env vars missing during development
+      const fallbackId = `lead_${Date.now()}`;
       return NextResponse.json(
-        { success: true, message: "Lead captured (DB connection notice).", lead: leadData },
+        {
+          success: true,
+          message: "Lead captured (DB connection notice).",
+          id: fallbackId,
+          customer_id: fallbackId,
+          lead: leadData,
+        },
         { status: 200 }
       );
     }

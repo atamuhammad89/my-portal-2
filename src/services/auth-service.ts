@@ -29,10 +29,15 @@ export const authService = {
       body: JSON.stringify(payload),
     });
 
-    const data = await res.json();
+    let data: any = {};
+    try {
+      data = await res.json();
+    } catch {
+      throw new Error(`Login API route returned HTTP ${res.status} ${res.statusText || ""}.`);
+    }
 
     if (!res.ok) {
-      throw new Error(data.error ?? "Login failed.");
+      throw new Error(data?.error ?? "Login failed.");
     }
 
     return data as LoginResponse;
