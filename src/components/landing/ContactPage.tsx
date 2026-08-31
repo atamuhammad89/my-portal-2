@@ -67,7 +67,17 @@ export function ContactPage() {
                   </div>
                   <div>
                     <span className="text-xs text-slate-400 uppercase font-bold tracking-wider">Email Us</span>
-                    <p className="text-slate-100 font-semibold mt-0.5">support@callautomate.ai</p>
+                    <p className="text-slate-100 font-semibold mt-0.5">
+                      <a
+                        href="https://mail.google.com/mail/?view=cm&fs=1&to=support@callautomate.ai"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:text-indigo-400 transition-colors"
+                        title="Compose email to support@callautomate.ai in Gmail"
+                      >
+                        support@callautomate.ai
+                      </a>
+                    </p>
                   </div>
                 </div>
 

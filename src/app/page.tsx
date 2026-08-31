@@ -112,6 +112,7 @@ export default function Home() {
             <IndustryPage
               data={industryData}
               onDemoClick={() => handleNavigate("live-demo")}
+              onNavigate={handleNavigate}
             />
             <LiveDemo
               filterIndustryId={industryData.id}

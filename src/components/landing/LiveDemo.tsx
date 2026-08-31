@@ -15,6 +15,7 @@ export interface CountryCode {
 
 export const COUNTRY_CODES: CountryCode[] = [
   // Popular / Featured
+  { code: "IE", dialCode: "+353", name: "Ireland", flag: "🇮🇪", format: "87 123 4567" },
   { code: "PK", dialCode: "+92", name: "Pakistan", flag: "🇵🇰", format: "300 1234567" },
   { code: "US", dialCode: "+1", name: "United States", flag: "🇺🇸", format: "202 555 0123" },
   { code: "GB", dialCode: "+44", name: "United Kingdom", flag: "🇬🇧", format: "7911 123456" },
@@ -23,8 +24,7 @@ export const COUNTRY_CODES: CountryCode[] = [
   { code: "CA", dialCode: "+1", name: "Canada", flag: "🇨🇦", format: "416 555 0123" },
   { code: "AU", dialCode: "+61", name: "Australia", flag: "🇦🇺", format: "412 345 678" },
   { code: "IN", dialCode: "+91", name: "India", flag: "🇮🇳", format: "98765 43210" },
-  { code: "IE", dialCode: "+353", name: "Ireland", flag: "🇮🇪", format: "87 123 4567" },
-  
+
   // All World Countries (Alphabetical)
   { code: "AF", dialCode: "+93", name: "Afghanistan", flag: "🇦🇫", format: "70 123 4567" },
   { code: "AL", dialCode: "+355", name: "Albania", flag: "🇦🇱", format: "67 123 4567" },
@@ -328,11 +328,10 @@ export function CountrySelectorDropdown({
                       setIsOpen(false);
                       setSearch("");
                     }}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-colors cursor-pointer ${
-                      isSelected
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-colors cursor-pointer ${isSelected
                         ? "bg-emerald-500/15 text-emerald-400 font-bold border border-emerald-500/30"
                         : "hover:bg-slate-800 text-slate-200"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <img
@@ -365,7 +364,7 @@ interface Scenario {
 }
 
 export const HARDCODED_INDUSTRY_AGENTS: Record<string, string> = {
-  restaurant: "agent_0bf18c457ce238b48c0fc332a4",
+  restaurant: "agent_74b461308bf2d5e8fed808e2a9",
   salon: "agent_6f94e580d2a7d13bb139518f6c",
   "real-estate": "agent_78a02a3aa2ad7ba54e28b60257",
   plumber: "agent_36a031e8d639cbd81d5c8c5d79",
@@ -558,7 +557,8 @@ export function LiveDemo({ filterIndustryId, colorTheme }: LiveDemoProps) {
   const t = themeStyles[colorTheme as keyof typeof themeStyles] || themeStyles.indigo;
 
   // Phone Call Outbound Mode & Hot Lead Fields
-  const [selectedCountry, setSelectedCountry] = useState<CountryCode>(COUNTRY_CODES[0]);
+  const irelandDefault = COUNTRY_CODES.find((c) => c.code === "IE") || COUNTRY_CODES[0];
+  const [selectedCountry, setSelectedCountry] = useState<CountryCode>(irelandDefault);
   const [userName, setUserName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [callingState, setCallingState] = useState<"idle" | "calling">("idle");
@@ -794,11 +794,10 @@ export function LiveDemo({ filterIndustryId, colorTheme }: LiveDemoProps) {
                 {phoneNumber.trim() && (
                   <div className="mt-2.5 flex items-center gap-2 text-xs">
                     <span className="text-slate-400 font-mono text-[11px]">E.164 Target:</span>
-                    <span className={`font-mono text-xs font-bold px-2.5 py-0.5 rounded-md border ${
-                      formatToE164(selectedCountry.dialCode, phoneNumber).isValid
+                    <span className={`font-mono text-xs font-bold px-2.5 py-0.5 rounded-md border ${formatToE164(selectedCountry.dialCode, phoneNumber).isValid
                         ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
                         : "bg-rose-500/10 border-rose-500/30 text-rose-400"
-                    }`}>
+                      }`}>
                       {formatToE164(selectedCountry.dialCode, phoneNumber).e164}
                     </span>
                     {!formatToE164(selectedCountry.dialCode, phoneNumber).isValid && (

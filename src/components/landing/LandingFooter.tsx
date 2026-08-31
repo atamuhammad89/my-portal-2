@@ -63,13 +63,13 @@ export function LandingFooter() {
                 </svg>
               </a>
 
-              {/* Facebook link - replace href with your FB page URL when available */}
+              {/* Facebook link */}
               <a
-                href="#"
+                href="https://www.facebook.com/profile.php?id=61586211117004"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Facebook"
-                title="Follow CallAutomate on Facebook (Add your link)"
+                title="Follow CallAutomate on Facebook"
                 className="w-9 h-9 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:bg-[#1877F2]/20 hover:border-[#1877F2]/50 hover:shadow-lg hover:shadow-[#1877F2]/10 transition-all group"
               >
                 <svg className="w-4 h-4 fill-current text-slate-400 group-hover:text-[#1877F2] transition-colors" viewBox="0 0 24 24">
@@ -118,10 +118,16 @@ export function LandingFooter() {
           <div>
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-200 mb-4">Contact</h4>
             <div className="space-y-2 text-xs text-slate-400">
-              <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-indigo-400" />
+              <a
+                href="https://mail.google.com/mail/?view=cm&fs=1&to=support@callautomate.ai"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Compose email to support@callautomate.ai in Gmail"
+                className="flex items-center gap-2 hover:text-white transition-colors cursor-pointer group"
+              >
+                <Mail className="w-4 h-4 text-indigo-400 group-hover:text-indigo-300 transition-colors" />
                 <span>support@callautomate.ai</span>
-              </div>
+              </a>
               <a
                 href="https://wa.me/35361555222?text=Hi%20CallAutomate!%20I%20have%20a%20question%20about%20your%20AI%20Voice%20Receptionist."
                 target="_blank"
@@ -165,12 +171,12 @@ export function LandingFooter() {
                 </svg>
               </a>
               <a
-                href="#"
+                href="https://www.facebook.com/profile.php?id=61586211117004"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-slate-400 hover:text-[#1877F2] transition-colors"
                 aria-label="Facebook"
-                title="Facebook (Add your link)"
+                title="Follow CallAutomate on Facebook"
               >
                 <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
                   <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H7.5v-3H10V9.69c0-2.47 1.47-3.83 3.72-3.83 1.08 0 2.2.19 2.2.19v2.42h-1.24c-1.23 0-1.61.76-1.61 1.54V12h2.73l-.44 3h-2.29v6.8c4.56-.93 8-4.96 8-9.8z"/>

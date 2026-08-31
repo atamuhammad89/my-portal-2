@@ -655,155 +655,166 @@ export const BRAND_INTEGRATIONS_CATALOG: Record<string, BrandIntegration[]> = {
 
 interface SoftwareIntegrationsSectionProps {
   data: IndustryData;
+  onContactClick?: () => void;
 }
 
-export function SoftwareIntegrationsSection({ data }: SoftwareIntegrationsSectionProps) {
+export function SoftwareIntegrationsSection({ data, onContactClick }: SoftwareIntegrationsSectionProps) {
   const [isPaused, setIsPaused] = useState(false);
   const integrations = BRAND_INTEGRATIONS_CATALOG[data.id] || BRAND_INTEGRATIONS_CATALOG["restaurant"];
 
   // Create a duplicated array for seamless infinite sliding animation
   const sliderItems = [...integrations, ...integrations, ...integrations, ...integrations];
 
-  return (
-    <section className="py-24 bg-slate-950 text-white relative overflow-hidden">
-      {/* Dynamic Background Glowing Orbs */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-gradient-to-tr from-indigo-600/15 via-purple-600/15 to-cyan-500/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none" />
+  const handleRequestClick = () => {
+    if (onContactClick) {
+      onContactClick();
+    } else {
+      const el = document.getElementById("contact");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+      } else {
+        window.location.hash = "contact";
+      }
+    }
+  };
 
+  return (
+    <section className="py-16 sm:py-24 bg-[#060913] text-white relative overflow-hidden w-full max-w-full">
+      {/* Dynamic Background Glowing Orbs */}
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] sm:w-[800px] h-[400px] sm:h-[500px] bg-gradient-to-tr from-indigo-600/10 via-purple-600/10 to-cyan-500/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-80 h-80 bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none" />
+
+      {/* Header Container */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        
-        {/* Section Header Badge & Title */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="text-center max-w-3xl mx-auto mb-16"
+          className="text-center max-w-3xl mx-auto mb-10 sm:mb-14"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-indigo-500/15 to-purple-500/15 border border-indigo-500/30 rounded-full text-xs font-extrabold text-indigo-300 uppercase tracking-wider mb-4 backdrop-blur shadow-lg shadow-indigo-500/10">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-indigo-500/10 border border-indigo-500/30 rounded-full text-[10px] sm:text-xs font-extrabold text-indigo-300 uppercase tracking-wider mb-4 backdrop-blur shadow-lg shadow-indigo-500/10">
             <Zap className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
             <span>2-Way POS & Software Integrations</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight mb-4 text-white">
+          <h2 className="text-2xl sm:text-4xl md:text-5xl font-black tracking-tight mb-3 sm:mb-4 text-white">
             {data.posIntegrations?.title || "Seamless Software Integration"}
           </h2>
-          <p className="text-slate-400 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
+          <p className="text-slate-400 text-sm sm:text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
             {data.posIntegrations?.subtitle || "Instant 2-way data synchronization with your existing tech stack out of the box."}
           </p>
         </motion.div>
+      </div>
 
-        {/* ── INFINITE CONTINUOUS AUTO-SLIDING MARQUEE CAROUSEL ── */}
-        <div className="mb-16 relative">
-          <div className="text-xs font-bold font-mono uppercase tracking-widest text-slate-400 text-center mb-6 flex items-center justify-center gap-2">
-            <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-            <span>Supported Platforms (Hover to Inspect)</span>
-          </div>
-
-          {/* Left & Right Gradient Blur Edges for Smooth Fade */}
-          <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-28 bg-gradient-to-r from-slate-950 to-transparent z-20 pointer-events-none" />
-          <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-28 bg-gradient-to-l from-slate-950 to-transparent z-20 pointer-events-none" />
-
-          {/* Sliding Infinite Track */}
-          <div
-            className="overflow-hidden py-4"
-            onMouseEnter={() => setIsPaused(true)}
-            onMouseLeave={() => setIsPaused(false)}
-          >
-            <motion.div
-              className="flex items-center gap-5 w-max"
-              animate={isPaused ? {} : { x: [0, -1800] }}
-              transition={{
-                x: {
-                  repeat: Infinity,
-                  repeatType: "loop",
-                  duration: 32,
-                  ease: "linear",
-                },
-              }}
-            >
-              {sliderItems.map((item, idx) => {
-                return (
-                  <div
-                    key={`row1-${idx}`}
-                    className={`w-72 sm:w-80 bg-slate-900/90 border border-slate-800 ${item.borderColor} rounded-3xl p-6 backdrop-blur-xl shadow-xl transition-all duration-300 hover:scale-[1.03] group shrink-0 relative overflow-hidden cursor-pointer`}
-                  >
-                    {/* Top Glow Ribbon */}
-                    <div className={`absolute -top-12 -right-12 w-28 h-28 bg-gradient-to-br ${item.logoBg} rounded-full blur-xl opacity-40 group-hover:opacity-100 transition-opacity`} />
-
-                    <div className="flex items-center justify-between mb-4 relative z-10">
-                      <div className="flex items-center gap-3">
-                        {/* Vector SVG Brand Logo Badge */}
-                        <div className="w-12 h-12 shrink-0 group-hover:scale-105 transition-transform">
-                          <SoftwareLogo name={item.name} />
-                        </div>
-
-                        <div>
-                          <h4 className="text-base font-extrabold text-white group-hover:text-amber-400 transition-colors">
-                            {item.name}
-                          </h4>
-                          <span className="text-[10px] text-slate-400 font-mono font-medium block">
-                            {item.category}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <p className="text-xs text-slate-300 leading-relaxed mb-4 line-clamp-2 relative z-10">
-                      {item.description}
-                    </p>
-
-                    <div className="flex items-center justify-between pt-3 border-t border-slate-800/80 text-[11px] font-mono relative z-10">
-                      <span className={`px-2.5 py-0.5 rounded-full border text-[10px] font-bold uppercase tracking-wider ${item.logoBadgeBg}`}>
-                        {item.tag}
-                      </span>
-                      <span className="text-emerald-400 font-bold flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping inline-block" />
-                        {item.latency}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </motion.div>
-          </div>
+      {/* ── INFINITE CONTINUOUS AUTO-SLIDING MARQUEE CAROUSEL (FULL BLEED EDGE-TO-EDGE) ── */}
+      <div className="w-full overflow-hidden mb-12 sm:mb-16 relative z-10">
+        <div className="text-[10px] sm:text-xs font-bold font-mono uppercase tracking-widest text-slate-400 text-center mb-4 sm:mb-6 flex items-center justify-center gap-1.5 sm:gap-2 px-4">
+          <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+          <span>Supported Platforms (Hover to Inspect)</span>
         </div>
 
-        {/* ── DIRECT CUSTOM POS / SYSTEM BANNER ── */}
+        {/* Sliding Infinite Track without any vertical overlay strips */}
+        <div
+          className="w-full overflow-hidden py-2 sm:py-4"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+        >
+          <motion.div
+            className="flex items-center gap-4 sm:gap-6 w-max"
+            animate={isPaused ? {} : { x: [0, -1800] }}
+            transition={{
+              x: {
+                repeat: Infinity,
+                repeatType: "loop",
+                duration: 32,
+                ease: "linear",
+              },
+            }}
+          >
+            {sliderItems.map((item, idx) => {
+              return (
+                <div
+                  key={`row1-${idx}`}
+                  className={`w-[270px] sm:w-80 bg-[#0d1322] border border-slate-800 ${item.borderColor} rounded-2xl p-5 backdrop-blur-xl shadow-lg transition-all duration-300 hover:scale-[1.02] group shrink-0 relative overflow-hidden cursor-pointer`}
+                >
+                  {/* Top Glow Ribbon */}
+                  <div className={`absolute -top-12 -right-12 w-28 h-28 bg-gradient-to-br ${item.logoBg} rounded-full blur-xl opacity-30 group-hover:opacity-100 transition-opacity`} />
+
+                  <div className="flex items-center justify-between mb-3.5 relative z-10">
+                    <div className="flex items-center gap-3">
+                      {/* Vector SVG Brand Logo Badge */}
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 group-hover:scale-105 transition-transform">
+                        <SoftwareLogo name={item.name} />
+                      </div>
+
+                      <div>
+                        <h4 className="text-sm sm:text-base font-extrabold text-white group-hover:text-amber-400 transition-colors">
+                          {item.name}
+                        </h4>
+                        <span className="text-[10px] text-slate-400 font-mono font-medium block">
+                          {item.category}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-slate-300 leading-relaxed mb-4 relative z-10 min-h-[36px]">
+                    {item.description}
+                  </p>
+
+                  <div className="flex items-center justify-between pt-3 border-t border-slate-800/80 text-[10px] sm:text-[11px] font-mono relative z-10">
+                    <span className={`px-2.5 py-0.5 rounded-full border text-[9px] sm:text-[10px] font-bold uppercase tracking-wider ${item.logoBadgeBg}`}>
+                      {item.tag}
+                    </span>
+                    <span className="text-emerald-400 font-bold flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping inline-block" />
+                      {item.latency}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </motion.div>
+        </div>
+      </div>
+
+      {/* ── DIRECT CUSTOM POS / SYSTEM BANNER ── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <motion.div
           initial={{ opacity: 0, scale: 0.97 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="bg-gradient-to-r from-indigo-950/90 via-slate-900 to-purple-950/90 border border-indigo-500/40 rounded-3xl p-8 md:p-10 text-center md:text-left flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl backdrop-blur-2xl relative overflow-hidden group"
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="bg-gradient-to-r from-slate-900 via-[#0d1322] to-slate-900 border border-indigo-500/30 rounded-2xl sm:rounded-3xl p-5 sm:p-8 md:p-10 text-center md:text-left flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl relative overflow-hidden group"
         >
           {/* Subtle Ambient Light Pill */}
           <div className="absolute -left-20 top-1/2 -translate-y-1/2 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
 
-          <div className="flex items-center gap-5 relative z-10">
-            <div className="w-16 h-16 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center shrink-0 shadow-lg group-hover:scale-105 transition-transform">
-              <Cpu className="w-8 h-8 text-indigo-400" />
+          <div className="flex flex-col sm:flex-row items-center md:items-start text-center md:text-left gap-4 sm:gap-5 relative z-10">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center shrink-0 shadow-lg group-hover:scale-105 transition-transform">
+              <Cpu className="w-7 h-7 sm:w-8 sm:h-8 text-indigo-400" />
             </div>
             <div>
-              <div className="inline-flex items-center gap-1.5 text-[11px] font-bold text-amber-400 uppercase tracking-wider mb-1">
+              <div className="inline-flex items-center gap-1.5 text-[10px] sm:text-[11px] font-bold text-amber-400 uppercase tracking-wider mb-1">
                 <Sparkles className="w-3 h-3" />
                 <span>Custom API & Webhook Service</span>
               </div>
-              <h4 className="text-xl font-extrabold text-white mb-1">Have a Proprietary POS or Custom Software?</h4>
-              <p className="text-sm text-slate-300 max-w-2xl leading-relaxed">
+              <h4 className="text-lg sm:text-xl font-extrabold text-white mb-1">Have a Proprietary POS or Custom Software?</h4>
+              <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
                 {data.posIntegrations?.customNotice || "We build custom 2-way API & webhook connectors for ANY software system within 48 hours."}
               </p>
             </div>
           </div>
 
-          <a
-            href="#booking"
-            className="group/btn px-8 py-4 bg-white text-slate-950 font-black text-xs uppercase tracking-wider rounded-full hover:bg-slate-100 transition-all shrink-0 shadow-xl flex items-center gap-2 relative z-10"
+          <button
+            type="button"
+            onClick={handleRequestClick}
+            className="group/btn w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 bg-white text-slate-950 font-black text-xs uppercase tracking-wider rounded-full hover:bg-slate-100 transition-all shrink-0 shadow-xl flex items-center justify-center gap-2 relative z-10 cursor-pointer"
           >
             <span>Request Custom API Setup</span>
             <ArrowRight className="w-4 h-4 text-slate-950 group-hover/btn:translate-x-1 transition-transform" />
-          </a>
+          </button>
         </motion.div>
-
       </div>
     </section>
   );

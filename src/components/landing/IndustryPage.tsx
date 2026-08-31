@@ -10,9 +10,10 @@ import { SoftwareIntegrationsSection } from "./SoftwareIntegrationsSection";
 interface IndustryPageProps {
   data: IndustryData;
   onDemoClick: () => void;
+  onNavigate?: (view: string) => void;
 }
 
-export function IndustryPage({ data, onDemoClick }: IndustryPageProps) {
+export function IndustryPage({ data, onDemoClick, onNavigate }: IndustryPageProps) {
   const themeColors = {
     purple: { bg: "bg-purple-600", text: "text-purple-600", light: "bg-purple-50", gradient: "from-purple-600 to-pink-500", border: "border-purple-200" },
     blue: { bg: "bg-blue-600", text: "text-blue-600", light: "bg-blue-50", gradient: "from-blue-600 to-cyan-500", border: "border-blue-200" },
@@ -182,7 +183,10 @@ export function IndustryPage({ data, onDemoClick }: IndustryPageProps) {
 
       {/* ── POS & Systems Integration Section with Auto-Sliding Marquee ── */}
       {data.posIntegrations && (
-        <SoftwareIntegrationsSection data={data} />
+        <SoftwareIntegrationsSection
+          data={data}
+          onContactClick={() => onNavigate ? onNavigate("contact") : undefined}
+        />
       )}
 
       {/* ── Use Cases ── */}
