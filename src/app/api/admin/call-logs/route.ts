@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { createServerSupabaseClient, createCdrsServerSupabaseClient } from "@/lib/supabase-server";
 import { verifyRequestJwt, requireRole } from "@/lib/jwt-auth";
 
 /**
@@ -84,8 +84,10 @@ export async function GET(req: NextRequest) {
     userMap[u.id] = { fullName: u.full_name, email: u.email };
   });
 
+  const cdrsSupabase = createCdrsServerSupabaseClient();
+
   // ── 4. Build CDR query ────────────────────────────────────────────────────
-  let query = supabase
+  let query = cdrsSupabase
     .from("cdrs")
     .select("*"); // No count or range in database since we filter, sort and paginate in memory
 

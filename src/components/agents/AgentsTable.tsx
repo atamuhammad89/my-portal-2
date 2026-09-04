@@ -24,12 +24,14 @@ export interface RetellAgentRow {
 
 interface AgentsTableProps {
   agents: RetellAgentRow[];
+  users?: { id: string; email: string; full_name?: string; role?: string }[];
   loading?: boolean;
   isAdmin?: boolean;
+  pageSize?: number;
   onRefresh?: () => void;
   onDuplicate?: (agent: RetellAgentRow) => void;
   onDelete?: (agentId: string) => void;
-  onReassign?: (agent: RetellAgentRow) => void;
+  onReassign?: (agent: RetellAgentRow, targetUserId?: string) => void;
 }
 
 function formatRetellDate(timestamp?: number | string): string {
@@ -63,8 +65,10 @@ function formatVoiceInfo(voiceId?: string) {
 
 export function AgentsTable({
   agents,
+  users,
   loading = false,
   isAdmin = false,
+  pageSize = 50,
   onRefresh,
   onDuplicate,
   onDelete,
@@ -73,6 +77,8 @@ export function AgentsTable({
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [openMenuAgentId, setOpenMenuAgentId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(pageSize);
 
   const filteredAgents = useMemo(() => {
     return agents.filter((a) => {
@@ -85,6 +91,14 @@ export function AgentsTable({
       return nameMatch || idMatch || voiceMatch || phoneMatch || ownerMatch;
     });
   }, [agents, searchQuery]);
+
+  const totalPages = itemsPerPage === -1 ? 1 : Math.max(1, Math.ceil(filteredAgents.length / itemsPerPage));
+
+  const paginatedAgents = useMemo(() => {
+    if (itemsPerPage === -1) return filteredAgents;
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredAgents.slice(start, start + itemsPerPage);
+  }, [filteredAgents, currentPage, itemsPerPage]);
 
   const handleRowClick = (agentId: string) => {
     router.push(`/agents/${agentId}`);
@@ -109,7 +123,10 @@ export function AgentsTable({
               type="text"
               placeholder="Search..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
               className="w-full pl-9 pr-4 py-2 text-xs rounded-xl bg-[var(--surface)] border border-[var(--border)] text-[var(--foreground)] placeholder-[var(--subtle-text)] outline-none focus:border-[var(--brand-500)] transition-all"
             />
           </div>
@@ -164,7 +181,7 @@ export function AgentsTable({
                 </td>
               </tr>
             ) : (
-              filteredAgents.map((agent) => {
+              paginatedAgents.map((agent) => {
                 const voice = formatVoiceInfo(agent.voice_id);
                 const isMenuOpen = openMenuAgentId === agent.agent_id;
                 const agentTypeLabel =
@@ -222,13 +239,33 @@ export function AgentsTable({
 
                     {/* Owner User (Admin view) */}
                     {isAdmin && (
-                      <td className="py-4 px-5">
-                        <div className="text-xs">
-                          <div className="font-medium text-[var(--foreground)]">
-                            {agent.userId ? agent.userName || agent.userEmail : <span className="text-emerald-600 dark:text-emerald-400">🔓 Unassigned</span>}
+                      <td className="py-4 px-5" onClick={(e) => e.stopPropagation()}>
+                        {users && users.length > 0 ? (
+                          <select
+                            value={agent.userId || "unassigned"}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              if (onReassign) {
+                                onReassign(agent, e.target.value);
+                              }
+                            }}
+                            className="px-2.5 py-1.5 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] text-[var(--foreground)] text-xs font-medium outline-none focus:border-[var(--brand-500)] cursor-pointer max-w-[180px] truncate"
+                          >
+                            <option value="unassigned">🔓 Unassigned / Free</option>
+                            {users.map((u) => (
+                              <option key={u.id} value={u.id}>
+                                👤 {u.full_name || u.email}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <div className="text-xs">
+                            <div className="font-medium text-[var(--foreground)]">
+                              {agent.userId ? agent.userName || agent.userEmail : <span className="text-emerald-600 dark:text-emerald-400">🔓 Unassigned</span>}
+                            </div>
+                            {agent.userId && <div className="text-[10px] text-[var(--subtle-text)]">{agent.userEmail}</div>}
                           </div>
-                          {agent.userId && <div className="text-[10px] text-[var(--subtle-text)]">{agent.userEmail}</div>}
-                        </div>
+                        )}
                       </td>
                     )}
 
@@ -310,6 +347,54 @@ export function AgentsTable({
           </tbody>
         </table>
       </div>
+
+      {/* Pagination Footer */}
+      {!loading && filteredAgents.length > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t border-[var(--border)] bg-[var(--surface-2)] text-xs text-[var(--muted-text)]">
+          <div className="flex items-center gap-2">
+            <span>Show</span>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => {
+                setItemsPerPage(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className="px-2 py-1 rounded-lg bg-[var(--surface)] border border-[var(--border)] text-[var(--foreground)] outline-none cursor-pointer"
+            >
+              <option value={10}>10 per page</option>
+              <option value={25}>25 per page</option>
+              <option value={50}>50 per page</option>
+              <option value={100}>100 per page</option>
+              <option value={-1}>All agents</option>
+            </select>
+            <span>
+              Showing {itemsPerPage === -1 ? 1 : (currentPage - 1) * itemsPerPage + 1} to{" "}
+              {itemsPerPage === -1 ? filteredAgents.length : Math.min(currentPage * itemsPerPage, filteredAgents.length)}{" "}
+              of {filteredAgents.length} agents
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[var(--surface-2)] transition cursor-pointer font-medium"
+            >
+              Previous
+            </button>
+            <span className="px-3 font-semibold text-[var(--foreground)]">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage >= totalPages}
+              className="px-3 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[var(--surface-2)] transition cursor-pointer font-medium"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

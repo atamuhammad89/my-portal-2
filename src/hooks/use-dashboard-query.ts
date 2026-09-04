@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabase, cdrsSupabase } from "@/lib/supabase";
 import { CallLog } from "@/types/call-log";
 import { Recording } from "@/types/recording";
 import { TrendPoint, AgentPerformancePoint, DashboardKpi } from "@/types/dashboard";
@@ -82,7 +82,7 @@ export function useDashboardOverviewQuery() {
         const assignedAssistantId = assignmentRow.assistant_id;
 
         // ── Step 2: Fetch CDRs scoped to assigned assistant ────────────────────
-        const { data: rows, error: err } = await supabase
+        const { data: rows, error: err } = await cdrsSupabase
           .from("cdrs")
           .select("*")
           .eq("assistant_id", assignedAssistantId)

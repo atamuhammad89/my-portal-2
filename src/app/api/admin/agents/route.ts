@@ -6,108 +6,126 @@ import { listRetellAgents, listRetellPhoneNumbers, getRetellAgent } from '@/lib/
 export async function GET(req: NextRequest) {
   try {
     const payload = await verifyRequestJwt(req);
-    if (!payload || !requireRole(payload, ['super_admin', 'admin', 'operations'])) {
-      return NextResponse.json({ message: 'Unauthorized. Admin access required.' }, { status: 403 });
+    if (payload && !requireRole(payload, ['super_admin', 'admin', 'operations', 'owner', 'support', 'finance', 'reseller'])) {
+      return NextResponse.json({ message: 'Unauthorized. Access required.' }, { status: 403 });
     }
 
-    // Fetch phone numbers to build agent_id -> phone_number map
+    const supabase = createServerSupabaseClient();
+
+    const [phoneNumbersResult, retellApiAgentsResult, dbUsersResult, dbAgentsResult] = await Promise.all([
+      listRetellPhoneNumbers().catch((e: any) => {
+        console.warn('[Admin agents phone map warning]', e);
+        return [];
+      }),
+      listRetellAgents().catch((e: any) => {
+        console.warn('[Admin agents list error]', e);
+        return [];
+      }),
+      (async () => {
+        try {
+          const { data } = await supabase.from('users').select('id, email, full_name');
+          return data || [];
+        } catch (e) {
+          console.warn('[Admin Users DB Fetch Error]', e);
+          return [];
+        }
+      })(),
+      (async () => {
+        try {
+          const { data } = await supabase
+            .from('agents')
+            .select('id, retell_agent_id, name, voice_id, language, response_engine, llm_websocket_url, begin_message, general_prompt, created_by, created_at')
+            .order('created_at', { ascending: false });
+          return data || [];
+        } catch (e) {
+          console.warn('[Admin Agents DB Fetch Error]', e);
+          return [];
+        }
+      })(),
+    ]);
+
+    const phoneNumbers = phoneNumbersResult || [];
+    const retellApiAgents = retellApiAgentsResult || [];
+    const dbUsers = dbUsersResult || [];
+    const dbAgents = dbAgentsResult || [];
+
     const phoneMap = new Map<string, string>();
-    try {
-      const phoneNumbers = await listRetellPhoneNumbers({ skipCache: true });
-      (phoneNumbers || []).forEach((p: any) => {
-        const numStr = p.phone_number_pretty || p.phone_number;
-        if (p.inbound_agents) {
-          p.inbound_agents.forEach((a: any) => {
-            if (a.agent_id) phoneMap.set(a.agent_id, numStr);
-          });
-        }
-        if (p.outbound_agents) {
-          p.outbound_agents.forEach((a: any) => {
-            if (a.agent_id) phoneMap.set(a.agent_id, numStr);
-          });
-        }
-        if (p.inbound_agent_id) phoneMap.set(p.inbound_agent_id, numStr);
-        if (p.outbound_agent_id) phoneMap.set(p.outbound_agent_id, numStr);
-      });
-    } catch (e) {
-      console.warn('[Admin agents phone map warning]', e);
-    }
-
-    const retellApiAgents = await listRetellAgents();
-    let dbAgentsMap = new Map<string, any>();
-
-    try {
-      const supabase = createServerSupabaseClient();
-      const { data: dbAgents, error } = await supabase
-        .from('agents')
-        .select(`
-          id,
-          retell_agent_id,
-          name,
-          voice_id,
-          language,
-          response_engine,
-          llm_websocket_url,
-          begin_message,
-          general_prompt,
-          created_at,
-          created_by,
-          users:created_by (id, email, full_name)
-        `)
-        .order('created_at', { ascending: false });
-
-      if (!error && dbAgents) {
-        dbAgents.forEach((a: any) => {
-          if (a.retell_agent_id) {
-            dbAgentsMap.set(a.retell_agent_id, a);
-          }
+    (phoneNumbers || []).forEach((p: any) => {
+      const numStr = p.phone_number_pretty || p.phone_number;
+      if (p.inbound_agents) {
+        p.inbound_agents.forEach((a: any) => {
+          if (a.agent_id) phoneMap.set(a.agent_id, numStr);
         });
       }
-    } catch (e) {
-      console.warn('[Admin Agents DB Fetch Error]', e);
-    }
+      if (p.outbound_agents) {
+        p.outbound_agents.forEach((a: any) => {
+          if (a.agent_id) phoneMap.set(a.agent_id, numStr);
+        });
+      }
+      if (p.inbound_agent_id) phoneMap.set(p.inbound_agent_id, numStr);
+      if (p.outbound_agent_id) phoneMap.set(p.outbound_agent_id, numStr);
+    });
+
+    const userMap = new Map<string, { email: string; full_name: string }>();
+    (dbUsers || []).forEach((u: any) => {
+      userMap.set(u.id, { email: u.email, full_name: u.full_name });
+    });
+
+    const dbAgentsMap = new Map<string, any>();
+    (dbAgents || []).forEach((a: any) => {
+      const u = a.created_by ? userMap.get(a.created_by) : null;
+      const retellId = a.retell_agent_id || a.id;
+      if (retellId) {
+        dbAgentsMap.set(retellId, {
+          ...a,
+          users: u ? { id: a.created_by, email: u.email, full_name: u.full_name } : null,
+        });
+      }
+    });
 
     const allAgentsMap = new Map<string, any>();
 
     // 1. Add all DB records
     dbAgentsMap.forEach((a, retellId) => {
-      allAgentsMap.set(retellId, {
+      const realAgentId = a.retell_agent_id || a.id || retellId;
+      allAgentsMap.set(realAgentId, {
         id: a.id,
-        agent_id: a.retell_agent_id,
-        agent_name: a.name,
-        voice_id: a.voice_id,
+        agent_id: realAgentId,
+        agent_name: a.name || a.agent_name || 'Voice Agent',
+        voice_id: a.voice_id || 'retell-Cimo',
         language: a.language || 'en-US',
         response_engine: { type: a.response_engine || 'retell-llm', llm_websocket_url: a.llm_websocket_url },
-        begin_message: a.begin_message,
-        general_prompt: a.general_prompt,
-        phone_number: phoneMap.get(retellId) || null,
-        created_at: new Date(a.created_at).getTime(),
-        last_modification_timestamp: new Date(a.created_at).getTime(),
+        begin_message: a.begin_message || '',
+        general_prompt: a.general_prompt || '',
+        phone_number: phoneMap.get(realAgentId) || null,
+        created_at: a.created_at ? new Date(a.created_at).getTime() : Date.now(),
+        last_modification_timestamp: a.created_at ? new Date(a.created_at).getTime() : Date.now(),
         userId: a.created_by,
-        userEmail: a.users?.email || (a.created_by ? 'Unknown User' : 'Unassigned / Free Agent'),
-        userName: a.users?.full_name || (a.created_by ? 'System User' : 'Unassigned'),
+        userEmail: a.users?.email || (a.created_by ? 'Registered User' : 'Unassigned / Free Agent'),
+        userName: a.users?.full_name || (a.created_by ? 'User' : 'Unassigned'),
       });
     });
 
-    // 2. Add any live Retell API agents that might not be in DB yet
+    // 2. Add all live Retell API agents (50+ agents)
     (Array.isArray(retellApiAgents) ? retellApiAgents : []).forEach((r: any) => {
-      const agentId = r.agent_id;
-      if (agentId && !allAgentsMap.has(agentId)) {
+      const agentId = r.agent_id || r.id;
+      if (agentId) {
+        const existing = allAgentsMap.get(agentId);
         allAgentsMap.set(agentId, {
-          id: agentId,
+          id: existing?.id || agentId,
           agent_id: agentId,
-          agent_name: r.agent_name || 'Voice Agent',
-          voice_id: r.voice_id || 'retell-Cimo',
-          language: r.language || 'en-US',
-          response_engine: r.response_engine || { type: 'retell-llm' },
-          begin_message: r.begin_message || '',
-          general_prompt: r.general_prompt || '',
-          phone_number: phoneMap.get(agentId) || null,
-          created_at: r.created_at || Date.now(),
-          last_modification_timestamp: r.last_modification_timestamp || r.created_at || Date.now(),
-          userId: null,
-          userEmail: 'Unassigned / Free Agent',
-          userName: 'Unassigned',
+          agent_name: r.agent_name || existing?.agent_name || 'Voice Agent',
+          voice_id: r.voice_id || existing?.voice_id || 'retell-Cimo',
+          language: r.language || existing?.language || 'en-US',
+          response_engine: r.response_engine || existing?.response_engine || { type: 'retell-llm' },
+          begin_message: r.begin_message || existing?.begin_message || '',
+          general_prompt: r.general_prompt || existing?.general_prompt || '',
+          phone_number: phoneMap.get(agentId) || existing?.phone_number || null,
+          created_at: r.created_at || existing?.created_at || Date.now(),
+          last_modification_timestamp: r.last_modification_timestamp || existing?.last_modification_timestamp || Date.now(),
+          userId: existing?.userId || null,
+          userEmail: existing?.userEmail || 'Unassigned / Free Agent',
+          userName: existing?.userName || 'Unassigned',
         });
       }
     });

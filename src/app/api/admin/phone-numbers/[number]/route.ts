@@ -36,23 +36,6 @@ export async function PATCH(
 
     const correlationId = request.headers.get("x-correlation-id") || undefined;
     const result = await updateRetellPhoneNumber(decodedNumber, validation.data, { correlationId });
-
-    // Sync snapshot to local Supabase DB
-    try {
-      const supabase = createServerSupabaseClient();
-      await supabase
-        .from("retell_phone_numbers")
-        .upsert({
-          phone_number: result.phone_number || decodedNumber,
-          nickname: result.nickname,
-          inbound_agent_id: result.inbound_agents?.[0]?.agent_id || null,
-          outbound_agent_id: result.outbound_agents?.[0]?.agent_id || null,
-          updated_at: new Date().toISOString(),
-        }, { onConflict: "phone_number" });
-    } catch (dbErr) {
-      console.warn("[Phone Number DB Snapshot Warning]", dbErr);
-    }
-
     return NextResponse.json(result);
   } catch (error: any) {
     return NextResponse.json(
@@ -71,18 +54,6 @@ export async function DELETE(
     const decodedNumber = decodeURIComponent(number);
     const correlationId = request.headers.get("x-correlation-id") || undefined;
     await deleteRetellPhoneNumber(decodedNumber, { correlationId });
-
-    // Delete snapshot from local Supabase DB
-    try {
-      const supabase = createServerSupabaseClient();
-      await supabase
-        .from("retell_phone_numbers")
-        .delete()
-        .eq("phone_number", decodedNumber);
-    } catch (dbErr) {
-      console.warn("[Phone Number DB Delete Warning]", dbErr);
-    }
-
     return NextResponse.json({ success: true, phone_number: decodedNumber });
   } catch (error: any) {
     return NextResponse.json(

@@ -10,23 +10,7 @@ export async function PATCH(
     const body = await req.json();
     const { begin_message, general_prompt, begin_after_user_silence_ms } = body;
 
-    // 1. Fetch current agent live details to check for llm_id
-    const currentAgent = await getRetellAgent(agentId, { skipCache: true });
-    const llmId = currentAgent?.response_engine?.llm_id;
-
-    // 2. If agent has Retell LLM, update prompt & first message on LLM directly
-    if (llmId) {
-      try {
-        await updateRetellLlm(llmId, {
-          general_prompt: general_prompt ?? currentAgent.general_prompt,
-          begin_message: begin_message ?? currentAgent.begin_message,
-        });
-      } catch (llmErr) {
-        console.warn("[Conversation Route LLM Sync Warn]", llmErr);
-      }
-    }
-
-    // 3. Update agent level settings (pause before speaking: begin_after_user_silence_ms & post_response_delay_ms) on Retell AI
+    // 1. Prepare agent payload
     const rawMs = begin_after_user_silence_ms !== undefined ? Number(begin_after_user_silence_ms) : undefined;
     const finalMs = rawMs !== undefined && !isNaN(rawMs) ? (rawMs < 50 ? rawMs * 1000 : rawMs) : undefined;
 
@@ -38,20 +22,28 @@ export async function PATCH(
       agentPayload.post_response_delay_ms = finalMs;
     }
 
+    // 2. Update agent directly on Retell AI REST API
     const retellResult = await updateRetellAgent(agentId, agentPayload);
 
-    // 4. Fetch fresh agent details straight from Retell AI API
-    const freshAgent = await getRetellAgent(agentId, { skipCache: true });
+    // 3. If agent has Retell LLM ID, update LLM prompt asynchronously in background without blocking response
+    const llmId = (retellResult as any)?.response_engine?.llm_id;
+    if (llmId && (general_prompt !== undefined || begin_message !== undefined)) {
+      updateRetellLlm(llmId, {
+        ...(general_prompt !== undefined ? { general_prompt } : {}),
+        ...(begin_message !== undefined ? { begin_message } : {}),
+      }).catch((err) => console.warn("[Conversation LLM Sync async warn]", err));
+    }
 
     return NextResponse.json({
       success: true,
       section: "conversation",
       data: {
         ...retellResult,
-        ...freshAgent,
-        begin_message: freshAgent.begin_message ?? begin_message ?? "",
-        general_prompt: freshAgent.general_prompt ?? general_prompt ?? "",
-        begin_after_user_silence_ms: (freshAgent as any).begin_after_user_silence_ms ?? finalMs ?? 2000,
+        id: retellResult.agent_id || agentId,
+        agent_id: retellResult.agent_id || agentId,
+        begin_message: retellResult.begin_message ?? begin_message ?? "",
+        general_prompt: retellResult.general_prompt ?? general_prompt ?? "",
+        begin_after_user_silence_ms: (retellResult as any).begin_after_user_silence_ms ?? finalMs ?? 2000,
       },
     });
   } catch (error: any) {

@@ -11,15 +11,15 @@ export async function PATCH(
     const { voice_id, provider, speed, pitch } = body;
 
     const retellResult = await updateRetellAgent(agentId, { voice_id });
-    const freshAgent = await getRetellAgent(agentId, { skipCache: true });
 
     return NextResponse.json({
       success: true,
       section: "voice",
       data: {
         ...retellResult,
-        ...freshAgent,
-        voice_id: freshAgent.voice_id || voice_id,
+        id: retellResult.agent_id || agentId,
+        agent_id: retellResult.agent_id || agentId,
+        voice_id: retellResult.voice_id || voice_id,
         provider,
         speed,
         pitch,

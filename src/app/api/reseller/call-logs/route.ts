@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { createServerSupabaseClient, createCdrsServerSupabaseClient } from "@/lib/supabase-server";
 import { verifyRequestJwt, requireRole } from "@/lib/jwt-auth";
 
 export async function GET(req: NextRequest) {
@@ -99,8 +99,10 @@ export async function GET(req: NextRequest) {
       userMap[c.id] = { fullName: c.fullName, email: c.email };
     });
 
+    const cdrsSupabase = createCdrsServerSupabaseClient();
+
     // 4. Query CDRs
-    const { data: rows, error: cdrError } = await supabase
+    const { data: rows, error: cdrError } = await cdrsSupabase
       .from("cdrs")
       .select("*")
       .in("assistant_id", assistantIds);

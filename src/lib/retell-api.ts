@@ -115,12 +115,16 @@ function setCached<T>(key: string, data: T, ttlMs = DEFAULT_TTL_MS): void {
 }
 
 export function invalidateCacheKey(key: string): void {
-  CACHE_MAP.delete(key);
+  for (const k of CACHE_MAP.keys()) {
+    if (k.includes(key)) {
+      CACHE_MAP.delete(k);
+    }
+  }
 }
 
 export function invalidateCachePrefix(prefix: string): void {
   for (const k of CACHE_MAP.keys()) {
-    if (k.startsWith(prefix)) {
+    if (k.includes(prefix)) {
       CACHE_MAP.delete(k);
     }
   }
@@ -149,9 +153,17 @@ async function retellRequest<T>(
   const method = (options.method || "GET").toUpperCase();
   const timeoutMs = extraOpts.timeoutMs || 30000; // 30s default
 
-  // Caching for GET requests
-  const cacheKey = `${method}:${path}`;
-  if (method === "GET" && !extraOpts.skipCache) {
+  // Caching for GET requests & read-only list POST operations (e.g. /v2/list-agents)
+  const isCacheable =
+    (method === "GET" ||
+      path.includes("/list-agents") ||
+      path.includes("/list-voices") ||
+      path.includes("/list-phone-numbers") ||
+      path.includes("/list-retell-llms")) &&
+    !extraOpts.skipCache;
+
+  const cacheKey = `${method}:${path}:${options.body || ""}`;
+  if (isCacheable) {
     const cached = getCached<T>(cacheKey);
     if (cached !== null) {
       return cached;
@@ -239,7 +251,7 @@ async function retellRequest<T>(
         }
       }
 
-      if (method === "GET" && !extraOpts.skipCache) {
+      if (isCacheable) {
         setCached(cacheKey, responseData);
       }
       return responseData as T;
@@ -293,7 +305,7 @@ export async function retellPaginate<T>(
       return response as T[];
     }
 
-    const items = response.items || response.data || response.results || [];
+    const items = response.agents || response.phone_numbers || response.items || response.data || response.results || [];
     if (Array.isArray(items)) {
       aggregated.push(...items);
     }
@@ -545,11 +557,20 @@ export async function listRetellAgents(
   }
 
   try {
-    const fetchedAgents = await retellPaginate<RetellAgentResponse>(
-      "/v2/list-agents",
-      { method: "POST" },
-      extraOpts
-    );
+    let fetchedAgents: RetellAgentResponse[] = [];
+    try {
+      fetchedAgents = await retellPaginate<RetellAgentResponse>(
+        "/v2/list-agents",
+        { method: "GET" },
+        extraOpts
+      );
+    } catch {
+      fetchedAgents = await retellPaginate<RetellAgentResponse>(
+        "/list-agents",
+        { method: "GET" },
+        extraOpts
+      );
+    }
     const mockAgents = Array.from(MOCK_STORE.agents.values());
     const inMemoryUserAgents = userId ? mockAgents.filter((a) => a.userId === userId) : mockAgents;
 

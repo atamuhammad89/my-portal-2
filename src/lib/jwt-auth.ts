@@ -14,32 +14,38 @@ export type JwtPayload = {
 export async function verifyRequestJwt(
   req: NextRequest
 ): Promise<JwtPayload | null> {
-  try {
-    let token: string | null = null;
+  const candidates: string[] = [];
 
-    // 1. Try Authorization header first
-    const authHeader = req.headers.get("authorization") ?? "";
-
-    if (authHeader.startsWith("Bearer ")) {
-      token = authHeader.slice(7);
-    }
-
-    // 2. Fall back to HttpOnly cookie "token" (standard cookie transport)
-    if (!token) {
-      token = req.cookies.get("token")?.value ?? null;
-    }
-
-    if (!token) {
-      return null;
-    }
-
-    const { payload } = await jwtVerify(token, JWT_SECRET);
-
-    return payload as unknown as JwtPayload;
-  } catch (err) {
-    console.error("JWT VERIFY ERROR:", err);
-    return null;
+  // 1. Authorization header token
+  const authHeader = req.headers.get("authorization") ?? "";
+  if (authHeader.startsWith("Bearer ")) {
+    const bearer = authHeader.slice(7).trim();
+    if (bearer) candidates.push(bearer);
   }
+
+  // 2. Cookie tokens (prioritizing HttpOnly "token")
+  const configuredName = process.env.NEXT_PUBLIC_AUTH_COOKIE_NAME || "voiceos_auth_token";
+  const cookieNames = ["token", configuredName, "voiceos_auth_token", "access_token"];
+  for (const name of cookieNames) {
+    const val = req.cookies.get(name)?.value;
+    if (val && val !== "1" && !candidates.includes(val)) {
+      candidates.push(val);
+    }
+  }
+
+  // Try each candidate token until one successfully verifies
+  for (const token of candidates) {
+    try {
+      const { payload } = await jwtVerify(token, JWT_SECRET);
+      if (payload) {
+        return payload as unknown as JwtPayload;
+      }
+    } catch {
+      // Candidate token failed verification, try next candidate
+    }
+  }
+
+  return null;
 }
 
 export function requireRole(

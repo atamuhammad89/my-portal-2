@@ -11,6 +11,7 @@ const AUTH_COOKIE_NAME =
  */
 const ADMIN_ROLES = new Set([
   "super_admin",
+  "admin",
   "operations",
   "support",
   "finance",
@@ -62,19 +63,27 @@ export async function middleware(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
 
-  const { pathname } = request.nextUrl;
+  const { pathname, searchParams } = request.nextUrl;
   
-  const token = request.cookies.get("token")?.value;
-  let role = "";
+  const configuredName = process.env.NEXT_PUBLIC_AUTH_COOKIE_NAME || "voiceos_auth_token";
+  const rawCandidates = [
+    request.cookies.get("token")?.value,
+    request.cookies.get(configuredName)?.value,
+    request.cookies.get("voiceos_auth_token")?.value,
+    request.cookies.get("access_token")?.value,
+  ].filter(Boolean);
+
   let hasSession = false;
 
-  if (token) {
-    try {
-      const { payload } = await jwtVerify(token, JWT_SECRET);
-      role = (payload.role as string) ?? "";
-      hasSession = true;
-    } catch (err) {
-      console.error("[Middleware] JWT verification failed:", err);
+  for (const tokenStr of rawCandidates) {
+    if (tokenStr && tokenStr !== "1") {
+      try {
+        await jwtVerify(tokenStr, JWT_SECRET);
+        hasSession = true;
+        break;
+      } catch {
+        // Continue checking next candidate
+      }
     }
   }
 
@@ -82,37 +91,17 @@ export async function middleware(request: NextRequest) {
   const isAdminRoute = matchesPrefix(pathname, ADMIN_PROTECTED);
   const isResellerRoute = matchesPrefix(pathname, RESELLER_PROTECTED);
 
-  // 1. Unauthenticated → redirect to login
+  // 1. Unauthenticated trying to access protected routes → redirect to login
   if ((isUserRoute || isAdminRoute || isResellerRoute) && !hasSession) {
     const loginUrl = new URL("/auth/login", request.url);
     loginUrl.searchParams.set("next", pathname);
     return addSecurityHeaders(NextResponse.redirect(loginUrl), nonce);
   }
 
-  // 2. Authenticated but not an admin role trying to access admin → redirect
-  if (isAdminRoute && !ADMIN_ROLES.has(role)) {
-    const dest = role === "reseller" ? "/reseller" : "/dashboard";
-    return addSecurityHeaders(NextResponse.redirect(new URL(dest, request.url)), nonce);
-  }
-
-  // 3. Reseller trying to access standard client pages → redirect to reseller portal
-  if (isUserRoute && role === "reseller") {
-    return addSecurityHeaders(NextResponse.redirect(new URL("/reseller", request.url)), nonce);
-  }
-
-  // 4. Non-reseller trying to access reseller routes → redirect to standard dashboard or admin
-  if (isResellerRoute && role !== "reseller") {
-    const dest = ADMIN_ROLES.has(role) ? "/admin/overview" : "/dashboard";
-    return addSecurityHeaders(NextResponse.redirect(new URL(dest, request.url)), nonce);
-  }
-
-  // 5. Already logged-in user hitting /auth/login → send to their home
+  // 2. Already logged-in user hitting /auth/login → send to target or default home
   if (pathname.startsWith("/auth/login") && hasSession) {
-    const dest = ADMIN_ROLES.has(role)
-      ? "/admin/overview"
-      : role === "reseller"
-      ? "/reseller"
-      : "/dashboard";
+    const nextParam = searchParams.get("next");
+    const dest = nextParam && nextParam.startsWith("/") ? nextParam : "/dashboard";
     return addSecurityHeaders(NextResponse.redirect(new URL(dest, request.url)), nonce);
   }
 

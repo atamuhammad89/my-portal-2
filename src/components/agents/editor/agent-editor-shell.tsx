@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   ArrowLeft, Bot, Sparkles, Mic, Database, Cpu, PhoneCall, Play, Activity, Tag, Check, Loader2, Save, Trash2, Globe
 } from "lucide-react";
+import { useAuthStore } from "@/store/auth-store";
 import { cn } from "@/lib/utils";
 import {
   OverviewGroup, IntelligenceGroup, CommunicationGroup, TestingGroup, AnalyticsGroup, PublishingGroup
@@ -16,6 +17,18 @@ interface AgentEditorShellProps {
 
 export function AgentEditorShell({ agent: initialAgent }: AgentEditorShellProps) {
   const router = useRouter();
+  const user = useAuthStore((s) => s.user);
+
+  const handleBackToAgents = () => {
+    const roleStr = (user?.role || "").toLowerCase();
+    const isAdmin = ["super_admin", "admin", "operations", "support", "finance"].includes(roleStr);
+    if (isAdmin) {
+      router.push("/admin/agents");
+    } else {
+      router.push("/agents");
+    }
+  };
+
   const [agent, setAgent] = useState(initialAgent);
   const [activeGroup, setActiveGroup] = useState<"overview" | "intelligence" | "communication" | "testing" | "analytics" | "publishing">("overview");
   const [savingSection, setSavingSection] = useState<string | null>(null);
@@ -25,6 +38,13 @@ export function AgentEditorShell({ agent: initialAgent }: AgentEditorShellProps)
     setSavingSection(section);
     setSectionStatus((prev) => ({ ...prev, [section]: "saving" }));
 
+    // Optimistically update local agent state
+    setAgent((prev: any) => ({
+      ...prev,
+      ...payload,
+      ...(payload.name ? { agent_name: payload.name, name: payload.name } : {}),
+    }));
+
     try {
       const res = await fetch(`/api/agents/${agent.agent_id || agent.id}/${section}`, {
         method: "PATCH",
@@ -32,19 +52,26 @@ export function AgentEditorShell({ agent: initialAgent }: AgentEditorShellProps)
         body: JSON.stringify(payload),
       });
 
+      const resData = await res.json();
+
       if (res.ok) {
         setSectionStatus((prev) => ({ ...prev, [section]: "saved" }));
-
-        // Instantly re-fetch fresh agent data from GET API
-        try {
-          const freshRes = await fetch(`/api/agents/${agent.agent_id || agent.id}`, { cache: "no-store" });
-          if (freshRes.ok) {
-            const freshAgent = await freshRes.json();
-            setAgent(freshAgent);
-          }
-        } catch (e) {
-          console.warn("[Auto-refresh agent warn]", e);
+        const updatedObj = resData.data || resData;
+        if (updatedObj && typeof updatedObj === "object") {
+          setAgent((prev: any) => ({
+            ...prev,
+            ...updatedObj,
+            name: updatedObj.name || updatedObj.agent_name || prev.name,
+            agent_name: updatedObj.agent_name || updatedObj.name || prev.agent_name,
+          }));
         }
+        setTimeout(() => {
+          setSectionStatus((prev) => {
+            const next = { ...prev };
+            delete next[section];
+            return next;
+          });
+        }, 2500);
       } else {
         setSectionStatus((prev) => ({ ...prev, [section]: "error" }));
       }
@@ -108,7 +135,7 @@ export function AgentEditorShell({ agent: initialAgent }: AgentEditorShellProps)
       <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-[var(--surface)]/95 backdrop-blur-md px-6 py-3 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <button
-            onClick={() => router.push("/agents")}
+            onClick={handleBackToAgents}
             className="flex items-center gap-1.5 text-xs font-bold text-[var(--muted-text)] hover:text-[var(--foreground)] transition cursor-pointer"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -161,7 +188,7 @@ export function AgentEditorShell({ agent: initialAgent }: AgentEditorShellProps)
           </button>
 
           <button
-            onClick={() => router.push("/agents")}
+            onClick={handleBackToAgents}
             className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-xs font-bold text-[var(--foreground)] hover:bg-[var(--surface)] transition cursor-pointer"
           >
             Done

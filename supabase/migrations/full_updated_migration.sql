@@ -1,5 +1,5 @@
 -- =========================================================================
--- CallAutomate - Complete Consolidated & Updated Supabase Database Schema (schema.sql)
+-- CallAutomate - Complete Consolidated & Updated Supabase Database Migration
 -- Single, fully idempotent migration script with CREATE IF NOT EXISTS,
 -- CREATE OR REPLACE FUNCTION, and DROP POLICY IF EXISTS.
 -- =========================================================================
@@ -748,7 +748,7 @@ ALTER TABLE public.phone_numbers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.hot_leads ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.hot_leads_callresults ENABLE ROW LEVEL SECURITY;
 
--- Helper block to safely recreate policies
+-- Helper to safely recreate policies
 DO $$
 BEGIN
   -- Service Role Policies (Full Bypass)

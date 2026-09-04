@@ -1,16 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { createServerSupabaseClient, createCdrsServerSupabaseClient } from "@/lib/supabase-server";
 import { verifyRequestJwt } from "@/lib/jwt-auth";
 
 /**
  * GET /api/call-logs
  *
- * Returns CDR rows for the authenticated customer, filtered so that only
- * records whose start_datetime falls within at least one of the user's
- * subscription periods (active or previously purchased) are returned.
- *
- * Uses the service-role Supabase client so that RLS on the subscriptions
- * table does not block the query.
+ * Returns CDR rows for the authenticated customer based on agent IDs assigned to them
+ * in the agents table (created_by = user_id), user_agent_access, or user_assistant_assignments.
  */
 export async function GET(req: NextRequest) {
   const jwt = await verifyRequestJwt(req);
@@ -20,88 +16,118 @@ export async function GET(req: NextRequest) {
 
   const supabase = createServerSupabaseClient(); // service-role key, bypasses RLS
 
-  // ── 1. Resolve the assistant_id assigned to this user ─────────────────────
-  const { data: assignmentRow, error: assignmentError } = await supabase
-    .from("user_assistant_assignments")
-    .select("assistant_id")
-    .eq("user_id", jwt.sub)
-    .maybeSingle();
+  // ── 1. Resolve all agent IDs assigned to / owned by this user ─────────────────
+  const agentIdsSet = new Set<string>();
 
-  if (assignmentError) {
-    console.error("[call-logs] assignment error:", assignmentError);
-    return NextResponse.json({ error: "Failed to resolve assignment." }, { status: 500 });
+  // a) From agents table (ownership where created_by = jwt.sub)
+  try {
+    const { data: ownedAgents } = await supabase
+      .from("agents")
+      .select("id, retell_agent_id")
+      .eq("created_by", jwt.sub);
+
+    (ownedAgents || []).forEach((a: any) => {
+      if (a.retell_agent_id) agentIdsSet.add(a.retell_agent_id);
+      if (a.id) agentIdsSet.add(a.id);
+    });
+  } catch (e) {
+    console.warn("[call-logs] ownedAgents query error:", e);
   }
 
-  if (!assignmentRow?.assistant_id) {
-    // No assistant assigned → no calls to show
-    return NextResponse.json([]);
+  // b) From user_agent_access table
+  try {
+    const { data: accessRows } = await supabase
+      .from("user_agent_access")
+      .select("agent_id")
+      .eq("user_id", jwt.sub);
+
+    (accessRows || []).forEach((r: any) => {
+      if (r.agent_id) agentIdsSet.add(r.agent_id);
+    });
+  } catch (e) {
+    console.warn("[call-logs] user_agent_access query error:", e);
   }
 
-  const assignedAssistantId = assignmentRow.assistant_id;
+  // c) From user_assistant_assignments table
+  try {
+    const { data: legacyAssignments } = await supabase
+      .from("user_assistant_assignments")
+      .select("assistant_id")
+      .eq("user_id", jwt.sub);
+
+    (legacyAssignments || []).forEach((a: any) => {
+      if (a.assistant_id) agentIdsSet.add(a.assistant_id);
+    });
+  } catch (e) {
+    console.warn("[call-logs] user_assistant_assignments query error:", e);
+  }
+
+  const assignedAgentIds = Array.from(agentIdsSet);
 
   // ── 2. Fetch ALL subscription periods for this user ────────────────────────
-  // We need both active and expired/cancelled subscriptions so the customer
-  // can see any call that happened during a period they paid for.
-  const { data: subRows, error: subError } = await supabase
-    .from("subscriptions")
-    .select("id, started_at, ends_at, status, price_per_minute_snapshot")
-    .eq("user_id", jwt.sub)
-    .order("started_at", { ascending: true });
+  let subscriptions: any[] = [];
+  try {
+    const { data: subRows } = await supabase
+      .from("subscriptions")
+      .select("id, started_at, ends_at, status, price_per_minute_snapshot")
+      .eq("user_id", jwt.sub)
+      .order("started_at", { ascending: true });
 
-  if (subError) {
-    console.error("[call-logs] subscriptions error:", subError);
-    return NextResponse.json({ error: "Failed to fetch subscriptions." }, { status: 500 });
+    subscriptions = subRows ?? [];
+  } catch (e) {
+    console.warn("[call-logs] subscriptions query warn:", e);
   }
 
-  const subscriptions = subRows ?? [];
-
-  // If the user has never had a subscription, show nothing.
-  if (subscriptions.length === 0) {
-    return NextResponse.json([]);
-  }
-
-  // ── 3. Resolve price_per_minute from the active subscription ───────────────
+  // ── 3. Resolve price_per_minute from active subscription if available ───────
   let pricePerMinute: number | null = null;
+  try {
+    const { data: userRow } = await supabase
+      .from("users")
+      .select("active_subscription_id")
+      .eq("id", jwt.sub)
+      .single();
 
-  const { data: userRow } = await supabase
-    .from("users")
-    .select("active_subscription_id")
-    .eq("id", jwt.sub)
-    .single();
-
-  if (userRow?.active_subscription_id) {
-    const activeSub = subscriptions.find((s: any) => s.id === userRow.active_subscription_id);
-    if (activeSub) {
-      pricePerMinute = Number((activeSub as any).price_per_minute_snapshot);
+    if (userRow?.active_subscription_id) {
+      const activeSub = subscriptions.find((s: any) => s.id === userRow.active_subscription_id);
+      if (activeSub) {
+        pricePerMinute = Number((activeSub as any).price_per_minute_snapshot);
+      }
     }
+  } catch (e) {}
+
+  const cdrsSupabase = createCdrsServerSupabaseClient();
+  let rows: any[] = [];
+
+  // ── 4. Fetch CDR rows matching user's assigned agent IDs ────────────────────
+  try {
+    if (assignedAgentIds.length > 0) {
+      const { data, error: cdrError } = await cdrsSupabase
+        .from("cdrs")
+        .select("*")
+        .in("assistant_id", assignedAgentIds)
+        .order("start_datetime", { ascending: false });
+
+      if (!cdrError && data) {
+        rows = data;
+      } else if (cdrError) {
+        console.warn("[call-logs] CDR fetch error by assistant_id:", cdrError);
+      }
+    }
+  } catch (cdrErr) {
+    console.error("[call-logs] CDR fetch exception:", cdrErr);
   }
 
-  // ── 4. Fetch all CDR rows for the assigned assistant ──────────────────────
-  const { data: rows, error: cdrError } = await supabase
-    .from("cdrs")
-    .select("*")
-    .eq("assistant_id", assignedAssistantId)
-    .order("start_datetime", { ascending: true });
-
-  if (cdrError) {
-    console.error("[call-logs] CDR fetch error:", cdrError);
-    return NextResponse.json({ error: "Failed to fetch call logs." }, { status: 500 });
-  }
-
-  // ── 5. Filter CDRs to those within a subscription period ──────────────────
-  // Parse a CDR start_datetime value (ISO, Unix-ms, Unix-s, or DD/MM/YYYY) → ms epoch
+  // ── 5. Filter CDRs to subscription period ONLY IF subscription ranges exist ─────
   function parseCdrDate(raw: string | number | null | undefined): number | null {
     if (raw === null || raw === undefined || raw === "") return null;
 
     const ts = Number(raw);
     if (!isNaN(ts) && String(raw).trim() !== "") {
-      // > 1e12 → milliseconds, otherwise seconds
       const ms = ts > 1e12 ? ts : ts * 1000;
       return isNaN(ms) ? null : ms;
     }
 
     if (typeof raw === "string") {
-      // DD/MM/YYYY [HH:mm:ss]
       const ddmm = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[,\s]+(\d{1,2}:\d{2}(?::\d{2})?))?/);
       if (ddmm) {
         const [, dd, mm, yyyy, time] = ddmm;
@@ -109,7 +135,6 @@ export async function GET(req: NextRequest) {
         const d = new Date(iso).getTime();
         return isNaN(d) ? null : d;
       }
-      // ISO or any other Date-parseable string
       const d = new Date(raw).getTime();
       return isNaN(d) ? null : d;
     }
@@ -117,32 +142,36 @@ export async function GET(req: NextRequest) {
     return null;
   }
 
-  // Pre-compute subscription boundaries as epoch ms for fast comparison
-  const subRanges = subscriptions
-    .map((s: any) => {
-      const start = s.started_at ? new Date(s.started_at).getTime() : null;
-      const end   = s.ends_at    ? new Date(s.ends_at).getTime()    : null;
-      return { start, end };
-    })
-    .filter((r) => r.start !== null && !isNaN(r.start!)) as Array<{
-      start: number;
-      end: number | null;
-    }>;
+  let filteredRows = rows;
 
-  const filteredRows = (rows ?? []).filter((row: any) => {
-    const callMs = parseCdrDate(row.start_datetime);
-    if (callMs === null) return false;
+  if (subscriptions.length > 0) {
+    const subRanges = subscriptions
+      .map((s: any) => {
+        const start = s.started_at ? new Date(s.started_at).getTime() : null;
+        const end   = s.ends_at    ? new Date(s.ends_at).getTime()    : null;
+        return { start, end };
+      })
+      .filter((r) => r.start !== null && !isNaN(r.start!)) as Array<{
+        start: number;
+        end: number | null;
+      }>;
 
-    return subRanges.some(({ start, end }) => {
-      const afterStart = callMs >= start;
-      // If ends_at is null the subscription has no defined end → include all calls from start
-      const beforeEnd  = end === null ? true : callMs <= end;
-      return afterStart && beforeEnd;
-    });
-  });
+    if (subRanges.length > 0) {
+      filteredRows = rows.filter((row: any) => {
+        const callMs = parseCdrDate(row.start_datetime);
+        if (callMs === null) return false;
+
+        return subRanges.some(({ start, end }) => {
+          const afterStart = callMs >= start;
+          const beforeEnd  = end === null ? true : callMs <= end;
+          return afterStart && beforeEnd;
+        });
+      });
+    }
+  }
 
   console.log(
-    `[call-logs] user=${jwt.sub} | total CDRs: ${(rows ?? []).length} | after subscription filter: ${filteredRows.length}`
+    `[call-logs] user=${jwt.sub} | assignedAgents=${assignedAgentIds.length} | total CDRs: ${rows.length} | filtered: ${filteredRows.length}`
   );
 
   // ── 6. Shape & enrich the response ────────────────────────────────────────
@@ -165,7 +194,7 @@ export async function GET(req: NextRequest) {
       toNumber: row.assistant_id ?? "—",
       durationSeconds,
       status: row.is_successful === true ? "passed" : "failed",
-      agentName: row.assistant_id ?? "Unknown",
+      agentName: row.assistant_id ?? "Voice Agent",
       hasRecording: Boolean(row.call_recording),
       recordingUrl: row.call_recording ?? null,
       cost: computedCost,

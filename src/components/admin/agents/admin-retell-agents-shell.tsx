@@ -8,11 +8,14 @@ import {
 } from "lucide-react";
 import { useAdminRetellAgentsQuery, useCreateRetellAgentMutation, useDeleteRetellAgentMutation, useAgentAccessQuery, useGrantAgentAccessMutation, useRevokeAgentAccessMutation } from "@/hooks/admin/use-admin-retell-agents-query";
 import { useAdminUsersQuery } from "@/hooks/admin/use-admin-users-query";
-import { CreateRetellAgentPayload, RetellAgent, RetellPhoneNumberResponse, RetellKnowledgeBaseResponse, RetellTestDefinitionResponse, RetellConcurrencyStatusResponse } from "@/types/retell";
+import { CreateRetellAgentPayload, RetellAgent, RetellPhoneNumberResponse, RetellKnowledgeBaseResponse, RetellTestDefinitionResponse, RetellConcurrencyStatusResponse, RetellVoice } from "@/types/retell";
 import { cn } from "@/lib/utils";
+import { RetellVoiceLibraryModal } from "@/components/agents/editor/retell-voice-library-modal";
+import { RETELL_VOICE_CATALOG } from "@/lib/retell-voices-catalog";
 
 // ─── Create Agent Modal ────────────────────────────────────────────────────────
 function CreateAgentModal({ onClose }: { onClose: () => void }) {
+  const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
   const [form, setForm] = useState<CreateRetellAgentPayload>({
     name: "",
     language: "en-US",
@@ -22,6 +25,10 @@ function CreateAgentModal({ onClose }: { onClose: () => void }) {
     general_prompt: "You are a professional AI voice assistant.",
     assign_user_ids: [],
   });
+
+  const voiceIdStr = form.voice_id || "retell-Cimo";
+  const selectedVoiceObj = RETELL_VOICE_CATALOG.find((v) => v.voice_id === voiceIdStr);
+  const selectedVoiceName = selectedVoiceObj?.voice_name || voiceIdStr.replace(/^retell-/, "").replace(/_/g, " ");
 
   const { data: users = [] } = useAdminUsersQuery();
   const { mutate: createAgent, isPending, error } = useCreateRetellAgentMutation();
@@ -94,17 +101,32 @@ function CreateAgentModal({ onClose }: { onClose: () => void }) {
               </select>
             </div>
             <div>
-              <label className={labelCls}>Voice Engine</label>
-              <select
-                className={inputCls}
-                value={form.voice_id}
-                onChange={(e) => setForm((p) => ({ ...p, voice_id: e.target.value }))}
-              >
-                <option value="retell-Cimo">retell-Cimo (Friendly Male)</option>
-                <option value="retell-Sarah">retell-Sarah (Professional Female)</option>
-                <option value="retell-James">retell-James (UK Male)</option>
-                <option value="retell-Elena">retell-Elena (Warm Female)</option>
-              </select>
+              <label className={labelCls}>Voice Profile</label>
+              <div className="flex items-center justify-between gap-2 p-2 rounded-xl border border-[var(--border)] bg-[var(--surface-2)]">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="h-7 w-7 rounded-full bg-gradient-to-br from-blue-500/30 to-indigo-600/40 text-blue-200 border border-blue-500/40 flex items-center justify-center font-bold text-[10px] shrink-0">
+                    {selectedVoiceName.slice(0, 2).toUpperCase()}
+                  </div>
+                  <span className="font-bold text-xs text-[var(--foreground)] truncate">{selectedVoiceName}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsVoiceModalOpen(true)}
+                  className="shrink-0 px-2.5 py-1 rounded-lg bg-[var(--brand-500)] text-[var(--brand-btn-text)] text-[11px] font-bold hover:opacity-90 transition cursor-pointer flex items-center gap-1"
+                >
+                  <Mic className="h-3 w-3" />
+                  Select
+                </button>
+              </div>
+
+              <RetellVoiceLibraryModal
+                isOpen={isVoiceModalOpen}
+                onClose={() => setIsVoiceModalOpen(false)}
+                selectedVoiceId={form.voice_id || "retell-Cimo"}
+                onSelectVoice={(v: RetellVoice) => {
+                  setForm((p) => ({ ...p, voice_id: v.voice_id }));
+                }}
+              />
             </div>
           </div>
 

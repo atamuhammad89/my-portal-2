@@ -19,7 +19,7 @@ import {
 export function useAdminRole() {
   const user = useAuthStore((s) => s.user);
 
-  const role: AdminRole = useMemo(() => {
+  const role: AdminRole | null = useMemo(() => {
     const validAdminRoles: AdminRole[] = [
       "super_admin",
       "operations",
@@ -27,17 +27,17 @@ export function useAdminRole() {
       "finance",
     ];
     const userRole = (user?.role as string)?.toLowerCase();
-    if (userRole === "super_admin" || userRole === "owner" || userRole === "admin") {
+    if (userRole === "super_admin" || userRole === "admin") {
       return "super_admin";
     }
     if (userRole && validAdminRoles.includes(userRole as AdminRole)) {
       return userRole as AdminRole;
     }
-    return "super_admin";
+    return null;
   }, [user?.role]);
 
   return useMemo(() => {
-    const permissions: AdminNavPermission[] = rolePermissions[role] ?? [];
+    const permissions: AdminNavPermission[] = role ? (rolePermissions[role] ?? []) : [];
     return {
       role,
       permissions,

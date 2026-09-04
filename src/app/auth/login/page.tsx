@@ -27,14 +27,14 @@ function LoginForm() {
     setErrorMessage(null);
     try {
       const response = await login({ email, password });
-      const adminRoles = new Set(["super_admin", "operations", "support", "finance"]);
+      const adminRoles = new Set(["super_admin", "admin", "operations", "support", "finance"]);
       const defaultDest = adminRoles.has(response.user?.role ?? "")
-        ? "/admin/overview"
+        ? "/admin/agents"
         : response.user?.role === "reseller"
         ? "/reseller"
         : "/dashboard";
       const next = searchParams.get("next");
-      router.replace(next ?? defaultDest);
+      router.replace(next && next.startsWith("/") ? next : defaultDest);
     } catch (err) {
       setErrorMessage(
         err instanceof Error ? err.message : "Login failed. Please verify your credentials."

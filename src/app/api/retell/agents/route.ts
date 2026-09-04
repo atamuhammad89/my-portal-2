@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
     // Fetch live phone numbers from Retell API to build agent_id -> phone_number map
     const phoneMap = new Map<string, string>();
     try {
-      const phoneNumbers = await listRetellPhoneNumbers({ skipCache: true });
+      const phoneNumbers = await listRetellPhoneNumbers();
       (phoneNumbers || []).forEach((p: any) => {
         const numStr = p.phone_number_pretty || p.phone_number;
         if (p.inbound_agents) {
@@ -70,7 +70,7 @@ export async function GET(req: NextRequest) {
             dbAgents.map(async (dbRecord: any) => {
               const agentId = dbRecord.retell_agent_id || dbRecord.id;
               try {
-                const live = await getRetellAgent(agentId, { skipCache: true });
+                const live = await getRetellAgent(agentId);
                 allAgentsMap.set(agentId, {
                   id: dbRecord.id,
                   agent_id: agentId,
@@ -109,7 +109,7 @@ export async function GET(req: NextRequest) {
       }
 
       // Fallback for Super Admin: Return live Retell API agents directly
-      const liveList = await listRetellAgents(undefined, { skipCache: true });
+      const liveList = await listRetellAgents();
       const formatted = (liveList || []).map((live: any) => ({
         id: live.agent_id,
         agent_id: live.agent_id,
@@ -167,7 +167,7 @@ export async function GET(req: NextRequest) {
       dbAgents.map(async (dbRecord: any) => {
         const agentId = dbRecord.retell_agent_id || dbRecord.id;
         try {
-          const live = await getRetellAgent(agentId, { skipCache: true });
+          const live = await getRetellAgent(agentId);
           allAgentsMap.set(agentId, {
             id: dbRecord.id,
             agent_id: agentId,

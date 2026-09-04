@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabase, cdrsSupabase } from "@/lib/supabase";
 import { Recording } from "@/types/recording";
+
 import { useAuthStore } from "@/store/auth-store";
 
 export function useRecordingsQuery() {
@@ -48,7 +49,7 @@ export function useRecordingsQuery() {
       console.log("[Assignment] Recordings filtered to assistant_id:", assignedAssistantId);
 
       // ── Step 2: Fetch recordings filtered to the assigned assistant_id ────
-      const { data: rows, error: err } = await supabase
+      const { data: rows, error: err } = await cdrsSupabase
         .from("cdrs")
         .select(
           "id, call_id, assistant_id, customer_number, total_seconds, start_datetime, call_recording"

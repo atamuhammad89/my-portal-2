@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, PhoneCall, Settings, Receipt, X, Building2, Phone, Bot } from "lucide-react";
+import { LayoutDashboard, PhoneCall, Settings, Receipt, X, Building2, Phone, Bot, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/store/ui-store";
 import { LogoutButton } from "@/components/shared/logout-button";
@@ -39,14 +39,24 @@ export function AppSidebar() {
   const unpaidCount = (invoiceData?.invoices ?? []).filter((inv: any) => inv.status !== "paid").length;
 
   const isReseller = user?.role === "reseller";
+  const isAdmin = ["super_admin", "admin", "operations", "support", "finance"].includes(
+    (user?.role || "").toLowerCase()
+  );
 
-  const activeNavItems = isReseller
+  const baseNavItems = isReseller
     ? [
         { href: "/reseller", label: "Dashboard", icon: LayoutDashboard },
         { href: "/reseller/customers", label: "Customers", icon: Building2 },
         { href: "/reseller/call-logs", label: "Call Logs", icon: PhoneCall },
       ]
     : navItems;
+
+  const activeNavItems = isAdmin
+    ? [
+        { href: "/admin/agents", label: "Admin Portal", icon: ShieldCheck, isAdmin: true },
+        ...baseNavItems,
+      ]
+    : baseNavItems;
 
   return (
     <>
@@ -127,7 +137,11 @@ export function AppSidebar() {
               >
                 <Icon className={cn("h-4 w-4 shrink-0 transition-transform group-hover:scale-110", active ? "text-sidebar-active" : "text-sidebar-text group-hover:text-sidebar-text-hover")} />
                 <span>{item.label}</span>
-                {item.href === "/billing" && unpaidCount > 0 ? (
+                {(item as any).isAdmin ? (
+                  <span className="ml-auto text-[10px] font-bold uppercase tracking-wider text-amber-400 bg-amber-500/10 border border-amber-500/30 px-1.5 py-0.5 rounded">
+                    Admin
+                  </span>
+                ) : item.href === "/billing" && unpaidCount > 0 ? (
                   <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-extrabold text-white shadow-xs animate-pulse">
                     {unpaidCount}
                   </span>

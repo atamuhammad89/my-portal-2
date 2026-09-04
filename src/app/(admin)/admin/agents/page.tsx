@@ -40,18 +40,29 @@ export default function AdminAgentsPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [agentRes, userRes] = await Promise.all([
-        fetch("/api/admin/agents"),
-        fetch("/api/admin/users"),
+      const token =
+        typeof window !== "undefined"
+          ? localStorage.getItem("access_token") || localStorage.getItem("voiceos_auth_token")
+          : null;
+      const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+
+      const [agentRes, userRes] = await Promise.allSettled([
+        fetch("/api/admin/agents", { headers }),
+        fetch("/api/admin/users", { headers }),
       ]);
 
-      if (agentRes.ok) {
-        const agentData = await agentRes.json();
-        setAgents(Array.isArray(agentData) ? agentData : []);
+      let fetchedAgents: AdminAgentItem[] = [];
+      if (agentRes.status === "fulfilled" && agentRes.value.ok) {
+        const agentData = await agentRes.value.json();
+        fetchedAgents = Array.isArray(agentData) ? agentData : [];
+      } else if (agentRes.status === "fulfilled") {
+        console.warn("[Admin Agents Fetch Non-OK]", agentRes.value.status);
       }
 
-      if (userRes.ok) {
-        const userData = await userRes.json();
+      setAgents(fetchedAgents);
+
+      if (userRes.status === "fulfilled" && userRes.value.ok) {
+        const userData = await userRes.value.json();
         setUsers(Array.isArray(userData) ? userData : []);
       }
     } catch (e) {
@@ -134,13 +145,18 @@ export default function AdminAgentsPage() {
 
       {/* Retell-styled All Agents Table for Admin */}
       <AgentsTable
-        agents={agents}
+        agents={filteredAgents}
+        users={users}
         loading={loading}
         isAdmin={true}
         onRefresh={fetchData}
-        onReassign={(agent) => {
-          setReassignTargetAgent(agent);
-          setSelectedUserId(agent.userId || "unassigned");
+        onReassign={(agent, targetUserId) => {
+          if (targetUserId !== undefined) {
+            handleReassign(agent, targetUserId);
+          } else {
+            setReassignTargetAgent(agent);
+            setSelectedUserId(agent.userId || "unassigned");
+          }
         }}
       />
 

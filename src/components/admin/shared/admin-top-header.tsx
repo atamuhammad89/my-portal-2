@@ -89,7 +89,7 @@ export function AdminTopHeader({ title }: AdminTopHeaderProps) {
               {user?.fullName ?? user?.email}
             </span>
             <span className="text-[10px] font-semibold text-[var(--muted-text)] uppercase tracking-wider">
-              {adminRoleLabels[role]}
+              {role ? adminRoleLabels[role] : "Admin"}
             </span>
           </div>
         </div>

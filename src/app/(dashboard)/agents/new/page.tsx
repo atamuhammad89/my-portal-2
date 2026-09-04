@@ -5,11 +5,15 @@ import { useRouter } from "next/navigation";
 import {
   Bot, ArrowLeft, Mic, Sparkles, Loader2, Globe, MessageSquare, Code
 } from "lucide-react";
+import { RetellVoiceLibraryModal } from "@/components/agents/editor/retell-voice-library-modal";
+import { RETELL_VOICE_CATALOG } from "@/lib/retell-voices-catalog";
+import type { RetellVoice } from "@/types/retell";
 
 export default function NewAgentPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
 
   const [form, setForm] = useState({
     name: "",
@@ -19,6 +23,9 @@ export default function NewAgentPage() {
     begin_message: "Hello! Thank you for calling. How can I help you today?",
     general_prompt: "You are a helpful, professional, and friendly AI voice assistant.",
   });
+
+  const selectedVoiceObj = RETELL_VOICE_CATALOG.find((v) => v.voice_id === form.voice_id);
+  const selectedVoiceName = selectedVoiceObj?.voice_name || form.voice_id.replace(/^retell-/, "").replace(/_/g, " ");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,16 +125,37 @@ export default function NewAgentPage() {
                 <Mic className="h-3.5 w-3.5 text-[var(--brand-500)]" />
                 Voice Profile
               </label>
-              <select
-                value={form.voice_id}
-                onChange={(e) => setForm((p) => ({ ...p, voice_id: e.target.value }))}
-                className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-3 text-xs text-[var(--foreground)] font-medium"
-              >
-                <option value="retell-Cimo">Cimo (Friendly Male)</option>
-                <option value="retell-Sarah">Sarah (Professional Female)</option>
-                <option value="retell-Elena">Elena (Warm Female)</option>
-                <option value="retell-James">James (Male UK Accent)</option>
-              </select>
+              
+              <div className="flex items-center justify-between gap-3 p-3 rounded-xl border border-[var(--border)] bg-[var(--surface-2)]">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="h-9 w-9 rounded-full bg-gradient-to-br from-blue-500/30 to-indigo-600/40 text-blue-200 border border-blue-500/40 flex items-center justify-center font-bold text-xs shrink-0">
+                    {selectedVoiceName.slice(0, 2).toUpperCase()}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-bold text-xs text-[var(--foreground)] truncate">{selectedVoiceName}</p>
+                    <p className="text-[10px] text-[var(--subtle-text)] truncate">
+                      {selectedVoiceObj?.trait || `${selectedVoiceObj?.accent || "Natural"} · ${selectedVoiceObj?.gender || "Voice"}`}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsVoiceModalOpen(true)}
+                  className="shrink-0 px-3.5 py-2 rounded-xl bg-[var(--brand-500)] text-[var(--brand-btn-text)] text-xs font-bold hover:opacity-90 transition cursor-pointer flex items-center gap-1.5 shadow-xs"
+                >
+                  <Mic className="h-3.5 w-3.5" />
+                  Select Voice
+                </button>
+              </div>
+
+              <RetellVoiceLibraryModal
+                isOpen={isVoiceModalOpen}
+                onClose={() => setIsVoiceModalOpen(false)}
+                selectedVoiceId={form.voice_id}
+                onSelectVoice={(v: RetellVoice) => {
+                  setForm((p) => ({ ...p, voice_id: v.voice_id }));
+                }}
+              />
             </div>
 
             <div>

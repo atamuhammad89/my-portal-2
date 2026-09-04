@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { createServerSupabaseClient, createCdrsServerSupabaseClient } from "@/lib/supabase-server";
 import { verifyRequestJwt, requireRole } from "@/lib/jwt-auth";
 
 export async function GET(req: NextRequest) {
@@ -71,12 +71,14 @@ export async function GET(req: NextRequest) {
       plan: u.subscriptions?.plans?.display_name ?? "No Plan",
     }));
 
+    const cdrsSupabase = createCdrsServerSupabaseClient();
+
     // ── CDR call trends: last 7 days ──────────────────────────────────────────
     const today = new Date();
     const sevenDaysAgo = new Date(today);
     sevenDaysAgo.setDate(today.getDate() - 7);
 
-    const { data: recentCdrs } = await supabase
+    const { data: recentCdrs } = await cdrsSupabase
       .from("cdrs")
       .select("start_datetime, is_successful, total_mins")
       .gte("start_datetime", sevenDaysAgo.toISOString())
@@ -118,11 +120,11 @@ export async function GET(req: NextRequest) {
     }));
 
     // Total platform-level calls & status
-    const { count: totalPlatformCalls } = await supabase
+    const { count: totalPlatformCalls } = await cdrsSupabase
       .from("cdrs")
       .select("*", { count: "exact", head: true });
 
-    const { count: passedCalls } = await supabase
+    const { count: passedCalls } = await cdrsSupabase
       .from("cdrs")
       .select("*", { count: "exact", head: true })
       .eq("is_successful", true);

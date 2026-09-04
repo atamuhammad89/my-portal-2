@@ -36,10 +36,14 @@ export function useCallLogsQuery() {
       }
 
       try {
+        const token =
+          typeof window !== "undefined"
+            ? localStorage.getItem("access_token") || localStorage.getItem("voiceos_auth_token")
+            : null;
         const headers: Record<string, string> = {
           "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         };
-
 
         const res = await fetch("/api/call-logs", { headers });
 

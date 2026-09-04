@@ -1,6 +1,6 @@
 // src/app/api/admin/agents/assistant-ids/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { createServerSupabaseClient, createCdrsServerSupabaseClient } from "@/lib/supabase-server";
 import { verifyRequestJwt, requireRole } from "@/lib/jwt-auth";
 
 export async function GET(req: NextRequest) {
@@ -11,9 +11,9 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
     }
 
-    const supabase = createServerSupabaseClient();
+    const cdrsSupabase = createCdrsServerSupabaseClient();
     // Pull distinct assistant IDs from call_logs
-    const { data, error } = await supabase
+    const { data, error } = await cdrsSupabase
         .from("cdrs")
         .select("assistant_id")
         .order("assistant_id");

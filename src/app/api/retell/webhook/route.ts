@@ -107,19 +107,6 @@ export async function POST(request: Request) {
           call_cost: call.call_cost || null,
           call_analysis: analysis,
         }).eq("retell_call_id", callId);
-
-        // Populate public.retell_call_analysis table
-        await supabase.from("retell_call_analysis").upsert(
-          {
-            retell_call_id: callId,
-            user_sentiment: analysis.user_sentiment || null,
-            call_successful: analysis.call_successful ?? null,
-            transcript_summary: analysis.transcript_summary || null,
-            in_call_cost: call.call_cost || null,
-            custom_analysis_data: analysis.custom_analysis_data || {},
-          },
-          { onConflict: "retell_call_id" }
-        );
         break;
       }
 

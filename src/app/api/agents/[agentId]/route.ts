@@ -53,14 +53,12 @@ export async function PATCH(
       ...(body.general_prompt ? { general_prompt: body.general_prompt } : {}),
     });
 
-    const freshAgent = await getRetellAgent(agentId, { skipCache: true });
     return NextResponse.json({
       ...retellResult,
-      ...freshAgent,
-      id: freshAgent.agent_id || agentId,
-      agent_id: freshAgent.agent_id || agentId,
-      name: freshAgent.agent_name || body.name || "Voice Agent",
-      agent_name: freshAgent.agent_name || body.name || "Voice Agent",
+      id: retellResult.agent_id || agentId,
+      agent_id: retellResult.agent_id || agentId,
+      name: retellResult.agent_name || body.name || "Voice Agent",
+      agent_name: retellResult.agent_name || body.name || "Voice Agent",
     });
   } catch (error: any) {
     console.error("[PATCH /api/agents/[agentId]]", error);

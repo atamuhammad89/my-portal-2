@@ -16,16 +16,16 @@ export async function PATCH(
       language: language || "en-US",
     });
 
-    const freshAgent = await getRetellAgent(agentId, { skipCache: true });
-
     return NextResponse.json({
       success: true,
       section: "general",
       data: {
         ...retellResult,
-        ...freshAgent,
-        name: freshAgent.agent_name || name || retellResult.agent_name,
-        agent_name: freshAgent.agent_name || name || retellResult.agent_name,
+        id: retellResult.agent_id || agentId,
+        agent_id: retellResult.agent_id || agentId,
+        name: retellResult.agent_name || name,
+        agent_name: retellResult.agent_name || name,
+        language: retellResult.language || language || "en-US",
       },
     });
   } catch (error: any) {

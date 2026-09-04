@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { createServerSupabaseClient, createCdrsServerSupabaseClient } from "@/lib/supabase-server";
 import { verifyRequestJwt, requireRole } from "@/lib/jwt-auth";
 
 export async function GET(req: NextRequest) {
@@ -119,7 +119,8 @@ export async function GET(req: NextRequest) {
       });
 
       if (assistantIds.length > 0) {
-        const { data: cdrs, error: cdrError } = await supabase
+        const cdrsSupabase = createCdrsServerSupabaseClient();
+        const { data: cdrs, error: cdrError } = await cdrsSupabase
           .from("cdrs")
           .select("*")
           .in("assistant_id", assistantIds)

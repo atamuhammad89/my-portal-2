@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { createServerSupabaseClient, createCdrsServerSupabaseClient } from "@/lib/supabase-server";
 import { verifyRequestJwt, requireRole } from "@/lib/jwt-auth";
 import bcrypt from "bcryptjs";
 
@@ -69,7 +69,8 @@ export async function GET(req: NextRequest) {
     const assistantIds = Object.values(assignmentMap);
     const usageMap: Record<string, number> = {};
     if (assistantIds.length > 0) {
-      const { data: usageRows } = await supabase
+      const cdrsSupabase = createCdrsServerSupabaseClient();
+      const { data: usageRows } = await cdrsSupabase
         .from("cdrs")
         .select("assistant_id, total_seconds")
         .in("assistant_id", assistantIds);
