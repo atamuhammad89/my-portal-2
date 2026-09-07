@@ -335,8 +335,8 @@ export function CountrySelectorDropdown({
                       setSearch("");
                     }}
                     className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-colors cursor-pointer ${isSelected
-                        ? "bg-emerald-500/15 text-emerald-400 font-bold border border-emerald-500/30"
-                        : "hover:bg-slate-800 text-slate-200"
+                      ? "bg-emerald-500/15 text-emerald-400 font-bold border border-emerald-500/30"
+                      : "hover:bg-slate-800 text-slate-200"
                       }`}
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
@@ -376,7 +376,7 @@ interface Scenario {
 }
 
 export const HARDCODED_INDUSTRY_AGENTS: Record<string, string> = {
-  restaurant: "agent_74b461308bf2d5e8fed808e2a9",
+  restaurant: "agent_3fa4de7cb2bef55c6c96956e4a",
   salon: "agent_6f94e580d2a7d13bb139518f6c",
   "real-estate": "agent_78a02a3aa2ad7ba54e28b60257",
   plumber: "agent_36a031e8d639cbd81d5c8c5d79",
@@ -807,8 +807,8 @@ export function LiveDemo({ filterIndustryId, colorTheme }: LiveDemoProps) {
                   <div className="mt-2.5 flex items-center gap-2 text-xs">
                     <span className="text-slate-400 font-mono text-[11px]">E.164 Target:</span>
                     <span className={`font-mono text-xs font-bold px-2.5 py-0.5 rounded-md border ${formatToE164(selectedCountry.dialCode, phoneNumber).isValid
-                        ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
-                        : "bg-rose-500/10 border-rose-500/30 text-rose-400"
+                      ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
+                      : "bg-rose-500/10 border-rose-500/30 text-rose-400"
                       }`}>
                       {formatToE164(selectedCountry.dialCode, phoneNumber).e164}
                     </span>
