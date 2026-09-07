@@ -2,7 +2,7 @@
 
 ## What was built
 
-This guide documents every file added or modified to implement the Retell AI Agents feature.
+This guide documents every file added or modified to implement the Retell AI Agents features.
 
 ---
 

@@ -86,7 +86,7 @@ function logRetellRequest(opts: {
   const timestamp = new Date().toISOString();
   console.log(
     `[${timestamp}] [RetellAPI] [Correlation: ${opts.correlationId}] [Req: ${opts.requestId}] ` +
-      `${opts.method} ${opts.path} -> ${opts.status} (${opts.durationMs}ms, retries: ${opts.retryCount})`
+    `${opts.method} ${opts.path} -> ${opts.status} (${opts.durationMs}ms, retries: ${opts.retryCount})`
   );
 }
 
