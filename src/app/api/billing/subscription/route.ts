@@ -1,7 +1,8 @@
 // src/app/api/billing/subscription/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { createServerSupabaseClient, createCdrsServerSupabaseClient } from "@/lib/supabase-server";
 import { verifyRequestJwt } from "@/lib/jwt-auth";
+import { getUserAgentIds } from "@/lib/user-agents";
 
 export async function GET(req: NextRequest) {
   const payload = await verifyRequestJwt(req);
@@ -41,8 +42,26 @@ export async function GET(req: NextRequest) {
 
   const sub = (user as any).subscriptions;
 
-  // Use minutes_used directly from the subscriptions table
-  const usageMinutes = sub ? parseFloat(sub.minutes_used ?? "0") : 0;
+  // Compute minutes from CDRs for user's assigned agents
+  const assignedAgentIds = await getUserAgentIds(supabase, userId);
+  let cdrMinutes = 0;
+  if (assignedAgentIds.length > 0) {
+    const cdrsSupabase = createCdrsServerSupabaseClient();
+    const { data: cdrRows } = await cdrsSupabase
+      .from("cdrs")
+      .select("total_mins, total_seconds")
+      .in("assistant_id", assignedAgentIds);
+
+    if (cdrRows) {
+      cdrMinutes = cdrRows.reduce((acc: number, r: any) => {
+        const mins = typeof r.total_mins === "number" ? r.total_mins : (r.total_seconds ? r.total_seconds / 60 : 0);
+        return acc + mins;
+      }, 0);
+    }
+  }
+
+  const dbMinutes = sub ? parseFloat(sub.minutes_used ?? "0") : 0;
+  const usageMinutes = Math.max(dbMinutes, parseFloat(cdrMinutes.toFixed(1)));
 
   // Fetch full subscription history for this user, newest first
   const { data: historyRows } = await supabase
@@ -82,7 +101,7 @@ export async function GET(req: NextRequest) {
         startedAt: sub.started_at,
         endsAt: sub.ends_at,
         cancelledAt: sub.cancelled_at,
-        minutesUsed: parseFloat(sub.minutes_used ?? "0"),
+        minutesUsed: usageMinutes,
         totalMinutes: sub.total_minutes_snapshot,
         monthlyPrice: parseFloat(sub.monthly_price_snapshot ?? "0"),
         pricePerMinute: parseFloat(sub.price_per_minute_snapshot ?? "0"),

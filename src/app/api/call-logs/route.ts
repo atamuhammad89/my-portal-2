@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
   const supabase = createServerSupabaseClient(); // service-role key, bypasses RLS
 
   // ── 1. Resolve all agent IDs assigned to / owned by this user ─────────────────
-  const agentIdsSet = new Set<string>();
+  const rawAgentIds = new Set<string>();
 
   // a) From agents table (ownership where created_by = jwt.sub)
   try {
@@ -27,8 +27,8 @@ export async function GET(req: NextRequest) {
       .eq("created_by", jwt.sub);
 
     (ownedAgents || []).forEach((a: any) => {
-      if (a.retell_agent_id) agentIdsSet.add(a.retell_agent_id);
-      if (a.id) agentIdsSet.add(a.id);
+      if (a.retell_agent_id) rawAgentIds.add(a.retell_agent_id);
+      if (a.id) rawAgentIds.add(a.id);
     });
   } catch (e) {
     console.warn("[call-logs] ownedAgents query error:", e);
@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
       .eq("user_id", jwt.sub);
 
     (accessRows || []).forEach((r: any) => {
-      if (r.agent_id) agentIdsSet.add(r.agent_id);
+      if (r.agent_id) rawAgentIds.add(r.agent_id);
     });
   } catch (e) {
     console.warn("[call-logs] user_agent_access query error:", e);
@@ -56,13 +56,36 @@ export async function GET(req: NextRequest) {
       .eq("user_id", jwt.sub);
 
     (legacyAssignments || []).forEach((a: any) => {
-      if (a.assistant_id) agentIdsSet.add(a.assistant_id);
+      if (a.assistant_id) rawAgentIds.add(a.assistant_id);
     });
   } catch (e) {
     console.warn("[call-logs] user_assistant_assignments query error:", e);
   }
 
-  const assignedAgentIds = Array.from(agentIdsSet);
+  // Map all candidate IDs to both id and retell_agent_id in agents table
+  const finalAgentIds = new Set<string>(rawAgentIds);
+  try {
+    const { data: allAgents } = await supabase
+      .from("agents")
+      .select("id, retell_agent_id, created_by");
+
+    (allAgents || []).forEach((agent: any) => {
+      const matchesUser =
+        agent.created_by === jwt.sub ||
+        rawAgentIds.has(agent.id) ||
+        rawAgentIds.has(agent.retell_agent_id);
+
+      if (matchesUser) {
+        if (agent.id) finalAgentIds.add(agent.id);
+        if (agent.retell_agent_id) finalAgentIds.add(agent.retell_agent_id);
+      }
+    });
+  } catch (e) {
+    console.warn("[call-logs] agents mapping query error:", e);
+  }
+
+  const assignedAgentIds = Array.from(finalAgentIds);
+  const isAdminRole = ["super_admin", "admin", "operations", "support"].includes(jwt.role);
 
   // ── 2. Fetch ALL subscription periods for this user ────────────────────────
   let subscriptions: any[] = [];
@@ -93,7 +116,7 @@ export async function GET(req: NextRequest) {
         pricePerMinute = Number((activeSub as any).price_per_minute_snapshot);
       }
     }
-  } catch (e) {}
+  } catch (e) { }
 
   const cdrsSupabase = createCdrsServerSupabaseClient();
   let rows: any[] = [];
@@ -111,6 +134,16 @@ export async function GET(req: NextRequest) {
         rows = data;
       } else if (cdrError) {
         console.warn("[call-logs] CDR fetch error by assistant_id:", cdrError);
+      }
+    } else if (isAdminRole) {
+      // Admin role fallback if no explicit assignment exists
+      const { data, error: cdrError } = await cdrsSupabase
+        .from("cdrs")
+        .select("*")
+        .order("start_datetime", { ascending: false });
+
+      if (!cdrError && data) {
+        rows = data;
       }
     }
   } catch (cdrErr) {
@@ -148,7 +181,7 @@ export async function GET(req: NextRequest) {
     const subRanges = subscriptions
       .map((s: any) => {
         const start = s.started_at ? new Date(s.started_at).getTime() : null;
-        const end   = s.ends_at    ? new Date(s.ends_at).getTime()    : null;
+        const end = s.ends_at ? new Date(s.ends_at).getTime() : null;
         return { start, end };
       })
       .filter((r) => r.start !== null && !isNaN(r.start!)) as Array<{
@@ -157,16 +190,21 @@ export async function GET(req: NextRequest) {
       }>;
 
     if (subRanges.length > 0) {
-      filteredRows = rows.filter((row: any) => {
+      const candidateFiltered = rows.filter((row: any) => {
         const callMs = parseCdrDate(row.start_datetime);
-        if (callMs === null) return false;
+        if (callMs === null) return true; // keep if date unparseable
 
         return subRanges.some(({ start, end }) => {
-          const afterStart = callMs >= start;
-          const beforeEnd  = end === null ? true : callMs <= end;
+          const afterStart = callMs >= (start - 86400000); // 24h grace buffer
+          const beforeEnd = end === null ? true : callMs <= (end + 86400000);
           return afterStart && beforeEnd;
         });
       });
+
+      // Avoid dropping all rows if subscription dates are out of sync with CDRs
+      if (candidateFiltered.length > 0 || rows.length === 0) {
+        filteredRows = candidateFiltered;
+      }
     }
   }
 

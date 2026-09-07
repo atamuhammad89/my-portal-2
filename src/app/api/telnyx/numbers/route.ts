@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyRequestJwt } from "@/lib/jwt-auth";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { getPurchasedNumbers, isTelnyxConfigured } from "@/lib/telnyx-api";
 import { listRetellPhoneNumbers } from "@/lib/retell-api";
 
 async function getFallbackUserId(): Promise<string | null> {
@@ -42,6 +43,21 @@ export async function GET(req: NextRequest) {
       console.warn("[Telnyx Numbers Retell Map Warning]", e);
     }
 
+    // 0. Live Telnyx Numbers Sync
+    const liveTelnyxNumbersMap = new Map<string, any>();
+    if (isTelnyxConfigured()) {
+      try {
+        const liveNumbers = await getPurchasedNumbers();
+        (liveNumbers || []).forEach((tn) => {
+          if (tn.phoneNumber) {
+            liveTelnyxNumbersMap.set(tn.phoneNumber, tn);
+          }
+        });
+      } catch (tErr) {
+        console.warn("[Telnyx Numbers Live Fetch Warning]", tErr);
+      }
+    }
+
     const numbersMap = new Map<string, any>();
 
     // 1. Query `phone_numbers` table for THIS user with status = 'success' or 'active'
@@ -61,7 +77,9 @@ export async function GET(req: NextRequest) {
       const { data: dbNumbers } = await query;
       if (dbNumbers && dbNumbers.length > 0) {
         dbNumbers.forEach((n: any) => {
-          const st = (n.status || "").toLowerCase();
+          const liveMatch = liveTelnyxNumbersMap.get(n.phone_number);
+          const liveStatus = liveMatch ? liveMatch.status : n.status || "active";
+          const st = (liveStatus || "").toLowerCase();
           if (
             n.phone_number &&
             (st === "success" || st === "active" || st === "completed" || st === "paid")
@@ -69,7 +87,7 @@ export async function GET(req: NextRequest) {
             numbersMap.set(n.phone_number, {
               id: n.id || n.phone_number,
               phoneNumber: n.phone_number,
-              status: n.status || "active",
+              status: liveStatus,
               countryCode: n.country_code || "US",
               type: n.type || "local",
               capabilities: n.capabilities ? Object.keys(n.capabilities) : ["voice", "sms"],

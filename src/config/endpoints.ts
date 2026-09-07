@@ -2,9 +2,9 @@
 // FULL REPLACEMENT — adds billing.renewSession and billing.renewConfirm
 export const API_ENDPOINTS = {
   auth: {
-    login: "/auth/login",
-    me: "/auth/me",
-    logout: "/auth/logout"
+    login: "/api/auth/login",
+    me: "/api/auth/me",
+    logout: "/api/auth/logout"
   },
   dashboard: {
     overview: "/dashboard/overview"

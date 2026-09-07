@@ -109,13 +109,23 @@ export function AgentsShell() {
     }
   };
 
-  const handleDelete = async (agentId: string) => {
-    if (!confirm("Are you sure you want to delete this agent?")) return;
+  const [deleteAgentTarget, setDeleteAgentTarget] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+
+  const promptDelete = (agentId: string) => {
+    setDeleteAgentTarget(agentId);
+  };
+
+  const executeDelete = async (agentId: string) => {
+    setIsDeleting(true);
     try {
       await fetch(`/api/admin/agents/${agentId}`, { method: "DELETE" });
       fetchUserAgents();
     } catch (e: any) {
-      alert(`Delete failed: ${e.message}`);
+      console.error("Delete agent error:", e);
+    } finally {
+      setIsDeleting(false);
+      setDeleteAgentTarget(null);
     }
   };
 
@@ -201,7 +211,7 @@ export function AgentsShell() {
         loading={isLoading}
         onRefresh={fetchUserAgents}
         onDuplicate={handleDuplicate}
-        onDelete={handleDelete}
+        onDelete={promptDelete}
       />
 
       <PaginationControls
@@ -243,6 +253,47 @@ export function AgentsShell() {
                 className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-xs font-bold text-[var(--foreground)] hover:bg-[var(--surface)] cursor-pointer"
               >
                 Close Session
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CUSTOM DELETE AGENT CONFIRMATION MODAL */}
+      {deleteAgentTarget && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[var(--surface)] border border-rose-500/30 p-6 rounded-2xl max-w-md w-full space-y-5 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-400 shrink-0">
+                <Trash2 className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-[var(--foreground)]">Delete Agent Confirmation</h3>
+                <p className="text-xs text-[var(--muted-text)] mt-0.5">This voice agent will be permanently removed.</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-[var(--muted-text)]">
+              Are you sure you want to delete voice agent <span className="font-mono font-bold text-[var(--foreground)]">{deleteAgentTarget}</span>?
+            </p>
+
+            <div className="flex gap-3 pt-1">
+              <button
+                type="button"
+                onClick={() => setDeleteAgentTarget(null)}
+                disabled={isDeleting}
+                className="flex-1 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-[var(--foreground)] font-semibold text-xs hover:bg-[var(--surface)] cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => executeDelete(deleteAgentTarget)}
+                disabled={isDeleting}
+                className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-rose-600/30"
+              >
+                {isDeleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                {isDeleting ? "Deleting..." : "Delete Agent"}
               </button>
             </div>
           </div>

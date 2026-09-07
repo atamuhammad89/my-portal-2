@@ -12,7 +12,7 @@ export interface AvailableNumber {
   cost?: number;
 }
 
-export type OrderStatus = 'pending' | 'processing' | 'success' | 'failure' | 'cancelled';
+export type OrderStatus = 'pending' | 'processing' | 'success' | 'completed' | 'approved' | 'failure' | 'cancelled' | 'rejected' | 'requirement-info-exception' | 'deleted';
 
 export interface NumberOrder {
   id: string;
@@ -42,7 +42,7 @@ export interface TelecomNumber {
 export interface ComplianceField {
   name: string;
   label: string;
-  type: 'text' | 'file' | 'select';
+  type: 'text' | 'file' | 'select' | 'address' | 'action' | string;
   description?: string;
   required: boolean;
   options?: { label: string; value: string }[];

@@ -2000,11 +2000,13 @@ export function PublishingGroup({ agent }: GroupProps) {
     }
   };
 
-  const handleRollbackToVersion = async (targetVersion: number) => {
-    if (!confirm(`Are you sure you want to rollback to v${targetVersion} and publish it as the active version?`)) {
-      return;
-    }
+  const [confirmRollbackVerTarget, setConfirmRollbackVerTarget] = React.useState<number | null>(null);
 
+  const promptRollbackToVersion = (targetVersion: number) => {
+    setConfirmRollbackVerTarget(targetVersion);
+  };
+
+  const executeRollbackToVersion = async (targetVersion: number) => {
     setRollingBackVer(targetVersion);
     setMsg(null);
     try {
@@ -2020,12 +2022,13 @@ export function PublishingGroup({ agent }: GroupProps) {
         setMsg(`✅ Successfully rolled back to v${targetVersion} (Published as v${newPublishedVer})!`);
         fetchVersions();
       } else {
-        alert(data.error || `Failed to rollback to v${targetVersion}`);
+        setMsg(`❌ ${data.error || `Failed to rollback to v${targetVersion}`}`);
       }
     } catch (e: any) {
-      alert(e.message || `Failed to rollback to v${targetVersion}`);
+      setMsg(`❌ ${e.message || `Failed to rollback to v${targetVersion}`}`);
     } finally {
       setRollingBackVer(null);
+      setConfirmRollbackVerTarget(null);
     }
   };
 
@@ -2126,7 +2129,7 @@ export function PublishingGroup({ agent }: GroupProps) {
 
                     {!isCurrent && (
                       <button
-                        onClick={() => handleRollbackToVersion(verNum)}
+                        onClick={() => promptRollbackToVersion(verNum)}
                         disabled={isRolling || rollingBackVer !== null}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--surface)] border border-[var(--border)] text-xs font-bold text-[var(--foreground)] hover:bg-[var(--brand-500)] hover:text-white transition cursor-pointer disabled:opacity-50"
                       >
@@ -2141,6 +2144,47 @@ export function PublishingGroup({ agent }: GroupProps) {
           )}
         </div>
       </div>
+
+      {/* CONFIRM ROLLBACK MODAL */}
+      {confirmRollbackVerTarget && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[var(--surface)] border border-amber-500/30 p-6 rounded-2xl max-w-md w-full space-y-5 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 shrink-0">
+                <RefreshCw className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-[var(--foreground)]">Rollback Version Confirmation</h3>
+                <p className="text-xs text-[var(--muted-text)] mt-0.5">Re-deploy previous agent build</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-[var(--muted-text)]">
+              Are you sure you want to rollback to <span className="font-mono font-bold text-amber-400">v{confirmRollbackVerTarget}</span> and re-publish it as the live active version?
+            </p>
+
+            <div className="flex gap-3 pt-1">
+              <button
+                type="button"
+                onClick={() => setConfirmRollbackVerTarget(null)}
+                disabled={rollingBackVer !== null}
+                className="flex-1 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-[var(--foreground)] font-semibold text-xs hover:bg-[var(--surface)] cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => executeRollbackToVersion(confirmRollbackVerTarget)}
+                disabled={rollingBackVer !== null}
+                className="flex-1 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-amber-600/30"
+              >
+                {rollingBackVer !== null ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+                Rollback & Publish
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

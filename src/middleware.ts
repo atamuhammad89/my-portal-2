@@ -98,11 +98,25 @@ export async function middleware(request: NextRequest) {
     return addSecurityHeaders(NextResponse.redirect(loginUrl), nonce);
   }
 
-  // 2. Already logged-in user hitting /auth/login → send to target or default home
-  if (pathname.startsWith("/auth/login") && hasSession) {
-    const nextParam = searchParams.get("next");
-    const dest = nextParam && nextParam.startsWith("/") ? nextParam : "/dashboard";
-    return addSecurityHeaders(NextResponse.redirect(new URL(dest, request.url)), nonce);
+  // 2. Handling /auth/login route
+  if (pathname.startsWith("/auth/login")) {
+    const reason = searchParams.get("reason");
+    if (reason === "session_expired" || reason === "logout") {
+      const response = NextResponse.next({
+        request: { headers: requestHeaders },
+      });
+      const rawNames = ["token", configuredName, "voiceos_auth_token", "access_token"];
+      for (const name of rawNames) {
+        response.cookies.set(name, "", { path: "/", maxAge: 0 });
+      }
+      return addSecurityHeaders(response, nonce);
+    }
+
+    if (hasSession) {
+      const nextParam = searchParams.get("next");
+      const dest = nextParam && nextParam.startsWith("/") ? nextParam : "/dashboard";
+      return addSecurityHeaders(NextResponse.redirect(new URL(dest, request.url)), nonce);
+    }
   }
 
   const response = NextResponse.next({

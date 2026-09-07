@@ -19,6 +19,7 @@ import {
   Sparkles,
   ChevronRight,
   Filter,
+  XCircle,
 } from "lucide-react";
 import {
   AvailableNumber,
@@ -29,6 +30,7 @@ import {
   TELNYX_COUNTRIES,
 } from "@/types/telecom";
 import { PageHeader } from "@/components/shared/page-header";
+import { ComplianceFieldInput } from "@/components/telecom/compliance-field-input";
 
 type TabType = "search" | "numbers" | "orders" | "compliance";
 
@@ -72,6 +74,11 @@ export default function PhoneNumbersPage() {
   const [customerRef, setCustomerRef] = useState<string>("");
   const [selectedAgentForCheckout, setSelectedAgentForCheckout] = useState<string>("");
 
+  // Modal Compliance State for Ordering
+  const [modalComplianceReqs, setModalComplianceReqs] = useState<ComplianceRequirement[]>([]);
+  const [loadingModalCompliance, setLoadingModalCompliance] = useState<boolean>(false);
+  const [modalComplianceForm, setModalComplianceForm] = useState<Record<string, string>>({});
+
   // Retell Agents List for association
   const [agents, setAgents] = useState<{ agent_id: string; agent_name: string }[]>([]);
 
@@ -92,6 +99,28 @@ export default function PhoneNumbersPage() {
       setToasts((prev) => prev.filter((t) => t.id !== id));
     }, 5000);
   };
+
+  useEffect(() => {
+    if (buyingNumber) {
+      setModalComplianceForm({});
+      setLoadingModalCompliance(true);
+      fetch(`/api/telnyx/compliance/requirements?country=${buyingNumber.countryCode}&type=${buyingNumber.type || "local"}`)
+        .then((res) => (res.ok ? res.json() : []))
+        .then((data) => {
+          setModalComplianceReqs(Array.isArray(data) ? data : []);
+        })
+        .catch((err) => {
+          console.error("Failed to fetch regulatory compliance requirements:", err);
+          setModalComplianceReqs([]);
+        })
+        .finally(() => {
+          setLoadingModalCompliance(false);
+        });
+    } else {
+      setModalComplianceReqs([]);
+      setModalComplianceForm({});
+    }
+  }, [buyingNumber]);
 
   const handleSearch = async (targetPage?: number) => {
     const pageToFetch = targetPage || 1;
@@ -219,36 +248,90 @@ export default function PhoneNumbersPage() {
   useEffect(() => {
     handleSearch(1);
     fetchAgents();
-  }, []);
+    fetchPurchasedNumbers();
+    fetchOrders();
+  }, [fetchAgents, fetchOrders, fetchPurchasedNumbers]);
 
   useEffect(() => {
-    if (activeTab === "numbers") fetchPurchasedNumbers();
-    if (activeTab === "orders") fetchOrders();
-  }, [activeTab, fetchPurchasedNumbers, fetchOrders]);
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const payment = params.get("payment");
+      const sessionId = params.get("session_id");
+
+      if (payment === "success" && sessionId) {
+        fetch("/api/telnyx/checkout/confirm", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionId }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success) {
+              addToast("success", "Payment Confirmed", "Stripe payment received & phone number order activated!");
+              fetchPurchasedNumbers();
+              fetchOrders();
+            }
+          })
+          .catch((err) => {
+            console.error("Stripe confirm error:", err);
+          })
+          .finally(() => {
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, "", newUrl);
+          });
+      }
+    }
+  }, [fetchOrders, fetchPurchasedNumbers]);
+
+  const isFreeEligible = purchasedNumbers.length === 0;
 
   const handlePurchase = async () => {
     if (!buyingNumber) return;
 
+    if (modalComplianceReqs.length > 0) {
+      for (const req of modalComplianceReqs) {
+        for (const field of req.requiredFields) {
+          if (field.required && (!modalComplianceForm[field.name] || !modalComplianceForm[field.name].trim())) {
+            addToast("error", "Compliance Requirement Missing", `Please enter ${field.label} for regulatory approval.`);
+            return;
+          }
+        }
+      }
+    }
+
     setPurchasing(true);
     try {
-      const res = await fetch("/api/telnyx/orders", {
+      const res = await fetch("/api/telnyx/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           phoneNumber: buyingNumber.phoneNumber,
           customerReference: customerRef || `PORTAL_${Date.now()}`,
+          cost: (buyingNumber.cost ?? 1.00) + 1.50,
+          regulatoryRequirements: modalComplianceForm,
+          selectedAgentId: selectedAgentForCheckout,
         }),
       });
 
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.message || "Failed to place order.");
+        throw new Error(err.message || "Failed to initiate checkout.");
       }
 
-      const order: NumberOrder = await res.json();
-      addToast("success", "Order Placed", `Order ${order.id} placed successfully.`);
+      const data = await res.json();
 
-      if (selectedAgentForCheckout && order.phoneNumbers?.[0]) {
+      if (data.url) {
+        window.location.href = data.url;
+        return;
+      }
+
+      if (data.isFree) {
+        addToast("success", "Free Number Claimed!", `Order ${data.order?.id || ''} activated for free.`);
+      } else {
+        addToast("success", "Order Placed & Paid", `Order ${data.order?.id || ''} completed successfully.`);
+      }
+
+      if (selectedAgentForCheckout && buyingNumber.phoneNumber) {
         await handleAssociateAgent(buyingNumber.phoneNumber, selectedAgentForCheckout);
       }
 
@@ -256,11 +339,12 @@ export default function PhoneNumbersPage() {
       setCustomerRef("");
       setSelectedAgentForCheckout("");
 
-      if (!order.requirementsMet && order.subOrderIds?.length > 0) {
-        handleViewCompliance(order.subOrderIds[0]);
+      if (data.order && !data.order.requirementsMet && data.order.subOrderIds?.length > 0) {
+        handleViewCompliance(data.order.subOrderIds[0]);
       } else {
         setActiveTab("orders");
         fetchOrders();
+        fetchPurchasedNumbers();
       }
     } catch (error: any) {
       addToast("error", "Purchase Failed", error.message);
@@ -269,7 +353,10 @@ export default function PhoneNumbersPage() {
     }
   };
 
+  const [associatingNumber, setAssociatingNumber] = useState<string | null>(null);
+
   const handleAssociateAgent = async (phoneNumber: string, agentId: string) => {
+    setAssociatingNumber(phoneNumber);
     try {
       const res = await fetch("/api/retell/numbers/associate", {
         method: "POST",
@@ -283,9 +370,11 @@ export default function PhoneNumbersPage() {
       }
 
       addToast("success", "Agent Associated", `Number ${phoneNumber} mapped to voice agent.`);
-      fetchPurchasedNumbers();
+      await fetchPurchasedNumbers();
     } catch (error: any) {
       addToast("error", "Association Error", error.message);
+    } finally {
+      setAssociatingNumber(null);
     }
   };
 
@@ -336,6 +425,51 @@ export default function PhoneNumbersPage() {
       addToast("error", "Submission Failed", e.message);
     } finally {
       setSubmittingCompliance(false);
+    }
+  };
+
+  const [confirmCancelOrderId, setConfirmCancelOrderId] = useState<string | null>(null);
+  const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
+
+  const promptCancelOrder = (orderId: string) => {
+    if (!orderId) return;
+    setConfirmCancelOrderId(orderId);
+  };
+
+  const executeCancelOrder = async (orderId: string) => {
+    if (!orderId) return;
+
+    setCancellingOrderId(orderId);
+    try {
+      const res = await fetch(`/api/telnyx/orders?id=${orderId}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Failed to cancel order.");
+      }
+
+      addToast("info", "Order Cancelled", `Order ${orderId} has been cancelled successfully.`);
+
+      if (pollingIntervals.current[orderId]) {
+        clearInterval(pollingIntervals.current[orderId]);
+        delete pollingIntervals.current[orderId];
+      }
+
+      fetchOrders();
+      fetchPurchasedNumbers();
+
+      if (activeTab === "compliance") {
+        setActiveTab("orders");
+        setSelectedSubOrderId("");
+        setComplianceReqs([]);
+        setComplianceForm({});
+      }
+    } catch (err: any) {
+      addToast("error", "Cancel Error", err.message);
+    } finally {
+      setCancellingOrderId(null);
     }
   };
 
@@ -536,7 +670,7 @@ export default function PhoneNumbersPage() {
                         </div>
                       </td>
                       <td className="font-medium text-[var(--foreground)]">
-                        ${num.cost ? num.cost.toFixed(2) : "1.50"} / mo
+                        ${((num.cost ?? 1.00) + 1.50).toFixed(2)} / mo
                       </td>
                       <td>
                         <button
@@ -594,18 +728,27 @@ export default function PhoneNumbersPage() {
                       </span>
                     </td>
                     <td>
-                      <select
-                        value={num.agentId || ""}
-                        onChange={(e) => handleAssociateAgent(num.phoneNumber, e.target.value)}
-                        className="form-select py-1 text-xs"
-                      >
-                        <option value="">-- Select Voice Agent --</option>
-                        {agents.map((a) => (
-                          <option key={a.agent_id} value={a.agent_id}>
-                            {a.agent_name} ({a.agent_id})
-                          </option>
-                        ))}
-                      </select>
+                      <div className="flex items-center gap-2">
+                        <select
+                          value={num.agentId || ""}
+                          disabled={associatingNumber === num.phoneNumber}
+                          onChange={(e) => handleAssociateAgent(num.phoneNumber, e.target.value)}
+                          className="form-select py-1.5 text-xs disabled:opacity-60 flex-1"
+                        >
+                          <option value="">-- Select Voice Agent --</option>
+                          {agents.map((a) => (
+                            <option key={a.agent_id} value={a.agent_id}>
+                              {a.agent_name} ({a.agent_id})
+                            </option>
+                          ))}
+                        </select>
+                        {associatingNumber === num.phoneNumber && (
+                          <div className="flex items-center gap-1.5 text-[11px] text-[var(--brand-500)] font-semibold shrink-0 bg-[var(--surface-2)] px-2.5 py-1.5 rounded-xl border border-[var(--border)] animate-pulse">
+                            <Loader2 className="h-3.5 w-3.5 animate-spin text-[var(--brand-500)]" />
+                            <span>Linking...</span>
+                          </div>
+                        )}
+                      </div>
                     </td>
                     <td>
                       <span className="text-xs text-[var(--muted-text)]">Active</span>
@@ -656,30 +799,65 @@ export default function PhoneNumbersPage() {
                         className={`px-2.5 py-1 text-xs rounded-full border capitalize ${
                           ord.status === "success"
                             ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                            : ord.status === "rejected" || (ord.status as string) === "requirement-info-exception"
+                            ? "bg-rose-500/20 text-rose-300 border-rose-500/40"
                             : ord.status === "pending" || ord.status === "processing"
                             ? "bg-amber-500/10 text-amber-400 border-amber-500/30"
                             : "bg-rose-500/10 text-rose-400 border-rose-500/30"
                         }`}
                       >
-                        {ord.status}
+                        {ord.status === "rejected" || (ord.status as string) === "requirement-info-exception" ? "Rejected" : ord.status}
                       </span>
                     </td>
                     <td>
-                      {ord.requirementsMet ? (
+                      {(ord.status as string) === "cancelled" || (ord.status as string) === "failure" || (ord.status as string) === "failed" || (ord.status as string) === "deleted" ? (
+                        <span className="text-xs text-[var(--muted-text)] font-medium">N/A</span>
+                      ) : ord.requirementsMet ? (
                         <span className="text-xs text-emerald-400 font-medium">Verified</span>
+                      ) : ord.status === "rejected" || (ord.status as string) === "requirement-info-exception" ? (
+                        <span className="text-xs text-rose-400 font-semibold flex items-center gap-1">
+                          Fix Required
+                        </span>
                       ) : (
                         <span className="text-xs text-amber-400 font-medium">Required</span>
                       )}
                     </td>
                     <td>
-                      {!ord.requirementsMet && ord.subOrderIds?.length > 0 && (
-                        <button
-                          onClick={() => handleViewCompliance(ord.subOrderIds[0])}
-                          className="px-3 py-1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-medium hover:bg-amber-500/30 cursor-pointer"
-                        >
-                          Submit Documents
-                        </button>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {(ord.status === "rejected" || (ord.status as string) === "requirement-info-exception") && ord.subOrderIds?.length > 0 && (
+                          <button
+                            onClick={() => handleViewCompliance(ord.subOrderIds[0])}
+                            className="px-3 py-1 rounded bg-rose-500/20 text-rose-200 border border-rose-500/40 text-xs font-semibold hover:bg-rose-500/30 cursor-pointer flex items-center gap-1"
+                          >
+                            Fix & Resubmit
+                          </button>
+                        )}
+                        {!ord.requirementsMet && ord.subOrderIds?.length > 0 && (ord.status as string) !== "rejected" && (ord.status as string) !== "requirement-info-exception" && (ord.status as string) !== "cancelled" && (ord.status as string) !== "failed" && (ord.status as string) !== "deleted" && (ord.status as string) !== "success" && (ord.status as string) !== "completed" && (
+                          <button
+                            onClick={() => handleViewCompliance(ord.subOrderIds[0])}
+                            className="px-3 py-1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-medium hover:bg-amber-500/30 cursor-pointer"
+                          >
+                            Submit Documents
+                          </button>
+                        )}
+                        {(ord.status === "pending" || ord.status === "processing" || ord.status === "rejected" || (ord.status as string) === "requirement-info-exception") && (
+                          <button
+                            onClick={() => promptCancelOrder(ord.id)}
+                            disabled={cancellingOrderId === ord.id}
+                            className="px-3 py-1 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-medium hover:bg-rose-500/30 cursor-pointer flex items-center gap-1 disabled:opacity-50"
+                          >
+                            {cancellingOrderId === ord.id ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <XCircle className="h-3 w-3" />
+                            )}
+                            Cancel Order
+                          </button>
+                        )}
+                        {(ord.status === "success" || ord.status === "completed" || ord.status === "approved" || (ord.status as string) === "cancelled" || (ord.status as string) === "failed" || (ord.status as string) === "deleted") && (
+                          <span className="text-xs text-[var(--muted-text)] font-medium">-</span>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -717,29 +895,38 @@ export default function PhoneNumbersPage() {
                   <h4 className="font-semibold text-sm text-[var(--foreground)]">{req.name}</h4>
                   <p className="text-xs text-[var(--subtle-text)]">{req.description}</p>
                   {req.requiredFields.map((field) => (
-                    <div key={field.name} className="space-y-1">
-                      <label className="form-label">{field.label}</label>
-                      <input
-                        type="text"
-                        placeholder={`Enter ${field.label}`}
-                        value={complianceForm[field.name] || ""}
-                        onChange={(e) => setComplianceForm({ ...complianceForm, [field.name]: e.target.value })}
-                        className="form-input"
-                        required={field.required}
-                      />
-                    </div>
+                    <ComplianceFieldInput
+                      key={field.name}
+                      field={field}
+                      value={complianceForm[field.name] || ""}
+                      onChange={(val) => setComplianceForm((prev) => ({ ...prev, [field.name]: val }))}
+                    />
                   ))}
                 </div>
               ))}
 
-              <button
-                type="submit"
-                disabled={submittingCompliance}
-                className="w-full py-3 rounded-xl bg-[var(--brand-500)] text-[var(--brand-btn-text)] font-semibold text-sm flex items-center justify-center gap-2 cursor-pointer"
-              >
-                {submittingCompliance ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-                Submit Compliance Verification
-              </button>
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const parentOrd = orders.find(o => o.subOrderIds?.includes(selectedSubOrderId));
+                    promptCancelOrder(parentOrd?.id || selectedSubOrderId);
+                  }}
+                  disabled={cancellingOrderId !== null}
+                  className="px-4 py-3 rounded-xl border border-rose-500/40 text-rose-300 hover:bg-rose-500/10 font-semibold text-sm flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                >
+                  <XCircle className="h-4 w-4 text-rose-400" />
+                  Cancel Order
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingCompliance}
+                  className="flex-1 py-3 rounded-xl bg-[var(--brand-500)] text-[var(--brand-btn-text)] font-semibold text-sm flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  {submittingCompliance ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                  Submit Compliance Verification
+                </button>
+              </div>
             </form>
           )}
         </div>
@@ -748,20 +935,42 @@ export default function PhoneNumbersPage() {
       {/* PURCHASE CONFIRMATION MODAL */}
       {buyingNumber && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-[var(--surface)] border border-[var(--border)] p-6 rounded-2xl max-w-md w-full space-y-5">
+          <div className="bg-[var(--surface)] border border-[var(--border)] p-6 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto space-y-5 shadow-2xl">
             <h3 className="text-lg font-bold text-[var(--foreground)]">Confirm Number Purchase</h3>
+            
+            {isFreeEligible ? (
+              <div className="p-3 rounded-xl bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-500/40 flex items-center justify-between text-xs">
+                <span className="font-bold text-emerald-300 flex items-center gap-1.5">
+                  <Sparkles className="h-4 w-4 text-emerald-400" />
+                  1st Phone Number Free!
+                </span>
+                <span className="text-[11px] text-emerald-200 bg-emerald-500/30 px-2 py-0.5 rounded-full font-semibold">
+                  $0.00 Initial Offer
+                </span>
+              </div>
+            ) : (
+              <div className="p-3 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] flex items-center justify-between text-xs text-[var(--muted-text)]">
+                <span>Standard Phone Line Checkout</span>
+                <span className="font-semibold text-[var(--brand-500)]">${((buyingNumber.cost ?? 1.00) + 1.50).toFixed(2)} / mo</span>
+              </div>
+            )}
+            
             <div className="p-4 rounded-xl bg-[var(--surface-2)] space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-[var(--subtle-text)]">Phone Number:</span>
-                <span className="font-bold text-[var(--foreground)]">{buyingNumber.phoneNumber}</span>
+                <span className="font-bold text-[var(--foreground)] font-mono">{buyingNumber.phoneNumber}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-[var(--subtle-text)]">Country:</span>
-                <span>{buyingNumber.countryCode}</span>
+                <span className="font-medium">{buyingNumber.countryCode}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-[var(--subtle-text)]">Monthly Price:</span>
-                <span className="font-semibold text-[var(--brand-500)]">${buyingNumber.cost || "1.50"}</span>
+                {isFreeEligible ? (
+                  <span className="font-bold text-emerald-400">$0.00 (Free Initial Line)</span>
+                ) : (
+                  <span className="font-semibold text-[var(--brand-500)]">${((buyingNumber.cost ?? 1.00) + 1.50).toFixed(2)}</span>
+                )}
               </div>
             </div>
 
@@ -781,7 +990,53 @@ export default function PhoneNumbersPage() {
               </select>
             </div>
 
-            <div className="flex gap-3">
+            {/* REGULATORY COMPLIANCE REQUIREMENTS SECTION */}
+            {loadingModalCompliance ? (
+              <div className="p-4 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] flex items-center gap-3 text-xs text-[var(--muted-text)]">
+                <Loader2 className="h-4 w-4 animate-spin text-[var(--brand-500)] shrink-0" />
+                <span>Checking regulatory compliance requirements for {buyingNumber.countryCode}...</span>
+              </div>
+            ) : modalComplianceReqs.length > 0 ? (
+              <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 space-y-4">
+                <div className="flex items-start gap-2.5">
+                  <ShieldCheck className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-xs font-bold text-amber-300 uppercase tracking-wider">
+                      Regulatory Compliance Required ({buyingNumber.countryCode})
+                    </h4>
+                    <p className="text-[11px] text-[var(--subtle-text)] mt-0.5">
+                      Telnyx requires compliance documentation for activating phone numbers in {buyingNumber.countryCode}.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-4 pt-1">
+                  {modalComplianceReqs.map((req) => (
+                    <div key={req.id || req.name} className="space-y-3 p-3 rounded-lg bg-[var(--surface)] border border-[var(--border)]">
+                      <div className="text-xs font-semibold text-[var(--foreground)]">{req.name}</div>
+                      {req.description && (
+                        <div className="text-[11px] text-[var(--muted-text)]">{req.description}</div>
+                      )}
+                      {req.requiredFields.map((field) => (
+                        <ComplianceFieldInput
+                          key={field.name}
+                          field={field}
+                          value={modalComplianceForm[field.name] || ""}
+                          onChange={(val) => setModalComplianceForm((prev) => ({ ...prev, [field.name]: val }))}
+                        />
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-2 text-xs text-emerald-400">
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
+                <span>No regulatory compliance required for {buyingNumber.countryCode}. Immediate activation available.</span>
+              </div>
+            )}
+
+            <div className="flex gap-3 pt-2">
               <button
                 onClick={() => setBuyingNumber(null)}
                 className="flex-1 py-2.5 rounded-xl border border-[var(--border)] text-[var(--muted-text)] hover:bg-[var(--surface-2)] text-sm cursor-pointer"
@@ -790,10 +1045,66 @@ export default function PhoneNumbersPage() {
               </button>
               <button
                 onClick={handlePurchase}
-                disabled={purchasing}
-                className="flex-1 py-2.5 rounded-xl bg-[var(--brand-500)] text-[var(--brand-btn-text)] font-semibold text-sm flex items-center justify-center gap-2 cursor-pointer"
+                disabled={purchasing || loadingModalCompliance}
+                className="flex-1 py-2.5 rounded-xl bg-[var(--brand-500)] text-[var(--brand-btn-text)] font-semibold text-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
-                {purchasing ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirm & Pay"}
+                {purchasing ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : isFreeEligible ? (
+                  "Claim Free Number"
+                ) : (
+                  `💳 Pay with Stripe ($${((buyingNumber.cost ?? 1.00) + 1.50).toFixed(2)})`
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CONFIRM CANCEL ORDER MODAL */}
+      {confirmCancelOrderId && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[var(--surface)] border border-rose-500/30 p-6 rounded-2xl max-w-md w-full space-y-5 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-400 shrink-0">
+                <AlertCircle className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-[var(--foreground)]">Cancel Order Confirmation</h3>
+                <p className="text-xs text-[var(--muted-text)] mt-0.5">This action cannot be undone.</p>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] text-xs space-y-2">
+              <p className="text-[var(--foreground)] font-medium">
+                Are you sure you want to cancel order <span className="font-mono font-bold text-rose-400">{confirmCancelOrderId}</span>?
+              </p>
+              <p className="text-[var(--subtle-text)] text-[11px]">
+                Cancelling this order will release the reserved phone number line and halt carrier compliance processing.
+              </p>
+            </div>
+
+            <div className="flex gap-3 pt-1">
+              <button
+                type="button"
+                onClick={() => setConfirmCancelOrderId(null)}
+                disabled={cancellingOrderId !== null}
+                className="flex-1 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-[var(--foreground)] font-semibold text-xs hover:bg-[var(--surface)] transition cursor-pointer"
+              >
+                No, Keep Order
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const targetId = confirmCancelOrderId;
+                  setConfirmCancelOrderId(null);
+                  if (targetId) executeCancelOrder(targetId);
+                }}
+                disabled={cancellingOrderId !== null}
+                className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-rose-600/30 transition cursor-pointer"
+              >
+                {cancellingOrderId ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <XCircle className="h-3.5 w-3.5" />}
+                Yes, Cancel Order
               </button>
             </div>
           </div>

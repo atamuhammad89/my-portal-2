@@ -34,6 +34,24 @@ export async function PATCH(req: NextRequest) {
     }
 
     const result = await submitCompliance(subOrderId, requirements);
+
+    if (result && result.id) {
+      try {
+        const { createServerSupabaseClient } = await import('@/lib/supabase-server');
+        const supabase = createServerSupabaseClient();
+        await supabase
+          .from('phone_orders')
+          .update({
+            status: result.status,
+            requirements_met: result.requirementsMet,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('order_id', result.id);
+      } catch (e) {
+        console.warn('[Compliance DB Sync Warning]', e);
+      }
+    }
+
     return NextResponse.json(result);
   } catch (error: any) {
     console.error('[API /telnyx/compliance PATCH Error]', error);

@@ -41,7 +41,8 @@ export function AuthSessionProvider({ children }: { children: React.ReactNode })
     }
 
     if (!isAuthenticated && isProtectedPath(pathname)) {
-      router.replace("/auth/login");
+      clearSession();
+      router.replace("/auth/login?reason=session_expired");
     }
   }, [isAuthenticated, clearSession, hydrated, isSessionExpired, pathname, router]);
 

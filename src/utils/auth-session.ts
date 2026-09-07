@@ -45,11 +45,19 @@ export function clearAuthSession() {
   window.localStorage.removeItem(USER_KEY);
   window.localStorage.removeItem(TENANT_KEY);
 
-  // Clear presence cookie
+  // Clear non-HttpOnly presence cookies
   document.cookie = `${env.authCookieName}=; path=/; max-age=0; samesite=lax`;
-  
-  // Clean up any remaining legacy voiceos_user_role cookie
+  document.cookie = `token=; path=/; max-age=0; samesite=lax`;
+  document.cookie = `access_token=; path=/; max-age=0; samesite=lax`;
+  document.cookie = `voiceos_auth_token=; path=/; max-age=0; samesite=lax`;
   document.cookie = `voiceos_user_role=; path=/; max-age=0; samesite=lax`;
+
+  // Call server API route to delete HttpOnly cookies
+  try {
+    fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
+  } catch {
+    // Ignore fetch failure during page unload
+  }
 }
 
 export function readPersistedAuthSession(): PersistedAuthSession | null {

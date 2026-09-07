@@ -1762,10 +1762,16 @@ export async function getRetellAgentVersions(
     ];
   }
   try {
-    const res = await retellRequest<any>(`/get-agent-versions/${agentId}`, { method: "GET" }, extraOpts);
+    let res: any;
+    try {
+      res = await retellRequest<any>(`/list-agent-versions/${agentId}`, { method: "GET" }, extraOpts);
+    } catch {
+      res = await retellRequest<any>(`/get-agent-versions/${agentId}`, { method: "GET" }, extraOpts);
+    }
     if (Array.isArray(res)) return res;
     if (Array.isArray(res?.versions)) return res.versions;
     if (Array.isArray(res?.data)) return res.data;
+    if (Array.isArray(res?.items)) return res.items;
     return [];
   } catch (err) {
     console.warn(`[getRetellAgentVersions error for ${agentId}]`, err);
