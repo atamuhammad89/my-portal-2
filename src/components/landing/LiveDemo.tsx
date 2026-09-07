@@ -290,7 +290,13 @@ export function CountrySelectorDropdown({
             src={`https://flagcdn.com/w40/${selectedCountry.code.toLowerCase()}.png`}
             alt={selectedCountry.name}
             className="w-5 h-3.5 rounded-xs object-cover shrink-0 shadow-xs"
+            onError={(e) => {
+              (e.target as HTMLElement).style.display = "none";
+              const sibling = (e.target as HTMLElement).nextElementSibling as HTMLElement;
+              if (sibling) sibling.style.display = "inline";
+            }}
           />
+          <span className="hidden text-sm leading-none shrink-0">{selectedCountry.flag}</span>
           <span className="font-mono text-emerald-400 font-bold">{selectedCountry.dialCode}</span>
           <span className="text-slate-300 text-xs truncate hidden xs:inline">
             {selectedCountry.code}
@@ -338,7 +344,13 @@ export function CountrySelectorDropdown({
                         src={`https://flagcdn.com/w40/${c.code.toLowerCase()}.png`}
                         alt={c.name}
                         className="w-5 h-3.5 rounded-xs object-cover shrink-0 shadow-xs"
+                        onError={(e) => {
+                          (e.target as HTMLElement).style.display = "none";
+                          const sibling = (e.target as HTMLElement).nextElementSibling as HTMLElement;
+                          if (sibling) sibling.style.display = "inline";
+                        }}
                       />
+                      <span className="hidden text-sm leading-none shrink-0">{c.flag}</span>
                       <span className="font-mono text-emerald-400 font-bold shrink-0">{c.dialCode}</span>
                       <span className="text-slate-300 truncate">{c.name}</span>
                     </div>

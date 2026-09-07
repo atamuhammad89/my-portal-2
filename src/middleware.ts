@@ -48,10 +48,10 @@ function addSecurityHeaders(response: NextResponse, nonceValue: string): NextRes
     default-src 'self';
     script-src ${scriptCsp};
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-    img-src 'self' blob: data: https://*.stripe.com;
+    img-src 'self' blob: data: https://*.stripe.com https://flagcdn.com https://*.flagcdn.com https://images.unsplash.com;
     font-src 'self' https://fonts.gstatic.com;
     frame-src 'self' https://js.stripe.com;
-    connect-src 'self' https://api.stripe.com https://api.retellai.com https://*.supabase.co;
+    connect-src 'self' https://api.stripe.com https://api.retellai.com https://*.retellai.com https://*.supabase.co https://n8n-dev.callautomate.ai https://*.callautomate.ai https://*.n8n.cloud;
   `.replace(/\s{2,}/g, " ").trim();
   response.headers.set("Content-Security-Policy", cspHeader);
 
