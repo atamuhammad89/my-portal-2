@@ -145,8 +145,8 @@ export function LandingSolution() {
           className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-6 bg-white rounded-3xl p-8 border border-slate-200 shadow-sm"
         >
           {[
-            { label: "Response Time", val: "< 300ms" },
-            { label: "Availability", val: "24/7/365" },
+            { label: "Latency Engine", val: "< 300ms" },
+            { label: "Uptime SLA", val: "99.9%" },
             { label: "Cost Savings", val: "Up to 80%" },
             { label: "Scalability", val: "Unlimited" },
           ].map((stat, i) => (
@@ -163,6 +163,25 @@ export function LandingSolution() {
             </motion.div>
           ))}
         </motion.div>
+
+        {/* Detailed Platform Content for Search Engine & AI Indexing */}
+        <motion.article
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="mt-12 bg-white border border-slate-200 rounded-3xl p-8 text-slate-600 text-sm leading-relaxed max-w-5xl mx-auto shadow-sm space-y-4"
+        >
+          <h3 className="text-xl font-bold text-slate-900 mb-3">
+            Next-Generation AI Voice Automation for Modern Operations
+          </h3>
+          <p>
+            CallAutomate transforms customer interaction workflows by integrating enterprise-grade natural language AI directly into phone systems. Powered by our sub-300ms latency voice response engine and backed by a 99.9% uptime SLA, businesses eliminate missed phone leads, reduce staff burnout from repetitive inbound calls, and offer instant resolution 24 hours a day, 7 days a week.
+          </p>
+          <p>
+            Our intelligent voice platform engages callers with context-aware, human-like voice agents capable of conducting appointment bookings, answering complex business FAQs, qualifying sales leads, and filing customer support tickets in real-time. Every call is automatically transcribed, analyzed for sentiment, and synchronized into your CRM and scheduling tools seamlessly.
+          </p>
+        </motion.article>
       </div>
     </section>
   );

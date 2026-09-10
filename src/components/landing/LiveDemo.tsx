@@ -289,6 +289,7 @@ export function CountrySelectorDropdown({
           <img
             src={`https://flagcdn.com/w40/${selectedCountry.code.toLowerCase()}.png`}
             alt={selectedCountry.name}
+            title={selectedCountry.name}
             className="w-5 h-3.5 rounded-xs object-cover shrink-0 shadow-xs"
             onError={(e) => {
               (e.target as HTMLElement).style.display = "none";
@@ -343,6 +344,7 @@ export function CountrySelectorDropdown({
                       <img
                         src={`https://flagcdn.com/w40/${c.code.toLowerCase()}.png`}
                         alt={c.name}
+                        title={c.name}
                         className="w-5 h-3.5 rounded-xs object-cover shrink-0 shadow-xs"
                         onError={(e) => {
                           (e.target as HTMLElement).style.display = "none";

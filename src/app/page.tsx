@@ -3,12 +3,15 @@
 import { useState } from "react";
 import { LandingHeader } from "@/components/landing/LandingHeader";
 import { LandingHero } from "@/components/landing/LandingHero";
+import { LandingSocialProof } from "@/components/landing/LandingSocialProof";
 import { LiveDemo } from "@/components/landing/LiveDemo";
 import { LandingFeatures } from "@/components/landing/LandingFeatures";
 import { LandingHowItWorks } from "@/components/landing/LandingHowItWorks";
 import { LandingProblem } from "@/components/landing/LandingProblem";
 import { LandingSolution } from "@/components/landing/LandingSolution";
+import { LandingTestimonials } from "@/components/landing/LandingTestimonials";
 import { LandingPricing } from "@/components/landing/LandingPricing";
+import { LandingFAQ } from "@/components/landing/LandingFAQ";
 import { BookingCalendar } from "@/components/landing/BookingCalendar";
 import { LandingFooter } from "@/components/landing/LandingFooter";
 import { UpgradeModal } from "@/components/landing/UpgradeModal";
@@ -95,12 +98,15 @@ export default function Home() {
         {currentView === "home" ? (
           <>
             <LandingHero onDemoClick={() => handleNavigate("live-demo")} />
+            <LandingSocialProof />
             <LiveDemo />
             <LandingProblem />
             <LandingSolution />
+            <LandingTestimonials />
             <LandingFeatures />
             <LandingHowItWorks />
             <LandingPricing />
+            <LandingFAQ />
             <BookingCalendar />
           </>
         ) : currentView === "contact" ? (

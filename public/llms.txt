@@ -1,0 +1,16 @@
+# CallAutomate
+
+> Enterprise AI Voice Automation & Calling Operations Platform
+
+CallAutomate provides intelligent 24/7 AI voice receptionists and automated agents for appointment booking, customer support, outbound sales, and after-hours call operations.
+
+## Key Information
+- Website: https://app.callautomate.ai/
+- Platform: Enterprise Multi-Tenant AI Calling Operations
+- Contact: support@callautomate.ai
+
+## Core Features
+- Appointment Booking: Automated scheduling synced to CRM.
+- Customer Support: Instant FAQ resolution and ticket routing.
+- Outbound Sales: Automated follow-ups and demo scheduling.
+- After-Hours Calls: 24/7 continuous call answering and slot reservation.

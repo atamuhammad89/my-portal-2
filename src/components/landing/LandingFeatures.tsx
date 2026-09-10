@@ -87,6 +87,22 @@ export function LandingFeatures() {
             </motion.div>
           ))}
         </div>
+
+        {/* Capability Overview Text Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="mt-16 bg-white border border-slate-200 rounded-3xl p-8 max-w-5xl mx-auto shadow-sm text-slate-600 text-sm leading-relaxed space-y-3"
+        >
+          <h3 className="text-lg font-bold text-slate-900 mb-2">
+            Enterprise Voice Operations Infrastructure
+          </h3>
+          <p>
+            CallAutomate equips organizations with autonomous AI phone agents designed to handle inbound inquiry spikes, qualify potential clients, process reservations, and log detailed analytics without human latency. Built on carrier-grade telephony backbones, the platform supports real-time dual-stream audio processing, sentiment detection, and automated webhook triggers.
+          </p>
+        </motion.div>
       </div>
     </section>
   );
