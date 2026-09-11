@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Sans:wght@400;500&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -235,7 +234,7 @@ body {
   background: var(--background);
   background-attachment: fixed;
   color: var(--foreground);
-  font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-dm-sans), 'DM Sans', ui-sans-serif, system-ui, sans-serif;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   transition: background-color 200ms ease, color 200ms ease;
@@ -247,7 +246,7 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: 'Plus Jakarta Sans', ui-sans-serif, sans-serif;
+  font-family: var(--font-plus-jakarta), 'Plus Jakarta Sans', ui-sans-serif, sans-serif;
 }
 
 /* Sidebar styling overrides */

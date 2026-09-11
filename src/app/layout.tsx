@@ -1,3 +1,4 @@
+import { Plus_Jakarta_Sans, DM_Sans } from "next/font/google";
 import { AuthSessionProvider } from "@/components/shared/providers/auth-session-provider";
 import { TimezoneProvider } from "@/components/shared/providers/timezone-provider";
 import { ThemeProvider } from "@/components/shared/providers/theme-provider";
@@ -5,6 +6,20 @@ import type { Metadata } from "next";
 import { QueryProvider } from "@/components/shared/providers/query-provider";
 import { headers } from "next/headers";
 import "./globals.css";
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-plus-jakarta",
+  display: "swap",
+});
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-dm-sans",
+  display: "swap",
+});
 
 export const dynamic = "force-dynamic";
 
@@ -141,7 +156,7 @@ export default async function RootLayout({
   const nonce = (await headers()).get("x-nonce") || "";
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={`${plusJakartaSans.variable} ${dmSans.variable}`} suppressHydrationWarning>
       <head>
         <script
           nonce={nonce}
